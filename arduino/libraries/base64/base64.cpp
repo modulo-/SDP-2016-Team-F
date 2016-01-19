@@ -58,10 +58,10 @@ Checksum base64Checksum(char *ptr, size_t len) {
 
 void base64Decode(char *ptr, size_t len, char **dec_ptr, size_t *dec_len) {
     *dec_len = (len * 3) / 4;
-    *dec_ptr = realloc(*dec_ptr, sizeof(char) * *dec_len);
+    *dec_ptr = (char *)realloc(*dec_ptr, sizeof(char) * *dec_len);
     uint8_t buf = 0x00;
     uint8_t bits_in_buf = 0;
-    uint8_t *nextc = *dec_ptr;
+    uint8_t *nextc = (uint8_t *)(*dec_ptr);
     for(size_t i = 0; i < len; i++) {
         uint8_t tmp;
         switch(bits_in_buf) {
@@ -96,7 +96,7 @@ void base64Decode(char *ptr, size_t len, char **dec_ptr, size_t *dec_len) {
 void base64Encode(char *ptr, size_t len, char **enc_ptr, size_t *enc_len) {
     *enc_len = (len * 4);
     *enc_len = *enc_len / 3 + (*enc_len % 3 == 0 ? 0 : 1);
-    *enc_ptr = realloc(*enc_ptr, sizeof(char) * (*enc_len + 1));
+    *enc_ptr = (char *)realloc(*enc_ptr, sizeof(char) * (*enc_len + 1));
     (*enc_ptr)[*enc_len] = '\0';
     uint8_t buf = 0x00;
     uint8_t bits_in_buf = 0;

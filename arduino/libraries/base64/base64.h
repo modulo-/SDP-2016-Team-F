@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Since fixed-size arrays cannot be returned directly.
 typedef struct checksum {
     char sum[2];
@@ -41,5 +45,9 @@ void base64Decode(char *ptr, size_t len, char **dec_ptr, size_t *dec_len);
 // *enc_ptr will be a null terminated string; the null character is NOT counted
 // toward the returned length.
 void base64Encode(char *ptr, size_t len, char **enc_ptr, size_t *enc_len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
