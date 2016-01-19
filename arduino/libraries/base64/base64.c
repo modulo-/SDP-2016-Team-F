@@ -126,4 +126,12 @@ void encode_base64(char *ptr, size_t len, char **enc_ptr, size_t *enc_len) {
             break;
         }
     }
+    switch(bits_in_buf) {
+        case 2:
+            *nextc = base64_char(buf << 4);
+            break;
+        case 4:
+            *nextc = base64_char(buf << 2);
+            break;
+    }
 }
