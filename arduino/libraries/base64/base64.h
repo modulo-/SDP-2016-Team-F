@@ -25,6 +25,8 @@ struct checksum base64_checksum(char *ptr, size_t len);
 // result in *dec_ptr, (re-)allocating as necessary. Stores the decoded length
 // in dec_len.
 //
+// Ownership of *dec_ptr is transferred to the caller and must be freed.
+//
 // Example usage:
 //
 // char *base64 = "<some valid base64>";
@@ -33,6 +35,9 @@ struct checksum base64_checksum(char *ptr, size_t len);
 // base64_decode(base64, strlen(base64), &dec, &len);
 void decode_base64(char *ptr, size_t len, char **dec_ptr, size_t *dec_len);
 // Encodes base64. See decode_base64 for the workings.
+//
+// *enc_ptr will be a null terminated string; the null character is NOT counted
+// toward the returned length.
 void encode_base64(char *ptr, size_t len, char **enc_ptr, size_t *enc_len);
 
 #endif
