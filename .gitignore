@@ -2,6 +2,9 @@
 
 *.iml
 
+# .swp files (arduino IDE temp)
+*.swp
+
 ## Directory-based project format:
 .idea/
 # if you remove the above rule, at least ignore the following:

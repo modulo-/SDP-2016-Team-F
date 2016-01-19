@@ -16,3 +16,10 @@ Group 12 0x67
 ## Arduino Libraries
 To use the arduino code you need to have the libraries used correctly linked. 
 Library files can be found in the repo, but linking is broken.
+
+## Workflow
+Please use the GitHub wiki a lot. If you find something out or tricky and get a solution chances are
+that others will have hit the same problem. Please amend or add to the wiki as you see fit.
+
+Issues and tasks will be managed through the GitHub issue tracker.
+
