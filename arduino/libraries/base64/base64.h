@@ -33,6 +33,8 @@ struct checksum base64_checksum(char *ptr, size_t len);
 // char *dec = NULL;
 // size_t len;
 // base64_decode(base64, strlen(base64), &dec, &len);
+// // Do shit
+// free(dec);
 void decode_base64(char *ptr, size_t len, char **dec_ptr, size_t *dec_len);
 // Encodes base64. See decode_base64 for the workings.
 //
