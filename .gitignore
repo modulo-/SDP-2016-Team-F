@@ -52,3 +52,6 @@ fabric.properties
 
 # C object files
 *.o
+
+# C test binaries
+/arduino/test/*/*_tests
