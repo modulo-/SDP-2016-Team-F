@@ -1,6 +1,10 @@
 #include "comms.h"
+#include "base64.h"
 
 #include <stdlib.h>
+#include <stddef.h>
+#include <string.h>
+#include <Arduino.h>
 
 #define MAXBUF 64
 
@@ -14,7 +18,7 @@ static const char * const PANID = "6810";
 // The encryption key.
 static const char * const ENCKEY = "3327bdbaaf48c59410fb5c4115777f26";
 
-static bool tryCmd(const char prefix, const char *cmd) {
+static bool tryCmd(const char *prefix, const char *cmd) {
     if(prefix) {
         Serial.print(prefix);
     }
@@ -25,7 +29,7 @@ static bool tryCmd(const char prefix, const char *cmd) {
 }
 
 bool init(const char *chan, const char *control) {
-    Serial.SetTimeout(5000);
+    Serial.setTimeout(5000);
     // Hooray for abusing short circuiting!
     if(tryCmd(control, NULL)
             || tryCmd(NULL, "ATEE1")
@@ -45,29 +49,29 @@ static void processPacket() {
     // A valid message has at least 5 characters (not counting ACKs).
     if(buflen < 5) {
         buflen = 0;
-        continue;
+        return;
     // Different target
     } else if(buf[0] != DEVICEID) {
         buflen = 0;
-        continue;
+        return;
     // Invalid base64
     } else if(!base64::valid(buf, buflen - 1)) {
         buflen = 0;
-        continue;
+        return;
     }
-    Checksum chksum = base64::checksum(buf, buflen - 3);
+    base64::Checksum chksum = base64::checksum(buf, buflen - 3);
     // Invalid checksum
     if(strncmp(chksum.sum, buf + buflen - 3, 2)) {
         buflen = 0;
-        continue;
+        return;
     }
     // Everything ok!
 
     // Send ACK
     Serial.print(buf[1]);
     Serial.print('$');
-    Serial.print(chksum[0]);
-    Serial.print(chksum[1]);
+    Serial.print(chksum.sum[0]);
+    Serial.print(chksum.sum[1]);
     Serial.println("");
     // Decode
     char *decoded = NULL;
@@ -97,11 +101,11 @@ void send(void *data, char target, size_t len) {
     // packets.
     char *encoded = NULL;
     size_t enclen;
-    base64::encode(data, len, &encoded, &enclen);
+    base64::encode((char *)data, len, &encoded, &enclen);
     Serial.print(target);
     Serial.print(DEVICEID);
     Serial.print(encoded);
-    Checksum chksum = base64::checksum(encoded, enclen);
+    base64::Checksum chksum = base64::checksum(encoded, enclen);
     Serial.print(chksum.sum[0]);
     Serial.print(chksum.sum[1]);
     Serial.println("");
