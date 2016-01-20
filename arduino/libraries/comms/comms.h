@@ -1,16 +1,16 @@
+#pragma once
 
 namespace comms {
 
-// The PANID used.
-static const char * const PANID = "6810";
-// The encryption key.
-static const char * const ENCKEY = "3327bdbaaf48c59410fb5c4115777f26";
 // The device "id" ('1' or '2').
+//
+// This is NOT defined by the comms library, but must be defined in the core
+// arduino code.
 extern const char DEVICEID;
 
 // Initializes the comms system.
 //
-// Takes strings for the frequency, and the control character sequence.
+// Takes strings for the channel, and the control character sequence.
 //
 // Also sets the panid and encryption keys.
 //
@@ -21,7 +21,7 @@ extern const char DEVICEID;
 // if(!comms::init("60", "~~~")) {
 //     // DO PANIC
 // }
-bool init(const char *freq, const char *control);
+bool init(const char *chan, const char *control);
 
 // Checks for any recieved packets. If any are recieved, process will be
 // called.
