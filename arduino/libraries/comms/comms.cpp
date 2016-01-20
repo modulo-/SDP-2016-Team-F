@@ -40,10 +40,44 @@ bool init(const char *chan, const char *control) {
     return true;
 }
 
-void poll() {
-    if(Serial.available() == 0) {
-        return;
+// Processes the full packet in buf.
+static void processPacket() {
+    // A valid message has at least 5 characters (not counting ACKs).
+    if(buflen < 5) {
+        buflen = 0;
+        continue;
+    // Different target
+    } else if(buf[0] != DEVICEID) {
+        buflen = 0;
+        continue;
+    // Invalid base64
+    } else if(!base64::valid(buf, buflen - 1)) {
+        buflen = 0;
+        continue;
     }
+    Checksum chksum = base64::checksum(buf, buflen - 3);
+    // Invalid checksum
+    if(strncmp(chksum.sum, buf + buflen - 3, 2)) {
+        buflen = 0;
+        continue;
+    }
+    // Everything ok!
+
+    // Send ACK
+    Serial.print(buf[1]);
+    Serial.print('$');
+    Serial.print(chksum[0]);
+    Serial.print(chksum[1]);
+    Serial.println("");
+    // Decode
+    char *decoded = NULL;
+    size_t decoded_len;
+    base64::decode(buf + 2, buflen - 5, &decoded, &decoded_len);
+    process(decoded, decoded_len);
+    free(decoded);
+}
+
+void poll() {
     int c;
     while((c = Serial.read()) != -1) {
         // Message too long. Drop the buffer.
@@ -53,39 +87,7 @@ void poll() {
         buf[buflen++] = (char)c;
         // We have a packet seperator, check the packet.
         if(c == '\n') {
-            // A valid message has at least 5 characters (not counting ACKs).
-            if(buflen < 5) {
-                buflen = 0;
-                continue;
-            // Different target
-            } else if(buf[0] != DEVICEID) {
-                buflen = 0;
-                continue;
-            // Invalid base64
-            } else if(!base64::valid(buf, buflen - 1)) {
-                buflen = 0;
-                continue;
-            }
-            Checksum chksum = base64::checksum(buf, buflen - 3);
-            // Invalid checksum
-            if(strncmp(chksum.sum, buf + buflen - 3, 2)) {
-                buflen = 0;
-                continue;
-            }
-            // Everything ok!
-
-            // Send ACK
-            Serial.print(buf[1]);
-            Serial.print('$');
-            Serial.print(chksum[0]);
-            Serial.print(chksum[1]);
-            Serial.println("");
-            // Decode
-            char *decoded = NULL;
-            size_t decoded_len;
-            base64::decode(buf + 2, buflen - 5, &decoded, &decoded_len);
-            process(decoded, decoded_len);
-            free(decoded);
+            processPacket();
         }
     }
 }
