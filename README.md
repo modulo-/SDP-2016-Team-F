@@ -23,3 +23,36 @@ that others will have hit the same problem. Please amend or add to the wiki as y
 
 Issues and tasks will be managed through the GitHub issue tracker.
 
+
+
+## Git ##
+
+### How-To
+* always keep master and main group branches in a working state, do not commit any broken code to them!
+* small commits can go directly on the master branches if you are 100% that they're OK (do relevant testing, make sure it's working with everything else)
+* larger pieces of work should be done on a branch with a descriptive name
+* before merging a branch back in, make sure that your code will work with the code currently on master:
+  * try rebasing your branch off of the current master: 
+     * `git checkout <my-amazing-branch>`
+     * `git rebase master`
+  * if this gives you get a merge conflict, abort the rebase:
+     * `git rebase --abort`
+  * and just do a regular merge of master into your branch:
+     * `git merge master`
+  * if you still get a merge conflict, suck it up and fix it (using a graphical merge tool is strongly encouraged)
+  * now you should be at a state where you can test your code with the latest master (having someone else review the code at this stage might catch some errors as well)
+  * if everything is alright merge the code into master by doing:
+    * `git checkout master`
+    * `git merge <my-amazing-branch> --no-ff`
+  * the `--no-ff` makes git not fast-forward master even if it can which is useful in case all the changes on a branch need to be reverted at once
+  * delete the old branch:
+     * `git push origin :<my-amazing-branch>` 
+
+### Random pointers for git:
+
+* when pulling after local commit have been made use `git pull --rebase` which will rebase your local commits on top of the master on origin (makes the tree  look less of a mess)
+* use branch names that describe what you are doing; using tokens might be useful if there are a lot of branches: vision/tweaking-calibrations
+* run `git remote prune origin` to stop tracking branches that are no longer on origin
+
+
+
