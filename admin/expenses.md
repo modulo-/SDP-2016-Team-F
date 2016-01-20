@@ -1,10 +1,18 @@
 # Expenses Group 11
+
+| Item      | Cost  | Funds From |
+|---------- |:----: | -----------|
+|           |       |            |
+
 Total: £0
 Budget left: £100 
 
 # Expenses Group 12
-Keys: 2 copies made for £5 total
-Wheels: ???
+
+| Item      | Cost  | Funds From |
+|---------- |:----: | -----------|
+| 2 Keys    | £5    | Margus     |
+| Wheels    | ???   | Garry      | 
 
 Total: £5
 Budget left: £95 
