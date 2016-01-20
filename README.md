@@ -27,9 +27,16 @@ Issues and tasks will be managed through the GitHub issue tracker.
 
 ## Git ##
 
+There are 3 main branches on git:
+* master - used for admin and stuff generic to both teams
+* group11 - group 11 development
+* group12 - group 12 development
+
+These should always be kept in a working state.
 ### How-To
-* always keep master and main group branches in a working state, do not commit any broken code to them!
-* small commits can go directly on the master branches if you are 100% that they're OK (do relevant testing, make sure it's working with everything else)
+* always keep main branches in a working state, do not commit any broken code to them!
+* master branch is for administrative issues and developments common for both groups (do not break the other group's code! be careful!!!)
+* small commits can go directly on the group branches if you are 100% that they're OK (do relevant testing, make sure it's working with everything else)
 * larger pieces of work should be done on a branch with a descriptive name
 * before merging a branch back in, make sure that your code will work with the code currently on master:
   * try rebasing your branch off of the current master: 
