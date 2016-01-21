@@ -38,6 +38,7 @@ These should always be kept in a working state.
 * master branch is for administrative issues and developments common for both groups (do not break the other group's code! be careful!!!)
 * small commits can go directly on the group branches if you are 100% that they're OK (do relevant testing, make sure it's working with everything else)
 * larger pieces of work should be done on a branch with a descriptive name
+* `git checkout -b <branch>` is used to create a new one locally, and `git push -u origin <branch>` to push it the first time.
 * before merging a branch back in, make sure that your code will work with the code currently on master:
   * try rebasing your branch off of the current master: 
      * `git checkout <my-amazing-branch>`
