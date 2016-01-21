@@ -78,7 +78,6 @@ static void processPacket() {
     size_t decoded_len;
     base64::decode(buf + 2, buflen - 5, &decoded, &decoded_len);
     process(decoded, decoded_len);
-    free(decoded);
 }
 
 void poll() {
