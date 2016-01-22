@@ -10,8 +10,11 @@ def checksum(data):
     return ''.join(char(x) for x in chk)
 
 def decode(data):
-    # TODO
-    pass
+    if len(data) % 4 == 2:
+        data += '=='
+    elif len(data) % 4 == 3:
+        data += '='
+    return base64.b64decode(data)
 
 def validchar(chr):
     return ((chr >= 'A' and chr <= 'Z')

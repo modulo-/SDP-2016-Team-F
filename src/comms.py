@@ -1,6 +1,6 @@
 import os
 import thread
-from threading import Timer
+from threading import Timer, Lock
 import b64
 import serial
 
@@ -10,50 +10,51 @@ PANID = '6810'
 DEVICEID = 'c'
 
 commserial = None
+commlock = Lock()
 callbacks = []
 # List of sent and not-yet acknowledged packets.
 packetlist = []
 
 def monitor_comms():
     while True:
-        line = commserial.readline()
-        if len(line) < 6:
+        line = commserial.readline().strip()
+        if len(line) < 4:
             continue
         if not line.startswith(DEVICEID):
             continue
-        if line[1] == '$' and len(line) == 6:
+        if line[1] == '$' and len(line) == 4:
             # ACK
-            print line
             index = None
             for (i, packet) in enumerate(packetlist):
                 if line[2:4] == packet[-4:-2]:
-                    print "ACK"
+                    print "ACK", line
                     index = i
                     break;
             if index != None:
                 packetlist.pop(index)
             continue
-        if not b64.valid(line[:-1]):
+        if not b64.valid(line):
             continue
-        if b64.checksum(line[:-3]) != line[-4:-2]:
+        if b64.checksum(line[:-2]) != line[-2:]:
             continue
-        commserial.write(line[1] + '$' + line[-4:-2] + '\r\n')
-        #os.fsync(commfd)
-        data = b64.decode(line[2:-4])
-        # TODO: how to pass data to callbacks without blocking the monitor
-        # thread?
+        commlock.acquire()
+        commserial.write(line[1] + '$' + line[-2:] + '\r\n')
+        commserial.flush()
+        commlock.release()
+        data = b64.decode(line[2:-2])
+        for callback in callbacks:
+            thread.start_new_thread(callback, (data, ))
 
 def waitok():
-    #os.fsync(commfd)
     buf = (None, None)
     while buf != ('O', 'K'):
         buf = (buf[1], commserial.read())
 
-def init(fname, chan, control):
+def init(fname, chan, control, listen=True):
     global commserial
     commserial = serial.Serial(fname)
-    commserial.flushInput()
-    commserial.flushOutput()
+    commserial.reset_input_buffer()
+    commserial.reset_output_buffer()
     cmds = [
         control,
         'ATEE1\r',
@@ -65,9 +66,12 @@ def init(fname, chan, control):
         'ATDN\r',
     ]
     for cmd in cmds:
+        commlock.acquire()
         commserial.write(cmd)
+        commlock.release()
         waitok()
-    thread.start_new_thread(monitor_comms, ())
+    if listen:
+        thread.start_new_thread(monitor_comms, ())
 
 def registercb(cb):
     callbacks.append(cb)
@@ -75,18 +79,22 @@ def registercb(cb):
 def check_recieved(packet):
     # TODO: Maybe limit number of retries? Or maybe that isn't desirable?
     if packet in packetlist:
+        commlock.acquire()
         commserial.write(packet)
-        #os.fsync(commfd)
-        Timer(0.01, lambda: check_recieved(packet)).start()
+        commserial.flush()
+        commlock.release()
+        Timer(0.1, lambda: check_recieved(packet)).start()
 
 def send(data, target):
     packet = target + DEVICEID + b64.encode(data)
     sum = b64.checksum(packet)
     packet += sum + '\r\n'
-    print repr(packet)
     packetlist.append(packet)
+    commlock.acquire()
     commserial.write(packet)
-    Timer(0.01, lambda: check_recieved(packet)).start()
+    commserial.flush()
+    commlock.release()
+    Timer(0.1, lambda: check_recieved(packet)).start()
 
 # Prevents any packets from being resent.
 #
