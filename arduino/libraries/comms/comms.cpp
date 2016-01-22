@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <Arduino.h>
+#include <Wire.h>
 
 #define MAXBUF 64
 
@@ -30,24 +31,29 @@ static bool tryCmd(const char *prefix, const char *cmd) {
 
 bool init(const char *chan, const char *control) {
     Serial.setTimeout(5000);
-    // Hooray for abusing short circuiting!
-    if(tryCmd(control, NULL)
-            || tryCmd(NULL, "ATEE1")
-            || tryCmd(NULL, "ATAC")
-            || tryCmd("ATEC", ENCKEY)
-            || tryCmd("ATID", PANID)
-            || tryCmd("ATCN", chan)
-            || tryCmd(NULL, "ATAC")
-            || tryCmd(NULL, "ATDN")) {
+    if(tryCmd(control, NULL))
         return false;
-    }
+    if(tryCmd(NULL, "ATEE1"))
+        return false;
+    if(tryCmd(NULL, "ATAC"))
+        return false;
+    if(tryCmd("ATEK", ENCKEY))
+        return false;
+    if(tryCmd("ATID", PANID))
+        return false;
+    if(tryCmd("ATCN", chan))
+        return false;
+    if(tryCmd(NULL, "ATAC"))
+        return false;
+    if(tryCmd(NULL, "ATDN"))
+        return false;
     return true;
 }
 
 // Processes the full packet in buf.
 static void processPacket() {
     // A valid message has at least 5 characters (not counting ACKs).
-    if(buflen < 5) {
+    if(buflen < 6) {
         buflen = 0;
         return;
     // Different target
@@ -55,13 +61,13 @@ static void processPacket() {
         buflen = 0;
         return;
     // Invalid base64
-    } else if(!base64::valid(buf, buflen - 1)) {
+    } else if(!base64::valid(buf, buflen - 2)) {
         buflen = 0;
         return;
     }
-    base64::Checksum chksum = base64::checksum(buf, buflen - 3);
+    base64::Checksum chksum = base64::checksum(buf, buflen - 4);
     // Invalid checksum
-    if(strncmp(chksum.sum, buf + buflen - 3, 2)) {
+    if(strncmp(chksum.sum, buf + buflen - 4, 2)) {
         buflen = 0;
         return;
     }
@@ -76,7 +82,8 @@ static void processPacket() {
     // Decode
     char *decoded = NULL;
     size_t decoded_len;
-    base64::decode(buf + 2, buflen - 5, &decoded, &decoded_len);
+    base64::decode(buf + 2, buflen - 6, &decoded, &decoded_len);
+    buflen = 0;
     process(decoded, decoded_len);
 }
 
