@@ -27,10 +27,10 @@ void setup() {
   SDPsetup();
   helloWorld();
 
-  pinMode(13, OUTPUT);
-  digitalWrite(13, LOW);
-  //if(!comms::init("67", "~~~")) {
-  digitalWrite(13, HIGH);
+//  pinMode(13, OUTPUT);
+//  digitalWrite(13, LOW);
+//  //if(!comms::init("67", "~~~")) {
+//  digitalWrite(13, HIGH);
   // }
 }
 
@@ -43,13 +43,13 @@ void loop() {
   // getmessage
   char * message = (char *) malloc(MAX_CMD_SIZE * sizeof(char));
 
-  int len = Serial.readBytes(message, MAX_CMD_SIZE);
+  // int len = Serial.readBytes(message, MAX_CMD_SIZE);
 
   // message format: [1B opcode][2B arg1][2B arg2]
-  message = "m\0\20\0\50"; // move 20cm in relative heading 50 deg to right
-  message = "t\255\206"; // turn 50 deg to the left (-50 is same as 206)
-  message = "k\0\50"; // kick the ball to 50cm
-  message = "d\0\100\0\25...."; // send 100 bytes of data to i2c at 25hz followed by the data
+//  message = "m\000\020\000\050\000"; // move 20cm in relative heading 50 deg to right
+//  message = "t\255\206\000"; // turn 50 deg to the left (-50 is same as 206)
+//  message = "k\000\050\000"; // kick the ball to 50cm
+  message = "d\000\010\000\001ABCDEFGHIJ\0"; // send 100 bytes of data to i2c at 25hz followed by the data
 
 
   switch (message[0]) {

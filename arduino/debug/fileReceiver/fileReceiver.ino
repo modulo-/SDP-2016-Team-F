@@ -8,6 +8,7 @@ void setup () {
   Wire.begin(0x45);                // join i2c bus with address #0x45
   Wire.onReceive(receiveByte); // register event
   Serial.begin(115200);
+  Serial.println("Receiver up");
   oldtime = millis();
 }
 
