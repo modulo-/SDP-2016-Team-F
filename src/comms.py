@@ -29,7 +29,7 @@ def monitor_comms():
                 if line[2:4] == packet[-4:-2]:
                     print "ACK", line
                     index = i
-                    break;
+                    break
             if index != None:
                 packetlist.pop(index)
             continue
@@ -61,15 +61,20 @@ def init(fname, chan, control, listen=True):
         'ATAC\r',
         'ATEK' + ENCKEY + '\r',
         'ATID' + PANID + '\r',
-        'ATCN' + chan + '\r',
+        'ATCN' + str(chan) + '\r',
         'ATAC\r',
+        'ATWR\r',
         'ATDN\r',
     ]
+
     for cmd in cmds:
+        print cmd
         commlock.acquire()
         commserial.write(cmd)
         commlock.release()
+        print "sent",
         waitok()
+        print "done"
     if listen:
         thread.start_new_thread(monitor_comms, ())
 
@@ -86,7 +91,7 @@ def check_recieved(packet):
         Timer(0.1, lambda: check_recieved(packet)).start()
 
 def send(data, target):
-    packet = target + DEVICEID + b64.encode(data)
+    packet = str(target) + DEVICEID + b64.encode(data)
     sum = b64.checksum(packet)
     packet += sum + '\r\n'
     packetlist.append(packet)
@@ -106,4 +111,4 @@ def send(data, target):
 # Use the empty string as target to stop all resending.
 def stop_resend(target):
     global packetlist
-    packetlist = [x for x in packetlist if not x.startswith(target)]
+    packetlist = [x for x in packetlist if not x.startswith(str(target))]

@@ -19,8 +19,10 @@ void loop () {
 
 void receiveByte (int howMany) {
   unsigned long newtime = millis();
-  char data = Wire.read();
-  Serial.print(data + " ");
+  byte data = Wire.read();
+  Serial.print("Data: ");
+  Serial.print((int)data);
+  Serial.print(" Delay: ");
   Serial.println(newtime-oldtime);
   oldtime = newtime;
 }
