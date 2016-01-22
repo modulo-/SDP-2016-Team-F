@@ -22,7 +22,11 @@ void setup() {
 }
 
 void loop() {
-  char input;
+  react();
+}
+
+void react() {
+char input;
   input = Serial.read();
   switch (input) {
     case '8':
@@ -139,5 +143,4 @@ void loop() {
       motorStop(3);
       break;
   }
-}
-
+  }
