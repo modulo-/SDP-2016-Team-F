@@ -108,7 +108,7 @@ void doData(char * message) {
   }
 }
 
-// move some distance in specified direction, idealy by changing heading minimally
+// move some distance in specified direction, ideally by changing heading minimally
 void move(int direction, int distance) {
 
 }
