@@ -41,7 +41,7 @@ byte* dataCheckSum(byte* data,int length){
 //do the calibration for 50cm, 100cm and 150cm
 //50 approx 100 130
 //100 approx 100 150
-//a50 approx 100 
+//a50 approx 100 173 
 void kickerCalibration(){
 	Serial.write("kicker calibration:\r\n");
 	int kickerStrength=100;
