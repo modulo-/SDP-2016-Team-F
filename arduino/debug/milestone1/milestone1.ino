@@ -71,22 +71,30 @@ void loop() {
 void doMove(char * message) {
   int distance = (message[1] << 8) | message[2];
   int direction = (message[3] << 8) | message[4];
-  int finalHeading = (message[5] << 8) | message[6];
+  int finalHeading = (message[5] << 8) | message[6]; // relative finish heading
 
-
-  move(direction, distance);
+  int startHeading = getCurrentHeading(); // absolute start heading
+  finalHeading = (startHeading + finalHeading + 360)%360; // absulute finish heading
+  
+  move(direction, distance); // move in relative heading
+  turn(getHeadingDiff(finalHeading, getCurrentHeading())); // turn to calculated final abs heading
 }
 
 void doTurn(char * message) {
   int heading = (message[1] << 8) | message[2];
+  
+  int finalHeading = (message[5] << 8) | message[6]; // relative finish heading
+  finalHeading = (getCurrentHeading() + finalHeading + 360)%360; // absulute finish heading
+  
+  turn(getHeadingDiff(finalHeading, getCurrentHeading())); // turn to calculated final abs heading
 }
 
 void doKick(char * message) {
   int distance = (message[1] << 8) | message[2];
+  kick(distance);
 }
 
 void doData(char * message) {
-
   int dataLen = (message[1] << 8) | message[2];
   int frequency = (message[3] << 8) | message[4];
   char * file = &message[5];
@@ -100,10 +108,12 @@ void doData(char * message) {
   }
 }
 
+// move some distance in specified direction, idealy by changing heading minimally
 void move(int direction, int distance) {
 
 }
 
+// turn on the spot
 void turn(int dir) { // positive - right, negative - left
   if (dir > 0) { // turn right
     motorBackward(0, 100);
@@ -185,11 +195,5 @@ int getCurrentHeading() {
     /* 'orientation' should have valid .heading data now */
     return (int) orientation.heading;
   }
-}
-
-byte getHeadingTolerance(int currentHeading, int targetHeading) {
-  int deltaAngle;
-  deltaAngle = getHeadingDiff(targetHeading, currentHeading);
-  return 5 + abs(deltaAngle) / 10;
 }
 
