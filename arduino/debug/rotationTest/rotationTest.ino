@@ -1,6 +1,9 @@
 #include "SDPArduino.h"
 #include <Wire.h>
-int i = 0;
+/*
+Joel Hutton
+this script is for testing how to rotate the robot by a given angle
+*/
 
 
 /*
@@ -10,55 +13,53 @@ int i = 0;
    1 - Right Reversed
    2 - Middle to left
    3 - kicker
-   4 - left flipper
-   5 - right flipper
+   4 - flippers
+   5 - unnasigned
  */
 void setup(){
 	SDPsetup();
 	helloWorld();
 }
 
-//checksum for the comms data packet
-//b0 is XOR of the even characters, 
-//b1 is XOR of the odd characters. 
-byte* dataCheckSum(byte* data,int length){
-	byte* b0;
-	byte* b1;
-	b0 = (byte*) malloc(sizeof(byte));
-	b1 = (byte*) b0 + sizeof(byte);
-	*(b0) = 0x0;
-	*(b1) = 0x0;
-	for(int i =0; i<length;i++){
-		if(i%2==0){
-			*(b0) = *(b0) ^data[i];
-		}		
-		else{
-			*(b1) = *(b1) ^ data[i];
-		}
+void turn(int time, bool clockwise){
+	if(clockwise){
+		Serial.write("clockwise\r\n");
+		motorBackward(0, 100);
+		motorForward(1, 100);
+		motorBackward(2,100);
+		//delay(fullRotCw*(angle/360.0));
 	}
+	else{
+		Serial.write("anti-clockwise\r\n");
+		motorForward(0, 100);
+		motorBackward(1, 100);
+		motorForward(2,	100);
+		//delay(fullRotAc*(angle/360.0));
+	}
+	delay(time);
+	motorAllStop();
 }
 
-//do the calibration for 50cm, 100cm and 150cm
-//50 approx 100 130
-//100 approx 100 150
-//a50 approx 100 173 
-void kickerCalibration(){
-	Serial.write("kicker calibration:\r\n");
-	int kickerStrength=100;
-	int kickerTime=150;
+//Don't ask why, I don't know 
+float fullRotAc = 1650;
+float fullRotCw = 1600;
+void turnCalibrate(){
+	fullRotAc = 1500;
+	fullRotCw = 1500;
+	Serial.write("turning calibration:\r\n");
 	char ser=Serial.read();
 	//quit signal
 	int delta;
-	bool adjustTime=true;
+	bool adjustCw=true;
 	while(ser!='q'){
 		delta=0;
 		switch(ser){
 			//Roman Numerals because I'm a horrible back
-			case 'T':
-				adjustTime=true;
+			case 'A':
+				adjustCw=false;
 				break;
-			case 'P':
-				adjustTime=false;
+			case 'C':
+				adjustCw=true;
 				break;
 			case 'I':
 				delta=1;
@@ -85,29 +86,30 @@ void kickerCalibration(){
 				delta=-50;
 				break;
 			case 'k':
-				Serial.write("kicking at P:");
-				Serial.print(kickerStrength);
-				Serial.write(" T:");
-				Serial.print(kickerTime);
+				Serial.write("Turning for:");
+				if(adjustCw){
+					Serial.print(fullRotCw);
+				}
+				else{
+					Serial.print(fullRotCw);
+				}
 				Serial.write("\r\n");
-				motorBackward(3, kickerStrength);
-				delay(kickerTime);
-				motorForward(3, 30);
-				delay(1000);
-				motorStop(3);
+				int time = adjustCw? fullRotCw : fullRotAc;
+				turn(time, adjustCw);
+				adjustCw=!adjustCw;
 				break;
 		}
-		if(adjustTime){
-			kickerTime+=delta;
+		if(adjustCw){
+			fullRotCw+=delta;
 		}
 		else{
-			kickerStrength+=delta;
+			fullRotAc+=delta;
 		}
 		if(delta !=0){
-		Serial.write("Power:");
-		Serial.print(kickerStrength);
-		Serial.print(" Time:");
-		Serial.print(kickerTime);
+		Serial.write("Ac Time:");
+		Serial.print(fullRotAc);
+		Serial.print("Cw Time:");
+		Serial.print(fullRotCw);
 		Serial.write("\r\n");
 		}
 		ser=Serial.read();
@@ -115,117 +117,17 @@ void kickerCalibration(){
 }
 
 void loop(){
+	turnCalibrate();	
 	char input;
-	kickerCalibration();
 	input = Serial.read();
 	switch (input) {
-		case '8':
-			Serial.write("forward\r\n");
-			motorBackward(0, 100);
-			motorBackward(1, 100);
+		//turn clockwise
+		case 'c':
+			turn(1000,true);
 			break;
-
-		case '2':
-			Serial.write("backward\r\n");
-			motorForward(0, 100);
-			motorForward(1, 100);
-			break;
-
-		case '5':
-			Serial.write("stop\r\n");
-			motorStop(0);
-			motorStop(1);
-			motorStop(2);
-			break;
-
-		case '6':
-			Serial.write("right\r\n");
-			motorBackward(2, 100);
-			break;
-		case '4':
-			Serial.write("left\r\n");
-			motorForward(2, 100);
-			break;
-
-		case '9':
-			Serial.write("forwards clockwise\r\n");
-			motorBackward(0, 100);
-			motorForward(1, 50);
-			motorBackward(2, 100);
-			break;
-		case '7':
-			Serial.write("forwards anticlockwise\r\n");
-			motorForward(0, 50);
-			motorBackward(1, 100);
-			motorForward(2, 100);
-			break;
-
-		case '3':
-			Serial.write("backwards clockwise\r\n");
-			motorBackward(0, 50);
-			motorForward(1, 100);
-			motorBackward(0, 50);
-			motorBackward(2, 100);
-			break;
-		case '1':
-			Serial.write("backwards anticlockwise\r\n");
-			motorForward(0, 100);
-			motorBackward(1, 50);
-			motorForward(2, 100);
-			break;
-
-			//right flipper open
-		case 'k':
-			Serial.write("right flipper open\r\n");
-			motorForward(5, 80);
-			delay(300);
-			motorStop(5);
-			break;
-
-			//right flipper close
-		case 'l':
-			Serial.write("right flipper close\r\n");
-			motorBackward(5, 80);
-			delay(300);
-			motorStop(5);
-			break;
-
-
-
-			//left flipper open
+		//turn anticlockwise
 		case 'a':
-			Serial.write("left flipper open\r\n");
-			motorForward(4, 80);
-			delay(300);
-			motorStop(4);
-			break;
-
-			//left flipper close
-		case 's':
-			Serial.write("left flipper close\r\n");
-			motorBackward(4, 80);
-			delay(300);
-			motorStop(4);
-			break;
-
-
-
-			//kicker down
-		case 'h':
-			Serial.write("kicker down\r\n");
-			motorForward(3, 100);
-			delay(300);
-			motorStop(3);
-			break;
-
-			// kick
-		case 'y':
-			Serial.write("kick\r\n");
-			motorBackward(3, 100);
-			delay(300);
-			motorForward(3, 100);
-			delay(100);
-			motorStop(3);
+			turn(1000,false);
 			break;
 		default:
 			break;
