@@ -39,76 +39,65 @@ byte* dataCheckSum(byte* data,int length){
 }
 
 //do the calibration for 50cm, 100cm and 150cm
-//50 approx 100 130
-//100 approx 100 150
-//a50 approx 100 
 void kickerCalibration(){
 	Serial.write("kicker calibration:\r\n");
-	int kickerStrength=100;
-	int kickerTime=150;
+	int kickerStrength=0;
 	char ser=Serial.read();
 	//quit signal
 	int delta;
 	bool adjustTime=true;
 	while(ser!='q'){
-		delta=0;
 		switch(ser){
 			//Roman Numerals because I'm a horrible back
-			case 'T':
-				adjustTime=true;
-				break;
-			case 'P':
-				adjustTime=false;
-				break;
 			case 'I':
 				delta=1;
+				Serial.print(kickerStrength);
+				Serial.write("\r\n");
 				break;
 			case 'V':
 				delta=5;
+				Serial.print(kickerStrength);
+				Serial.write("\r\n");
 				break;
 			case 'X':
 				delta=10;
+				Serial.print(kickerStrength);
+				Serial.write("\r\n");
 				break;
 			case 'L':
 				delta=50;
+				Serial.print(kickerStrength);
+				Serial.write("\r\n");
 				break;
 			case 'i':
 				delta=-1;
+				Serial.print(kickerStrength);
+				Serial.write("\r\n");
 				break;
 			case 'v':
 				delta=-5;
+				Serial.print(kickerStrength);
+				Serial.write("\r\n");
 				break;
 			case 'x':
 				delta=-10;
+				Serial.print(kickerStrength);
+				Serial.write("\r\n");
 				break;
 			case 'l':
 				delta=-50;
+				Serial.print(kickerStrength);
 				break;
 			case 'k':
-				Serial.write("kicking at P:");
+				Serial.write("kicking at ");
 				Serial.print(kickerStrength);
-				Serial.write(" T:");
-				Serial.print(kickerTime);
 				Serial.write("\r\n");
 				motorBackward(3, kickerStrength);
-				delay(kickerTime);
-				motorForward(3, 30);
-				delay(1000);
+				delay(500);
+				motorForward(3, 100);
+				delay(100);
 				motorStop(3);
 				break;
-		}
-		if(adjustTime){
-			kickerTime+=delta;
-		}
-		else{
-			kickerStrength+=delta;
-		}
-		if(delta !=0){
-		Serial.write("Power:");
-		Serial.print(kickerStrength);
-		Serial.print(" Time:");
-		Serial.print(kickerTime);
-		Serial.write("\r\n");
 		}
 		ser=Serial.read();
 	}

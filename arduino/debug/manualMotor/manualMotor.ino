@@ -6,13 +6,14 @@ int i = 0;
 
 /*
 Motor mapping
+ 0
 
- 0 - Left Reversed
- 1 - Right Reversed
- 2 - Middle to left
+ 0 - Left motor (polarity reversed)
+ 1 - Right motor (polarity reversed)
+ 2 - Middle motor (left is 'forward')
  3 - kicker
  4 - flippers
- 5 - free
+ 5 - nothing
  */
 
 void setup() {
@@ -90,7 +91,7 @@ void loop() {
       break;
 
     //flippers open
-    case 'k':
+    case 'o':
       Serial.write("flippers open\r\n");
       motorForward(5, 80);
       delay(300);
@@ -98,7 +99,7 @@ void loop() {
       break;
 
     //flippers close
-    case 'l':
+    case 'c':
       Serial.write("flippers close\r\n");
       motorBackward(5, 80);
       delay(300);
@@ -121,20 +122,20 @@ void loop() {
 //      motorStop(4);
 //      break;
 
-    //kicker down
-    case 'h':
+    //kick
+    case 'k':
       Serial.write("kicker down\r\n");
       motorForward(3, 100);
       delay(300);
       motorStop(3);
       break;
 
-    // kick
-    case 'y':
+    // kicker down
+    case 'j':
       Serial.write("kick\r\n");
-      motorBackward(3, 100);
+      motorBackward(3, 30);
       delay(300);
-      motorForward(3, 100);
+      motorForward(3, 30);
       delay(100);
       motorStop(3);
       break;
