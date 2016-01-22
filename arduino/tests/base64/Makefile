@@ -6,11 +6,11 @@ test: base64_tests
 base64_tests: base64.o base64_tests.o
 	g++ $^ -o $@
 
-base64.o: ../../libraries/base64/base64.cpp
+base64.o: ../../libraries/comms/base64.cpp
 	g++ -c -o $@ $<
 
 base64_tests.o: base64_tests.cpp
-	g++ -I../../libraries/base64 -c -o $@ $<
+	g++ -I../../libraries/comms -c -o $@ $<
 
 clean:
 	rm -f *.o

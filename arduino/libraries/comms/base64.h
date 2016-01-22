@@ -1,5 +1,4 @@
-#ifndef _BASE64_H
-#define _BASE64_H
+#pragma once
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -45,5 +44,3 @@ void decode(const char *ptr, size_t len, char **dec_ptr, size_t *dec_len);
 void encode(const char *ptr, size_t len, char **enc_ptr, size_t *enc_len);
 
 }
-
-#endif
