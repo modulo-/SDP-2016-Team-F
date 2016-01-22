@@ -54,4 +54,7 @@ fabric.properties
 *.o
 
 # C test binaries
-/arduino/test/*/*_tests
+/arduino/tests/*/*_tests
+
+# Python bytecode
+*.pyc
