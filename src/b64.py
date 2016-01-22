@@ -7,21 +7,21 @@ def checksum(data):
     chk = [0, 0]
     for (i, chr) in enumerate(data):
         chk[i % 2] ^= value(chr)
-    return ''.join(char(x)) for x in chk)
+    return ''.join(char(x) for x in chk)
 
 def decode(data):
     # TODO
     pass
 
 def validchar(chr):
-    return (chr >= 'A' and chr <= 'Z')
+    return ((chr >= 'A' and chr <= 'Z')
         or (chr >= 'a' and chr <= 'z')
         or (chr >= '0' and chr <= '9')
         or chr == '+'
-        or chr == '/'
+        or chr == '/')
 
 def valid(data):
-    all(map(data, validchar))
+    all(map(validchar, data))
 
 def value(chr):
     if chr >= 'A' and chr <= 'Z':
