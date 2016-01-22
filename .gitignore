@@ -5,6 +5,9 @@
 # .swp files (arduino IDE temp)
 *.swp
 
+# .pyc python compiled
+*.pyc
+
 ## Directory-based project format:
 .idea/
 # if you remove the above rule, at least ignore the following:
@@ -55,6 +58,3 @@ fabric.properties
 
 # C test binaries
 /arduino/tests/*/*_tests
-
-# Python bytecode
-*.pyc
