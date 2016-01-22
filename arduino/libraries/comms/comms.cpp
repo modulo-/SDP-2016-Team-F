@@ -29,7 +29,10 @@ static bool tryCmd(const char *prefix, const char *cmd) {
     return !Serial.find("OK");
 }
 
-bool init(const char *chan, const char *control) {
+void (* process) (void *data, size_t len);;
+    
+bool init(const char *chan, const char *control, void (* callback)(void*, size_t)) {
+    process = callback;
     Serial.setTimeout(5000);
     if(tryCmd(control, NULL))
         return false;
