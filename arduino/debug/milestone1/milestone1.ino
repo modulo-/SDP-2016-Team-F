@@ -23,11 +23,40 @@ Adafruit_L3GD20_Unified        gyro = Adafruit_L3GD20_Unified(20);
 int targetHeading;
 
 namespace comms {
-    const char DEVICEID = '2';
-
-    void process(void *data, size_t len) {
-        free(data);
+  const char DEVICEID = '2';
+  
+  void process(void *data, size_t len) {
+    // message format: [1B opcode][2B arg1][2B arg2]
+    //  message = "m\000\020\000\050\000"; // move 20cm in relative heading 50 deg to right
+    //  message = "t\255\206\000"; // turn 50 deg to the left (-50 is same as 206)
+    //  message = "k\000\050\000"; // kick the ball to 50cm
+    //  message = "d\000\010\000\001ABCDEFGHIJ\0"; // send 100 bytes of data to i2c at 25hz followed by the data
+    byte * message = (byte *) data;
+  
+    //  for(int i=0; i<10; i++) {
+    //
+    //    Wire.beginTransmission(0x45);
+    //    Wire.write(message[i]);
+    //    Wire.endTransmission();
+    //    delay(100);
+    //  }
+  
+    switch (message[0]) {
+      case 'm':
+        doMove(message);
+        break;
+      case 't':
+        doTurn(message);
+        break;
+      case 'k':
+        doKick(message);
+        break;
+      case 'd':
+        doData(message);
+        break;
     }
+    free(data);
+  }
 }
 
 
@@ -47,11 +76,11 @@ void setup() {
 
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
-  if (!comms::init("67", "~~~", &process)) {
+  if (!comms::init("67", "~~~")) {
     digitalWrite(13, HIGH);
   }
 
-  for(int i = 0; i<MAX_DATA_SIZE; i++) {
+  for (int i = 0; i < MAX_DATA_SIZE; i++) {
     dataBytes[i] = (byte) i; // fixme
   }
 }
@@ -60,40 +89,6 @@ void loop() {
   comms::poll();
 
   delay(100);
-}
-
-// called by the comms lib
-void process(void *data, size_t len){
-  
-  // message format: [1B opcode][2B arg1][2B arg2]
-  //  message = "m\000\020\000\050\000"; // move 20cm in relative heading 50 deg to right
-  //  message = "t\255\206\000"; // turn 50 deg to the left (-50 is same as 206)
-  //  message = "k\000\050\000"; // kick the ball to 50cm
-//  message = "d\000\010\000\001ABCDEFGHIJ\0"; // send 100 bytes of data to i2c at 25hz followed by the data
-  byte * message = (byte *) data;
-
-//  for(int i=0; i<10; i++) {
-//    
-//    Wire.beginTransmission(0x45);
-//    Wire.write(message[i]);
-//    Wire.endTransmission();
-//    delay(100);
-//  }
-
-  switch (message[0]) {
-    case 'm':
-      doMove(message);
-      break;
-    case 't':
-      doTurn(message);
-      break;
-    case 'k':
-      doKick(message);
-      break;
-    case 'd':
-      doData(message);
-      break;
-  }
 }
 
 void doMove(byte * message) {
@@ -127,14 +122,13 @@ void doData(byte * message) {
   if (part == 0) {
     dataFreq = message[2];
     dataLen = message[3];
+  } else if (part == 0xff) {
+      sendData();
   } else {
     int firstByte = message[2];
     int chunkLen = message[3];
     byte * chunk = &message[4];
     memcpy(&dataBytes[firstByte], chunk, chunkLen);
-    if (firstByte+chunkLen >= dataLen) {
-      sendData();
-    }
   }
 
 }
