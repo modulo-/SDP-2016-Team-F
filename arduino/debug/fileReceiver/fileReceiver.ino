@@ -12,7 +12,6 @@ void setup () {
   oldtime = millis();
 }
 
-
 void loop () {
   delay(10);
 }
