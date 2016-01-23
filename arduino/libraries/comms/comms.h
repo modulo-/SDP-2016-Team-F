@@ -22,7 +22,7 @@ extern const char DEVICEID;
 // if(!comms::init("60", "~~~")) {
 //     // DO PANIC
 // }
-bool init(const char *chan, const char *control, void (* callback)(void*, size_t));
+bool init(const char *chan, const char *control);
 
 // Checks for any recieved packets. If any are recieved, process will be
 // called.
@@ -40,6 +40,6 @@ void send(void *data, char target, size_t len);
 //
 // This recieves ownership of `data`, and *must* free it when it is no longer
 // used.
-// void process(void *data, size_t len);
+void process(void *data, size_t len);
 
 }
