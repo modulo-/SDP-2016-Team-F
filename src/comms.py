@@ -1,4 +1,5 @@
 import os
+import random
 import thread
 from threading import Timer, Lock
 import b64
@@ -88,7 +89,7 @@ def check_recieved(packet):
         commserial.write(packet)
         commserial.flush()
         commlock.release()
-        Timer(0.1, lambda: check_recieved(packet)).start()
+        Timer(getStandoff(), lambda: check_recieved(packet)).start()
 
 def send(data, target):
     packet = str(target) + DEVICEID + b64.encode(data)
@@ -99,7 +100,7 @@ def send(data, target):
     commserial.write(packet)
     commserial.flush()
     commlock.release()
-    Timer(0.1, lambda: check_recieved(packet)).start()
+    Timer(getStandoff(), lambda: check_recieved(packet)).start()
 
 # Prevents any packets from being resent.
 #
@@ -112,3 +113,6 @@ def send(data, target):
 def stop_resend(target):
     global packetlist
     packetlist = [x for x in packetlist if not x.startswith(str(target))]
+
+def getStandoff():
+    return random.random()*0.9+0.1
