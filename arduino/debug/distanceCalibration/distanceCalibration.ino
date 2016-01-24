@@ -1,8 +1,11 @@
 #include "SDPArduino.h"
 #include <Wire.h>
+#define ROTARY_SLAVE_ADDRESS 5
+#define ROTARY_COUNT 6
+#define PRINT_DELAY 200
 /*
 Joel Hutton
-this script is for testing how to rotate the robot by a given angle
+this script is for testing how to make the distance move given a distance and angle
 */
 
 
@@ -16,9 +19,6 @@ this script is for testing how to rotate the robot by a given angle
    4 - flippers
    5 - unnasigned
  */
-#define ROTARY_SLAVE_ADDRESS 5
-#define ROTARY_COUNT 6
-#define PRINT_DELAY 200
 
 // Initial motor position is 0.
 int positions[ROTARY_COUNT] = {0};
@@ -29,6 +29,11 @@ void setup() {
   Wire.begin();  // Master of the I2C bus
   SDPsetup();
   helloWorld();
+}
+
+void loop() {
+  updateMotorPositions();
+  printMotorPositions();
 }
 
 void updateMotorPositions() {
@@ -51,34 +56,30 @@ void printMotorPositions() {
   delay(PRINT_DELAY);  // Delay to avoid flooding serial out
 }
 
-void turn(int time, bool clockwise){
-	updateMotorPositions();
-	printMotorPositions();
-	if(clockwise){
-		Serial.write("clockwise\r\n");
-		motorBackward(0, 100);
-		motorForward(1, 100);
-		motorBackward(2,100);
-		//delay(fullRotCw*(angle/360.0));
+void go(int degrees, bool forwards){
+	bool finished = false;
+	int target[]={motorPositions[0]+degrees,motorPositions[1]+degrees}; 
+	int start[]={motorPositions[0],motorPositions[1]}; 
+	if(forwards){
+		Serial.write("forwards\r\n");
+		while(!finished){
+			motorBackward(0, 100);
+			motorForward(1, 100);
+		}
 	}
 	else{
-		Serial.write("anti-clockwise\r\n");
+		Serial.write("backwards\r\n");
 		motorForward(0, 100);
 		motorBackward(1, 100);
-		motorForward(2,	100);
-		//delay(fullRotAc*(angle/360.0));
 	}
-	delay(time);
 	motorAllStop();
-	updateMotorPositions();
-	printMotorPositions();
 }
 
 //Don't ask why, I don't know 
 float fullRotAc = 1650;
 float fullRotCw = 1600;
 void turnCalibrate(){
-	Serial.write("turning calibration:\r\n");
+	Serial.write("distance calibration:\r\n");
 	char ser=Serial.read();
 	//quit signal
 	int delta;
@@ -153,11 +154,11 @@ void loop(){
 	char input;
 	input = Serial.read();
 	switch (input) {
-		//turn clockwise
+		//turn forwards
 		case 'c':
 			turn(1000,true);
 			break;
-		//turn anticlockwise
+		//turn antiforwards
 		case 'a':
 			turn(1000,false);
 			break;
