@@ -4,9 +4,9 @@
 #define ROTARY_COUNT 6
 #define PRINT_DELAY 200
 /*
-Joel Hutton
-this script is for testing how to make the distance move given a distance and angle
-*/
+   Joel Hutton
+   this script is for testing how to make the distance move given a distance and angle
+ */
 
 
 /*
@@ -23,76 +23,100 @@ this script is for testing how to make the distance move given a distance and an
 // Initial motor position is 0.
 int positions[ROTARY_COUNT] = {0};
 
-void setup() {
-  digitalWrite(8, HIGH);  // Radio on
-  Serial.begin(115200);  // Serial at given baudrate
-  Wire.begin();  // Master of the I2C bus
-  SDPsetup();
-  helloWorld();
-}
-
-void loop() {
-  updateMotorPositions();
-  printMotorPositions();
-}
-
 void updateMotorPositions() {
-  // Request motor position deltas from rotary slave board
-  Wire.requestFrom(ROTARY_SLAVE_ADDRESS, ROTARY_COUNT);
-  
-  // Update the recorded motor positions
-  for (int i = 0; i < ROTARY_COUNT; i++) {
-    positions[i] += (int8_t) Wire.read();  // Must cast to signed 8-bit type
-  }
+	// Request motor position deltas from rotary slave board
+	Wire.requestFrom(ROTARY_SLAVE_ADDRESS, ROTARY_COUNT);
+
+	// Update the recorded motor positions
+	for (int i = 0; i < ROTARY_COUNT; i++) {
+		positions[i] += (int8_t) Wire.read();  // Must cast to signed 8-bit type
+	}
 }
 
 void printMotorPositions() {
-  Serial.print("Motor positions: ");
-  for (int i = 0; i < ROTARY_COUNT; i++) {
-    Serial.print(positions[i]);
-    Serial.print(' ');
-  }
-  Serial.println();
-  delay(PRINT_DELAY);  // Delay to avoid flooding serial out
+	Serial.print("Motor positions: ");
+	for (int i = 0; i < ROTARY_COUNT; i++) {
+		Serial.print(positions[i]);
+		Serial.print(' ');
+	}
+	Serial.println();
+	delay(PRINT_DELAY);  // Delay to avoid flooding serial out
 }
 
 void go(int degrees, bool forwards){
 	bool finished = false;
-	int target[]={motorPositions[0]+degrees,motorPositions[1]+degrees}; 
-	int start[]={motorPositions[0],motorPositions[1]}; 
+	int target[]={positions[0]+degrees,positions[1]+degrees}; 
+	int start[]={positions[0],positions[1]}; 
 	if(forwards){
 		Serial.write("forwards\r\n");
+		int delta0;
+		int delta1;
 		while(!finished){
-			motorBackward(0, 100);
-			motorForward(1, 100);
+			updateMotorPositions();
+			delta0=positions[0]-target[0];
+			delta1=positions[1]-target[1];
+			if(abs(delta0)<=5 && abs(delta1)<=5){
+				finished = true;
+			}
+			else if(delta0-delta1>5){
+				motorBackward(0,80);	
+				motorBackward(1,100);	
+			}
+			else if(delta1-delta0>5){
+				motorBackward(0,100);	
+				motorBackward(1,80);	
+			}
+			else{
+				motorBackward(0, 100);
+				motorBackward(1, 100);
+			}
 		}
 	}
 	else{
 		Serial.write("backwards\r\n");
-		motorForward(0, 100);
-		motorBackward(1, 100);
+		int delta0;
+		int delta1;
+		while(!finished){
+			updateMotorPositions();
+			delta0=positions[0]-target[0];
+			delta1=positions[1]-target[1];
+			if(abs(delta0)<=5 && abs(delta1)<=5){
+				finished = true;
+			}
+			else if(delta0-delta1>5){
+				motorForward(0,80);	
+				motorForward(1,100);	
+			}
+			else if(delta1-delta0>5){
+				motorForward(0,100);	
+				motorForward(1,80);	
+			}
+			else{
+				motorForward(0, 100);
+				motorForward(1, 100);
+			}
+		}
 	}
 	motorAllStop();
 }
 
 //Don't ask why, I don't know 
-float fullRotAc = 1650;
-float fullRotCw = 1600;
-void turnCalibrate(){
+float degToMetre = 1600;
+void goCalibrate(){
 	Serial.write("distance calibration:\r\n");
 	char ser=Serial.read();
 	//quit signal
 	int delta;
-	bool adjustCw=true;
+	bool forwards=true;
 	while(ser!='q'){
 		delta=0;
 		switch(ser){
 			//Roman Numerals because I'm a horrible back
-			case 'A':
-				adjustCw=false;
+			case 'B':
+				forwards=false;
 				break;
-			case 'C':
-				adjustCw=true;
+			case 'F':
+				forwards=true;
 				break;
 			case 'I':
 				delta=1;
@@ -119,48 +143,43 @@ void turnCalibrate(){
 				delta=-50;
 				break;
 			case 'k':
-				Serial.write("Turning for:");
-				if(adjustCw){
-					Serial.print(fullRotCw);
-				}
-				else{
-					Serial.print(fullRotCw);
-				}
+				Serial.write("going for:");
+				Serial.print(degToMetre);
 				Serial.write("\r\n");
-				int time = adjustCw? fullRotCw : fullRotAc;
-				turn(time, adjustCw);
-				adjustCw=!adjustCw;
+				go(degToMetre, forwards);
+				forwards = !forwards;
 				break;
 		}
-		if(adjustCw){
-			fullRotCw+=delta;
-		}
-		else{
-			fullRotAc+=delta;
-		}
+		degToMetre+=delta;
 		if(delta !=0){
-		Serial.write("Ac Time:");
-		Serial.print(fullRotAc);
-		Serial.print("Cw Time:");
-		Serial.print(fullRotCw);
-		Serial.write("\r\n");
+			Serial.print("degrees Travelled:");
+			Serial.print(degToMetre);
+			Serial.write("\r\n");
 		}
 		ser=Serial.read();
 	}
 }
 
+void setup() {
+	digitalWrite(8, HIGH);  // Radio on
+	Serial.begin(115200);  // Serial at given baudrate
+	Wire.begin();  // Master of the I2C bus
+	SDPsetup();
+	helloWorld();
+}
+
 void loop(){
-	turnCalibrate();	
+	goCalibrate();	
 	char input;
 	input = Serial.read();
 	switch (input) {
-		//turn forwards
+		//go forwards
 		case 'c':
-			turn(1000,true);
+			go(1000,true);
 			break;
-		//turn antiforwards
+			//go antiforwards
 		case 'a':
-			turn(1000,false);
+			go(1000,false);
 			break;
 		default:
 			break;
