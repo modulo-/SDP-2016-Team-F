@@ -7,8 +7,13 @@
 uint8_t *cmds;
 size_t cmd_len;
 size_t cmd_at;
+uint8_t buf[250];
+uint8_t buf_len;
+uint8_t buf_at;
+uint16_t buf_print_delay;
 
 unsigned long last_time;
+unsigned long start_time;
 
 void cmdAdvance() {
     if(cmd_at == cmd_len) {
@@ -25,6 +30,40 @@ void cmdAdvance() {
         break;
     case 0x02:
         motorBackward(3, 100);
+        break;
+    // 0xf0: Set buffer length
+    case 0xf0:
+        buf_len = cmds[cmd_at + 1];
+        cmd_at += 2;
+        cmdAdvance();
+        break;
+    // 0xf1: Set delay
+    case 0xf1:
+        buf_print_delay = *((uint16_t *)(cmds + cmd_at + 1));
+        cmd_at += 3;
+        cmdAdvance();
+        break;
+    // 0xf2: Start writing buffer
+    case 0xf2:
+        buf_at = 0;
+        start_time = millis();
+        break;
+    // 0x80 - 0x8a: Set buffer part (25 bytes long each)
+    case 0x80:
+    case 0x81:
+    case 0x82:
+    case 0x83:
+    case 0x84:
+    case 0x85:
+    case 0x86:
+    case 0x87:
+    case 0x88:
+    case 0x89:
+    case 0x8a:
+        uint8_t *ptr = buf + (cmds[cmd_at] - 0x80) * 25;
+        memcpy(ptr, cmds + cmd_at + 1, 25);
+        cmd_at += 26;
+        cmdAdvance();
         break;
     }
     last_time = millis();
@@ -54,6 +93,17 @@ void cmdRun() {
             cmdAdvance();
         } else {
             *data -= delta;
+        }
+        break;
+    case 0xf2:
+        if(new_time >= buf_at * buf_print_delay + start_time) {
+            Wire.beginTransmission(0x45);
+            Wire.write(buf[buf_at++]);
+            Wire.endTransmission();
+            if(buf_at == buf_len) {
+                cmd_at++;
+                cmdAdvance();
+            }
         }
         break;
     default:

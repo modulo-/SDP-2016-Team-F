@@ -13,6 +13,17 @@ def guardedint(arg):
     else:
         return ret
 
+def send_file(delay, f):
+    f = open(f, 'rb')
+    cont = f.read()
+    f.close()
+    comms.send(''.join(chr(x) for x in [0xf0, len(cont)]))
+    comms.send(''.join(chr(x) for x in [0xf1, delay & 0xff, (delay >> 8) & 0xff]), '1')
+    comms.wait()
+    for i in range(cont.len() / 25):
+        comms.send(chr(0x80 | i) + cont[i * 25 : (i+1) * 25], '1')
+        comms.wait()
+    comms.send(chr(0xf2), '1')
 
 
 if len(sys.argv) < 2:
@@ -24,10 +35,11 @@ else:
     print "led_on <time>"
     print "kicker_fwd <time>"
     print "kicker_bwd <time>"
+    print "send_file <delay> <f>"
     print "exit"
     print ""
     print "time is given in milliseconds. Please wait for a command to complete before sending a new one."
-    print "commands aside from 'exit' may be chained. E.g.:"
+    print "commands aside from 'exit' and 'send_file' may be chained. E.g.:"
     print ""
     print "kicker_fwd 500 led_on 1000 kicker_bwd 500"
     print ""
@@ -38,6 +50,8 @@ else:
             exit(0)
         args = line.split()
         i = 0
+        if args[0] == 'send_file':
+            send_file(int(args[1]), args[2])
         cmdbytes = []
         while i < len(args):
             if args[i] == 'led_on':

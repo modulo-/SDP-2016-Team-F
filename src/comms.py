@@ -1,6 +1,6 @@
 import os
 import thread
-from threading import Timer, Lock
+from threading import Timer, Lock, Condition
 import b64
 import serial
 
@@ -14,6 +14,7 @@ commlock = Lock()
 callbacks = []
 # List of sent and not-yet acknowledged packets.
 packetlist = []
+packetcond = Condition()
 
 def monitor_comms():
     while True:
@@ -24,6 +25,7 @@ def monitor_comms():
             continue
         if line[1] == '$' and len(line) == 4:
             # ACK
+            packetcond.acquire()
             index = None
             for (i, packet) in enumerate(packetlist):
                 if line[2:4] == packet[-4:-2]:
@@ -32,6 +34,9 @@ def monitor_comms():
                     break;
             if index != None:
                 packetlist.pop(index)
+            if packetlist == []:
+                packetcond.notify()
+            packetcond.release()
             continue
         if not b64.valid(line):
             continue
@@ -78,18 +83,22 @@ def registercb(cb):
 
 def check_recieved(packet):
     # TODO: Maybe limit number of retries? Or maybe that isn't desirable?
+    packetcond.acquire()
     if packet in packetlist:
         commlock.acquire()
         commserial.write(packet)
         commserial.flush()
         commlock.release()
         Timer(0.1, lambda: check_recieved(packet)).start()
+    packetcond.release()
 
 def send(data, target):
     packet = target + DEVICEID + b64.encode(data)
     sum = b64.checksum(packet)
     packet += sum + '\r\n'
+    packetcond.acquire()
     packetlist.append(packet)
+    packetcond.release()
     commlock.acquire()
     commserial.write(packet)
     commserial.flush()
@@ -107,3 +116,9 @@ def send(data, target):
 def stop_resend(target):
     global packetlist
     packetlist = [x for x in packetlist if not x.startswith(target)]
+
+def wait():
+    packetcond.acquire()
+    while packetlist != []:
+        packetcond.wait()
+    packetcond.release()
