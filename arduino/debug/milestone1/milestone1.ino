@@ -73,7 +73,7 @@ int dataLen = 100;
 void setup() {
   SDPsetup();
   helloWorld();
-
+  //indicator led for comms system, on indicates error
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
   if (!comms::init("67", "~~~")) {
