@@ -5,12 +5,12 @@
 #include <stddef.h>
 
 uint8_t *cmds;
-size_t cmd_len;
-size_t cmd_at;
+size_t cmd_len = 0;
+size_t cmd_at = 0;
 uint8_t buf[250];
-uint8_t buf_len;
-uint8_t buf_at;
-uint16_t buf_print_delay;
+uint8_t buf_len = 0;
+uint8_t buf_at = 0;
+uint16_t buf_print_delay = 100;
 
 unsigned long last_time;
 unsigned long start_time;
@@ -25,10 +25,35 @@ void cmdAdvance() {
         digitalWrite(13, HIGH);
         break;
     case 0x01:
-        digitalWrite(13, HIGH);
-        motorForward(3, 100);
+        motorForward(4, 100);
+        motorForward(5, 100);
         break;
     case 0x02:
+        motorBackward(4, 100);
+        motorBackward(5, 100);
+        break;
+    case 0x03:
+        motorBackward(0, 100);
+        motorForward(1, 100);
+        motorBackward(2, 100);
+        motorForward(3, 100);
+        break;
+    case 0x04:
+        motorForward(0, 100);
+        motorBackward(1, 100);
+        motorForward(2, 100);
+        motorBackward(3, 100);
+        break;
+    case 0x05:
+        motorForward(0, 100);
+        motorBackward(1, 100);
+        motorBackward(2, 100);
+        motorForward(3, 100);
+        break;
+    case 0x06:
+        motorBackward(0, 100);
+        motorForward(1, 100);
+        motorForward(2, 100);
         motorBackward(3, 100);
         break;
     // 0xf0: Set buffer length
@@ -81,13 +106,30 @@ void cmdRun() {
     case 0x00:
     case 0x01:
     case 0x02:
+    case 0x03:
+    case 0x04:
+    case 0x05:
+    case 0x06:
         if(delta >= *data) {
             *data = 0;
-            if(cmds[cmd_at] == 0x00) {
+            switch(cmds[cmd_at]) {
+            case 0x00:
                 digitalWrite(13, LOW);
-            } else {
-                digitalWrite(13, LOW);
+                break;
+            case 0x01:
+            case 0x02:
+                motorStop(4);
+                motorStop(5);
+                break;
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
+                motorStop(0);
+                motorStop(1);
+                motorStop(2);
                 motorStop(3);
+                break;
             }
             cmd_at += 3;
             cmdAdvance();
@@ -135,6 +177,7 @@ void setup() {
     if(!comms::init("60", "~~~")) {
 //        digitalWrite(13, HIGH);
     }
+    comms::send("hello", 'c', 5);
 }
 
 void loop() {
