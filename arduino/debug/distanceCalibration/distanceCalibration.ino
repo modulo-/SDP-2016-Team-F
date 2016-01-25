@@ -45,63 +45,98 @@ void printMotorPositions() {
 
 void go(int degrees, bool forwards){
 	bool finished = false;
-	int target[]={positions[0]+degrees,positions[1]+degrees}; 
+	//everything is confusing because the motors are mounted backwards
+	if(forwards)degrees=-degrees;
+	updateMotorPositions();
 	int start[]={positions[0],positions[1]}; 
-	if(forwards){
-		Serial.write("forwards\r\n");
-		int delta0;
-		int delta1;
-		while(!finished){
-			updateMotorPositions();
-			delta0=positions[0]-target[0];
-			delta1=positions[1]-target[1];
-			if(abs(delta0)<=5 && abs(delta1)<=5){
-				finished = true;
-			}
-			else if(delta0-delta1>5){
-				motorBackward(0,80);	
-				motorBackward(1,100);	
-			}
-			else if(delta1-delta0>5){
-				motorBackward(0,100);	
-				motorBackward(1,80);	
-			}
-			else{
-				motorBackward(0, 100);
-				motorBackward(1, 100);
-			}
+	Serial.write("forwards\r\n");
+	int delta0=0;
+	int delta1=0;
+	int leftPower=100;
+	int rightPower=100;
+	int prevTime=millis();
+	bool timeout;
+	Serial.print("Starting at: ");
+	Serial.print(start[0]);
+	Serial.print(" ");
+	Serial.print(start[1]);
+	Serial.print(" Going to:");
+	Serial.print(positions[0]+degrees);
+	Serial.print(" ");
+	Serial.print(positions[1]+degrees);
+	Serial.print("\r\n");
+	while(!finished){
+		updateMotorPositions();
+		timeout=false;
+		//timeout = (millis()-prevTime) > 1000;
+		if(timeout){	
+			prevTime=millis();
+			printMotorPositions();
 		}
-	}
-	else{
-		Serial.write("backwards\r\n");
-		int delta0;
-		int delta1;
-		while(!finished){
-			updateMotorPositions();
-			delta0=positions[0]-target[0];
-			delta1=positions[1]-target[1];
-			if(abs(delta0)<=5 && abs(delta1)<=5){
-				finished = true;
+		delta0=-(positions[0]-start[0]);
+		delta1=-(positions[1]-start[1]);
+		if(!forwards){
+			delta0=-delta0;
+			delta1=-delta1;
+		}
+		if(leftPower!=0&& abs(delta0)>=abs(degrees)){
+			Serial.print("Left finished\r\n");
+			leftPower=0;
+		}
+		if(rightPower!=0&& abs(delta1)>=abs(degrees)){
+			Serial.print("Right finished\r\n");
+			rightPower=0;
+		}
+		if((abs(delta0)>=abs(degrees)&&abs(delta1)>=abs(degrees)) || (leftPower==0 && rightPower==0)){
+			finished = true;
+			break;
+		}
+		else if(delta0-delta1>5){
+			if(timeout){
+				Serial.print("Too far right, reducing power to left engine\r\n");
+				Serial.print(" Left has gone:");
+				Serial.print(delta0);
+				Serial.print(" Right has gone:");
+				Serial.print(delta1);
+				Serial.print("\r\n");
 			}
-			else if(delta0-delta1>5){
-				motorForward(0,80);	
-				motorForward(1,100);	
+			if(leftPower>90)leftPower=90;
+		}
+		else if(delta1-delta0>5){
+			if(timeout){
+				Serial.print("Too far left, reducing power to right engine\r\n");
+				Serial.print("Left has gone:");
+				Serial.print(delta0);
+				Serial.print(" Right has gone:");
+				Serial.print(delta1);
+				Serial.print("\r\n");
 			}
-			else if(delta1-delta0>5){
-				motorForward(0,100);	
-				motorForward(1,80);	
-			}
-			else{
-				motorForward(0, 100);
-				motorForward(1, 100);
-			}
+			if(rightPower>90)rightPower=90;
+		}
+		else{
+			if(timeout)Serial.print("Going straight\r\n");
+			if(leftPower!=0)leftPower=100;
+			if(rightPower!=0)rightPower=100;
+		}
+		if(forwards){
+			motorBackward(0,leftPower);
+			motorBackward(1,rightPower);
+		}
+		else{
+			motorForward(0,leftPower);
+			motorForward(1,rightPower);
 		}
 	}
 	motorAllStop();
+	updateMotorPositions();
+	Serial.print("Finished at: ");
+	Serial.print(positions[0]);
+	Serial.print(" ");
+	Serial.print(positions[1]);
+	Serial.print("\r\n");
 }
 
-//Don't ask why, I don't know 
-float degToMetre = 1600;
+float degToMetre = 1150;
 void goCalibrate(){
 	Serial.write("distance calibration:\r\n");
 	char ser=Serial.read();
