@@ -54,8 +54,8 @@ def waitok():
 def init(fname, chan, control, listen=True):
     global commserial
     commserial = serial.Serial(fname)
-    commserial.reset_input_buffer()
-    commserial.reset_output_buffer()
+    commserial.flushInput()
+    commserial.flushOutput()
     cmds = [
         control,
         'ATEE1\r',

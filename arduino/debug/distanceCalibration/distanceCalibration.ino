@@ -74,7 +74,7 @@ void go(int degrees, bool forwards){
 			printMotorPositions();
 		}
 		delta0=-(positions[0]-start[0]);
-		delta1=-(positions[1]-start[1]);
+		delta1=-(positions[1]-start[1])*1.05;
 		if(!forwards){
 			delta0=-delta0;
 			delta1=-delta1;
@@ -136,7 +136,7 @@ void go(int degrees, bool forwards){
 	Serial.print("\r\n");
 }
 
-float degToMetre = 1150;
+float degToMetre = 1250;
 void goCalibrate(){
 	Serial.write("distance calibration:\r\n");
 	char ser=Serial.read();

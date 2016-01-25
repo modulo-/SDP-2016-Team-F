@@ -1,9 +1,9 @@
 #include "SDPArduino.h"
 #include <Wire.h>
 /*
-Joel Hutton
-this script is for testing how to rotate the robot by a given angle
-*/
+   Joel Hutton
+   this script is for testing how to rotate the robot by a given angle
+ */
 
 
 /*
@@ -24,36 +24,38 @@ this script is for testing how to rotate the robot by a given angle
 int positions[ROTARY_COUNT] = {0};
 
 void setup() {
-  digitalWrite(8, HIGH);  // Radio on
-  Serial.begin(115200);  // Serial at given baudrate
-  Wire.begin();  // Master of the I2C bus
-  SDPsetup();
-  helloWorld();
+	digitalWrite(8, HIGH);  // Radio on
+	Serial.begin(115200);  // Serial at given baudrate
+	Wire.begin();  // Master of the I2C bus
+	SDPsetup();
+	helloWorld();
 }
 
 void updateMotorPositions() {
-  // Request motor position deltas from rotary slave board
-  Wire.requestFrom(ROTARY_SLAVE_ADDRESS, ROTARY_COUNT);
-  
-  // Update the recorded motor positions
-  for (int i = 0; i < ROTARY_COUNT; i++) {
-    positions[i] += (int8_t) Wire.read();  // Must cast to signed 8-bit type
-  }
+	// Request motor position deltas from rotary slave board
+	Wire.requestFrom(ROTARY_SLAVE_ADDRESS, ROTARY_COUNT);
+
+	// Update the recorded motor positions
+	for (int i = 0; i < ROTARY_COUNT; i++) {
+		positions[i] += (int8_t) Wire.read();  // Must cast to signed 8-bit type
+	}
 }
 
 void printMotorPositions() {
-  Serial.print("Motor positions: ");
-  for (int i = 0; i < ROTARY_COUNT; i++) {
-    Serial.print(positions[i]);
-    Serial.print(' ');
-  }
-  Serial.println();
-  delay(PRINT_DELAY);  // Delay to avoid flooding serial out
+	Serial.print("Motor positions: ");
+	for (int i = 0; i < ROTARY_COUNT; i++) {
+		Serial.print(positions[i]);
+		Serial.print(' ');
+	}
+	Serial.println();
+	delay(PRINT_DELAY);  // Delay to avoid flooding serial out
 }
 
 void turn(int time, bool clockwise){
 	updateMotorPositions();
 	printMotorPositions();
+	int start0=positions[0];
+	int start1=positions[1];
 	if(clockwise){
 		Serial.write("clockwise\r\n");
 		motorBackward(0, 100);
@@ -72,6 +74,11 @@ void turn(int time, bool clockwise){
 	motorAllStop();
 	updateMotorPositions();
 	printMotorPositions();
+	Serial.print("Left turned:");
+	Serial.print(positions[0]-start0);
+	Serial.print("Right turned:");
+	Serial.print(positions[1]-start1);
+	Serial.print("\r\n");
 }
 
 //Don't ask why, I don't know 
@@ -138,11 +145,11 @@ void turnCalibrate(){
 			fullRotAc+=delta;
 		}
 		if(delta !=0){
-		Serial.write("Ac Time:");
-		Serial.print(fullRotAc);
-		Serial.print("Cw Time:");
-		Serial.print(fullRotCw);
-		Serial.write("\r\n");
+			Serial.write("Ac Time:");
+			Serial.print(fullRotAc);
+			Serial.print("Cw Time:");
+			Serial.print(fullRotCw);
+			Serial.write("\r\n");
 		}
 		ser=Serial.read();
 	}
@@ -157,7 +164,7 @@ void loop(){
 		case 'c':
 			turn(1000,true);
 			break;
-		//turn anticlockwise
+			//turn anticlockwise
 		case 'a':
 			turn(1000,false);
 			break;
