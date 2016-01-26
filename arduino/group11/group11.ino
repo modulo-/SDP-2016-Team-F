@@ -9,11 +9,18 @@ size_t cmd_len = 0;
 size_t cmd_at = 0;
 uint8_t buf[250];
 uint8_t buf_len = 0;
-uint8_t buf_at = 0;
 uint16_t buf_print_delay = 100;
 
 unsigned long last_time;
-unsigned long start_time;
+
+void writeBuffer() {
+    for(uint8_t i = 0; i < buf_len; i++) {
+        Wire.beginTransmission(0x45);
+        Wire.write(buf[i]);
+        Wire.endTransmission();
+        delay(buf_print_delay);
+    }
+}
 
 void cmdAdvance() {
     if(cmd_at == cmd_len) {
@@ -68,10 +75,11 @@ void cmdAdvance() {
         cmd_at += 3;
         cmdAdvance();
         break;
-    // 0xf2: Start writing buffer
+    // 0xf2: Write buffer
     case 0xf2:
-        buf_at = 0;
-        start_time = millis();
+        writeBuffer();
+        cmd_at++;
+        cmdAdvance();
         break;
     // 0x80 - 0x8a: Set buffer part (25 bytes long each)
     case 0x80:
@@ -135,17 +143,6 @@ void cmdRun() {
             cmdAdvance();
         } else {
             *data -= delta;
-        }
-        break;
-    case 0xf2:
-        if(new_time >= buf_at * buf_print_delay + start_time) {
-            Wire.beginTransmission(0x45);
-            Wire.write(buf[buf_at++]);
-            Wire.endTransmission();
-            if(buf_at == buf_len) {
-                cmd_at++;
-                cmdAdvance();
-            }
         }
         break;
     default:
