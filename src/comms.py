@@ -29,7 +29,7 @@ def monitor_comms():
             index = None
             for (i, packet) in enumerate(packetlist):
                 if line[2:4] == packet[-4:-2]:
-                    #print "ACK", line
+                    print "ACK", line
                     index = i
                     break;
             if index != None:
@@ -94,7 +94,7 @@ def check_recieved(packet):
     packetcond.release()
 
 def send(data, target):
-    print data
+    print repr(data)
     packet = target + DEVICEID + b64.encode(data)
     sum = b64.checksum(packet)
     packet += sum + '\r\n'

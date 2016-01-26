@@ -11,7 +11,8 @@ uint8_t buf[250];
 uint8_t buf_len = 0;
 uint16_t buf_print_delay = 100;
 
-unsigned long last_time;
+unsigned long last_time = 0;
+unsigned long last_transmitted = 0;
 
 void writeBuffer() {
     for(uint8_t i = 0; i < buf_len; i++) {
@@ -42,14 +43,14 @@ void cmdAdvance() {
     case 0x03:
         motorBackward(0, 100);
         motorForward(1, 100);
-        motorBackward(2, 100);
-        motorForward(3, 100);
+        motorBackward(2, 98);
+        motorForward(3, 98);
         break;
     case 0x04:
         motorForward(0, 100);
         motorBackward(1, 100);
-        motorForward(2, 100);
-        motorBackward(3, 100);
+        motorForward(2, 98);
+        motorBackward(3, 98);
         break;
     case 0x05:
         motorForward(0, 100);
@@ -175,6 +176,7 @@ void setup() {
 //        digitalWrite(13, HIGH);
     }
     comms::send("hello", 'c', 5);
+    last_transmitted = millis();
 }
 
 void loop() {
