@@ -81,9 +81,103 @@ void turn(int time, bool clockwise){
 	Serial.print("\r\n");
 }
 
+void turnDeg(int degrees, bool cw){
+	bool finished = false;
+	//everything is confusing because the motors are mounted backwards
+	if(cw)degrees=-degrees;
+	updateMotorPositions();
+	int start[]={positions[0],positions[1]}; 
+	Serial.write("forwards\r\n");
+	int delta0=0;
+	int delta1=0;
+	int leftPower=100;
+	int rightPower=100;
+	int prevTime=millis();
+	bool timeout;
+	Serial.print("Starting at: ");
+	Serial.print(start[0]);
+	Serial.print(" ");
+	Serial.print(start[1]);
+	Serial.print(" Going to:");
+	Serial.print(positions[0]+degrees);
+	Serial.print(" ");
+	Serial.print(positions[1]-degrees);
+	Serial.print("\r\n");
+	while(!finished){
+		updateMotorPositions();
+		timeout=false;
+		//timeout = (millis()-prevTime) > 1000;
+		if(timeout){	
+			prevTime=millis();
+			printMotorPositions();
+		}
+		delta0=-(positions[0]-start[0]);
+		delta1=(positions[1]-start[1]);
+		if(!cw){
+			delta0=-delta0;
+			delta1=-delta1;
+		}
+		if(leftPower!=0&& abs(delta0)>=abs(degrees)){
+			Serial.print("Left finished\r\n");
+			leftPower=0;
+		}
+		if(rightPower!=0&& abs(delta1)>=abs(degrees)){
+			Serial.print("Right finished\r\n");
+			rightPower=0;
+		}
+		if((abs(delta0)>=abs(degrees)&&abs(delta1)>=abs(degrees)) || (leftPower==0 && rightPower==0)){
+			finished = true;
+			break;
+		}
+		else if(delta0-delta1>5){
+			if(timeout){
+				Serial.print("Too far right, reducing power to left engine\r\n");
+				Serial.print(" Left has gone:");
+				Serial.print(delta0);
+				Serial.print(" Right has gone:");
+				Serial.print(delta1);
+				Serial.print("\r\n");
+			}
+			if(leftPower>90)leftPower=90;
+		}
+		else if(delta1-delta0>5){
+			if(timeout){
+				Serial.print("Too far left, reducing power to right engine\r\n");
+				Serial.print("Left has gone:");
+				Serial.print(delta0);
+				Serial.print(" Right has gone:");
+				Serial.print(delta1);
+				Serial.print("\r\n");
+			}
+			if(rightPower>90)rightPower=90;
+		}
+		else{
+			if(timeout)Serial.print("Going straight\r\n");
+			if(leftPower!=0)leftPower=100;
+			if(rightPower!=0)rightPower=100;
+		}
+		if(cw){
+			motorBackward(0,leftPower);
+			motorForward(1,rightPower);
+		}
+		else{
+			motorForward(0,leftPower);
+			motorBackward(1,rightPower);
+		}
+	}
+	motorAllStop();
+	updateMotorPositions();
+  printMotorPositions();
+	Serial.print("Finished at: ");
+	Serial.print(positions[0]);
+	Serial.print(" ");
+	Serial.print(positions[1]);
+	Serial.print("\r\n");
+}
+
 //Don't ask why, I don't know 
-float fullRotAc = 1650;
-float fullRotCw = 1600;
+float fullRotAc = 550;
+float fullRotCw = 550;
 void turnCalibrate(){
 	Serial.write("turning calibration:\r\n");
 	char ser=Serial.read();
@@ -134,8 +228,7 @@ void turnCalibrate(){
 				}
 				Serial.write("\r\n");
 				int time = adjustCw? fullRotCw : fullRotAc;
-				turn(time, adjustCw);
-				adjustCw=!adjustCw;
+				turnDeg(time, adjustCw);
 				break;
 		}
 		if(adjustCw){

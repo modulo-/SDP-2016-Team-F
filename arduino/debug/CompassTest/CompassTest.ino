@@ -2,8 +2,7 @@
   Group 14 Arduino Code
 */
 
-#include <Wire.h>
-
+#include <Wire.h> 
 #include <avr/wdt.h>
 
 #include "SDPArduino.h"

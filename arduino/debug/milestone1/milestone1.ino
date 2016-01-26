@@ -5,8 +5,8 @@
 #include <Adafruit_LSM303_U.h>
 #include <Adafruit_9DOF.h>
 #include <Adafruit_L3GD20_U.h>
+//#include <avr/wdt.h>
 
-#define ROTARY_SLAVE_ADDRESS 5
 
 // Motor mapping
 #define MOTOR_LEFT 0 // polarity reversed
@@ -37,15 +37,15 @@ void doData(byte * message);
 
 namespace comms {
   const char DEVICEID = '2';
-  
+
   void process(void *data, size_t len) {
     // message format: [1B opcode][2B arg1][2B arg2]
-    //  message = "m\000\020\000\050\000"; // move 20cm in relative heading 50 deg to right
+    //  message = "m\000\020\000\050\000"; // move 20mm in relative heading 50 deg to right
     //  message = "t\255\206\000"; // turn 50 deg to the left (-50 is same as 206)
     //  message = "k\000\050\000"; // kick the ball to 50cm
     //  message = "d\000\010\000\001ABCDEFGHIJ\0"; // send 100 bytes of data to i2c at 25hz followed by the data
     byte * message = (byte *) data;
-  
+
     //  for(int i=0; i<10; i++) {
     //
     //    Wire.beginTransmission(0x45);
@@ -53,7 +53,7 @@ namespace comms {
     //    Wire.endTransmission();
     //    delay(100);
     //  }
-  
+
     switch (message[0]) {
       case 'm':
         doMove(message);
@@ -97,6 +97,13 @@ void setup() {
     dataBytes[i] = (byte) i; // fixme
   }
   Wire.begin();
+  //digitalWrite(8, HIGH);  // Radio on
+  Wire.begin(ROTARY_SLAVE_ADDRESS);  // I2C slave at given address
+  initSensors();
+
+  //Initialise the WDT and flush the serial...
+  //wdt_enable(WDTO_1S);
+  Serial.flush();
 }
 
 void loop() {
@@ -108,7 +115,7 @@ void loop() {
 void updateMotorPositions() {
   // Request motor position deltas from rotary slave board
   Wire.requestFrom(ROTARY_SLAVE_ADDRESS, ROTARY_COUNT);
-  
+
   // Update the recorded motor positions
   for (int i = 0; i < ROTARY_COUNT; i++) {
     positions[i] += (int8_t) Wire.read();  // Must cast to signed 8-bit type
@@ -130,19 +137,22 @@ void doMove(byte * message) {
   int direction = (message[3] << 8) | message[4];
   int finalHeading = (message[5] << 8) | message[6]; // relative finish heading
 
+  Serial.println("doMove:");
+  Serial.println(distance);
+  Serial.println(direction);
+  Serial.println(finalHeading);
+
   int startHeading = getCurrentHeading(); // absolute start heading
-  direction = (direction + finalHeading + 360) % 360; // absulute finish heading
   finalHeading = (startHeading + finalHeading + 360) % 360; // absulute finish heading
 
-  move(direction, distance); // move in relative heading
+  move(direction,distance); // move in relative heading
   turn(getHeadingDiff(finalHeading, getCurrentHeading())); // turn to calculated final abs heading
 }
 
 void doTurn(byte * message) {
   int heading = (message[1] << 8) | message[2];
 
-  int finalHeading = (message[5] << 8) | message[6]; // relative finish heading
-  finalHeading = (getCurrentHeading() + finalHeading + 360) % 360; // absulute finish heading
+  int finalHeading = (getCurrentHeading() + heading + 360) % 360; // absolute finish heading
 
   turn(getHeadingDiff(finalHeading, getCurrentHeading())); // turn to calculated final abs heading
 }
@@ -158,7 +168,7 @@ void doData(byte * message) {
     dataFreq = message[2];
     dataLen = message[3];
   } else if (part == 0xff) {
-      sendData();
+    sendData();
   } else {
     int firstByte = message[2];
     int chunkLen = message[3];
@@ -179,44 +189,147 @@ void sendData() {
 }
 
 // move some distance in specified direction, ideally by changing heading minimally
-// distance in metres, distance in degrees
+// distance in mm, direction in degrees
 void move(int direction, int distance) {
-	turn(getHeadingDiff(getCurrentHeading(),direction));
-	int degToMetre = 1250;
-	int degrees = (distance/1000) *  degToMetre;
+  turn(getHeadingDiff(getCurrentHeading(),direction));
+  long degToMetre = 1250;
+  long degrees = (distance*degToMetre)/1000;
+  Serial.print("I am going to move:");
+  Serial.println(degrees);
+  bool finished = false;
+  bool forwards = true;
+  //everything is confusing because the motors are mounted backwards
+  if(forwards)degrees=-degrees;
+  updateMotorPositions();
+  int start[]={positions[0],positions[1]}; 
+  Serial.write("forwards\r\n");
+  int delta0=0;
+  int delta1=0;
+  int leftPower=100;
+  int rightPower=100;
+  int prevTime=millis();
+  bool timeout;
+  Serial.print("Starting at: ");
+  Serial.print(start[0]);
+  Serial.print(" ");
+  Serial.print(start[1]);
+  Serial.print(" Going to:");
+  Serial.print(positions[0]+degrees);
+  Serial.print(" ");
+  Serial.print(positions[1]+degrees);
+  Serial.print("\r\n");
+  while(!finished){
+    updateMotorPositions();
+    timeout=false;
+    //timeout = (millis()-prevTime) > 1000;
+    if(timeout){	
+      prevTime=millis();
+      printMotorPositions();
+    }
+    delta0=-(positions[0]-start[0]);
+    delta1=-(positions[1]-start[1]);
+    if(!forwards){
+      delta0=-delta0;
+      delta1=-delta1;
+    }
+    if(leftPower!=0&& abs(delta0)>=abs(degrees)){
+      Serial.print("Left finished\r\n");
+      leftPower=0;
+    }
+    if(rightPower!=0&& abs(delta1)>=abs(degrees)){
+      Serial.print("Right finished\r\n");
+      rightPower=0;
+    }
+    if((abs(delta0)>=abs(degrees)&&abs(delta1)>=abs(degrees)) || (leftPower==0 && rightPower==0)){
+      finished = true;
+      break;
+    }
+    else if(delta0-delta1>5){
+      if(timeout){
+        Serial.print("Too far right, reducing power to left engine\r\n");
+        Serial.print(" Left has gone:");
+        Serial.print(delta0);
+        Serial.print(" Right has gone:");
+        Serial.print(delta1);
+        Serial.print("\r\n");
+      }
+      if(leftPower>90)leftPower=90;
+    }
+    else if(delta1-delta0>5){
+      if(timeout){
+        Serial.print("Too far left, reducing power to right engine\r\n");
+        Serial.print("Left has gone:");
+        Serial.print(delta0);
+        Serial.print(" Right has gone:");
+        Serial.print(delta1);
+        Serial.print("\r\n");
+      }
+      if(rightPower>90)rightPower=90;
+    }
+    else{
+      if(timeout)Serial.print("Going straight\r\n");
+      if(leftPower!=0)leftPower=100;
+      if(rightPower!=0)rightPower=100;
+    }
+    if(forwards){
+      motorBackward(0,leftPower);
+      motorBackward(1,rightPower);
+    }
+    else{
+      motorForward(0,leftPower);
+      motorForward(1,rightPower);
+    }
+  }
+  motorAllStop();
+  updateMotorPositions();
+  Serial.print("Finished at: ");
+  Serial.print(positions[0]);
+  Serial.print(" ");
+  Serial.print(positions[1]);
+  Serial.print("\r\n");
+}
+
+int fullRot=300;
+//in a full rotation left should go 550 right should go 550
+// turn a certain number of degrees
+void turn(long degrees){
+  int targetHeading=((getCurrentHeading()+360)+degrees)%360;
+  int startHeading=getCurrentHeading();
+  Serial.print("targetHeading:");
+  Serial.println(targetHeading);
+  Serial.print("currentHeading:");
+  Serial.println(getCurrentHeading());
+  Serial.print("diff:");
+  Serial.println(getHeadingDiff(targetHeading,getCurrentHeading()));
+  if(degrees>360)degrees = degrees %360;
+  if(degrees<-360)degrees = -((-degrees) %360);
+  degrees=(degrees*fullRot)/360;
+  bool cw=degrees>0;
 	bool finished = false;
-	bool forwards = true;
 	//everything is confusing because the motors are mounted backwards
-	if(forwards)degrees=-degrees;
+	degrees=-degrees;
 	updateMotorPositions();
 	int start[]={positions[0],positions[1]}; 
-	Serial.write("forwards\r\n");
+	Serial.write(cw?"clockwise":"anticlockwise");
+	Serial.print(degrees);
+	Serial.write("\r\n");
 	int delta0=0;
 	int delta1=0;
 	int leftPower=100;
 	int rightPower=100;
 	int prevTime=millis();
 	bool timeout;
-	Serial.print("Starting at: ");
-	Serial.print(start[0]);
-	Serial.print(" ");
-	Serial.print(start[1]);
-	Serial.print(" Going to:");
-	Serial.print(positions[0]+degrees);
-	Serial.print(" ");
-	Serial.print(positions[1]+degrees);
-	Serial.print("\r\n");
 	while(!finished){
 		updateMotorPositions();
-		timeout=false;
-		//timeout = (millis()-prevTime) > 1000;
+		//timeout=false;
+		timeout = (millis()-prevTime) > 1000;
 		if(timeout){	
 			prevTime=millis();
 			printMotorPositions();
 		}
 		delta0=-(positions[0]-start[0]);
-		delta1=-(positions[1]-start[1]);
-		if(!forwards){
+		delta1=(positions[1]-start[1]);
+		if(!cw){
 			delta0=-delta0;
 			delta1=-delta1;
 		}
@@ -241,7 +354,7 @@ void move(int direction, int distance) {
 				Serial.print(delta1);
 				Serial.print("\r\n");
 			}
-			if(leftPower>90)leftPower=90;
+			if(leftPower>80)leftPower=80;
 		}
 		else if(delta1-delta0>5){
 			if(timeout){
@@ -252,56 +365,76 @@ void move(int direction, int distance) {
 				Serial.print(delta1);
 				Serial.print("\r\n");
 			}
-			if(rightPower>90)rightPower=90;
+			if(rightPower>80)rightPower=80;
 		}
 		else{
 			if(timeout)Serial.print("Going straight\r\n");
-			if(leftPower!=0)leftPower=100;
-			if(rightPower!=0)rightPower=100;
+			if(leftPower!=0)leftPower=90;
+			if(rightPower!=0)rightPower=90;
 		}
-		if(forwards){
+		if(cw){
 			motorBackward(0,leftPower);
-			motorBackward(1,rightPower);
+			motorForward(1,rightPower);
 		}
 		else{
 			motorForward(0,leftPower);
-			motorForward(1,rightPower);
+			motorBackward(1,rightPower);
 		}
 	}
 	motorAllStop();
 	updateMotorPositions();
+  printMotorPositions();
+  delay(1000);
+  if(abs(getHeadingDiff(targetHeading,getCurrentHeading()))>30){
+    Serial.println("too far out...correcting");
+    turn(getHeadingDiff(targetHeading,getCurrentHeading()));
+  }
 	Serial.print("Finished at: ");
+  Serial.print("currentHeading:");
+  Serial.println(getCurrentHeading());
 	Serial.print(positions[0]);
 	Serial.print(" ");
 	Serial.print(positions[1]);
 	Serial.print("\r\n");
 }
-//in a full rotation left should go 120 right should go 80
-// turn a certain number of degrees
-void turn(int dir) { // positive - right, negative - left
-  int startHeading=getCurrentHeading();
-  int finalHeading=startHeading + dir;
-  if (dir > 0) { // turn right
-    motorBackward(0, 100);
-    motorForward(1, 100);
-    motorBackward(2, 100);
-    //delay(abs(1600.0*(dir/360.0)));
-    while(abs(getCurrentHeading()-finalHeading)>10){
-
-    }
-  } else { // turn left
-    motorForward(0, 100);
-    motorBackward(1, 100);
-    motorForward(2, 100);
-    //delay(abs(1600.0*(dir/360.0)));
-    while(abs(getCurrentHeading()-finalHeading)>10){
-
-    }
-  }
-}
 
 void kick(int distance) { // distance in cm
-
+  int kickerTime=0;
+  int kickerStrength=100;
+  switch(distance){
+    case 50:
+      kickerTime=130;
+      break;
+    case 100:
+      kickerTime=150;
+      break;
+    case 150:
+      kickerTime=173;
+      break;
+    default:
+      kickerTime=120+ (int) distance*0.3533;
+      break;
+  }
+  //close flippers
+  motorBackward(5, 100);
+  //move kicker back out way
+  motorForward(3, 30);
+  delay(800);
+  //
+  motorForward(3, 0);
+  motorForward(5, 80);
+  delay(800);
+  motorAllStop();
+  Serial.write("kicking at P:");
+  Serial.print(kickerStrength);
+  Serial.write(" T:");
+  Serial.print(kickerTime);
+  Serial.write("\r\n");
+  motorBackward(3, kickerStrength);
+  delay(kickerTime);
+  motorForward(3, 30);
+  delay(1000);
+  motorStop(3);
 }
 
 
@@ -331,24 +464,24 @@ int getBatteryVoltage() {
   int relativeVoltage = analogRead(2); // Input on A2.
   float absoluteVoltage = (5.0 * relativeVoltage) / 1023.0;
   /*
-    Need to multiply by 2*10 since the potential divider on the board
-    divided the voltage by 2, and we want a larger precision number.
-    I.e. voltage will go from 0-100.
-  */
+     Need to multiply by 2*10 since the potential divider on the board
+     divided the voltage by 2, and we want a larger precision number.
+     I.e. voltage will go from 0-100.
+   */
   int responseVoltage = (int) absoluteVoltage * 20;
   return responseVoltage;
 }
 
 /*
-  getHeadingDiff:
+getHeadingDiff:
 
-  Returns the relative difference between the target heading
-  and the current heading. Positive direction is
-  counter-clockwise, so a returned value of eg. 10 means that
-  the robot should turn 10 degrees left to be on target.
-  Similarly, a returned value of -20 would indicate that the
-  robot would have to turn 20 degrees right to be on target.
-*/
+Returns the relative difference between the target heading
+and the current heading. Positive direction is
+counter-clockwise, so a returned value of eg. 10 means that
+the robot should turn 10 degrees left to be on target.
+Similarly, a returned value of -20 would indicate that the
+robot would have to turn 20 degrees right to be on target.
+ */
 
 int getHeadingDiff(int targetHeading, int currentHeading) {
   int diff = (targetHeading - currentHeading + 360) % 360;
@@ -367,7 +500,7 @@ int getCurrentHeading() {
   if (dof.magGetOrientation(SENSOR_AXIS_Y, &mag_event, &orientation))
   {
     /* 'orientation' should have valid .heading data now */
-    return (int) orientation.heading;
+    return 360 - ((int) orientation.heading);
   }
 }
 

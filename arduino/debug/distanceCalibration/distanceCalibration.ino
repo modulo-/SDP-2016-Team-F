@@ -74,7 +74,7 @@ void go(int degrees, bool forwards){
 			printMotorPositions();
 		}
 		delta0=-(positions[0]-start[0]);
-		delta1=-(positions[1]-start[1])*1.05;
+		delta1=-(positions[1]-start[1]);
 		if(!forwards){
 			delta0=-delta0;
 			delta1=-delta1;
@@ -129,6 +129,7 @@ void go(int degrees, bool forwards){
 	}
 	motorAllStop();
 	updateMotorPositions();
+  printMotorPositions();
 	Serial.print("Finished at: ");
 	Serial.print(positions[0]);
 	Serial.print(" ");
