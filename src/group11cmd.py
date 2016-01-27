@@ -12,9 +12,9 @@ def move_time_from_distance(dist):
 
 def kick_time_from_distance(dist):
     if dist >= 150:
-        return 500
+        return 350
     else:
-        return int(170 + 20 * dist / 50)
+        return int(170 + 18 * dist / 50)
 
 def guardedint(arg):
     ret = int(arg)
