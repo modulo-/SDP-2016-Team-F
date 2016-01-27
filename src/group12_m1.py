@@ -70,7 +70,7 @@ def doData():
 
 
 def doOpts():
-    subcmd = int(raw_input("[trkm]: "))
+    subcmd = raw_input("[trkm]: ")
     if subcmd == "t":
         cmd = b"ot"+struct.pack(">B", int(raw_input("t value: ")))
     elif subcmd == "r":
