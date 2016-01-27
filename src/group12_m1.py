@@ -5,7 +5,6 @@ import time
 import comms
 
 
-serial_device = "COM16"  # or on linux /dev/ttyACM0 etc
 robot_id = 2 # group 11 - 1, group 12 - 2
 rf_channel = "67"  # hex
 guard_chars = "~~~"
@@ -60,7 +59,8 @@ def doData():
 
 
 def main():
-    # comms.init(serial_device, rf_channel, guard_chars, listen=True)
+    serial_device = raw_input("RF Dongle Device: ")  # or on linux /dev/ttyACM0 etc
+    comms.init(serial_device, rf_channel, guard_chars, listen=True)
 
     while (True):
         try:
