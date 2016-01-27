@@ -20,60 +20,64 @@ void setup() {
 }
 
 void loop() {
-  char input;
+  react();
+}
+
+void react() {
+char input;
   input = Serial.read();
   switch (input) {
     case '8':
-      Serial.write("forward\n");
+      Serial.println("forward");
       motorBackward(0, 100);
       motorBackward(1, 100);
       motorStop(2);
       break;
 
     case '2':
-      Serial.write("backward\n");
+      Serial.println("backward");
       motorForward(0, 100);
       motorForward(1, 100);
       motorStop(2);
       break;
 
     case '5':
-      Serial.write("stop\n");
+      Serial.println("stop");
       motorStop(0);
       motorStop(1);
       motorStop(2);
       break;
 
     case '6':
-      Serial.write("right\n");
+      Serial.println("right");
       motorForward(0, 0);
-      motorBackward(1,85);
+      motorBackward(1,65);
       motorBackward(2,100);
       break;
 
     case '4':
-      Serial.write("left\n");
-      motorBackward(0,85);
+      Serial.println("left");
+      motorBackward(0,65);
       motorForward(1, 0);
       motorForward(2, 100);
       break;
 
     case '9':
-      Serial.write("forwards clockwise\n");
+      Serial.println("forwards clockwise");
       motorBackward(0, 100);
       motorForward(1, 50);
       motorBackward(2, 100);
       break;
 
     case '7':
-      Serial.write("forwards anticlockwise\n");
+      Serial.println("forwards anticlockwise");
       motorForward(0, 50);
       motorBackward(1, 100);
       motorForward(2, 100);
       break;
 
     case '3':
-      Serial.write("backwards clockwise\n");
+      Serial.println("backwards clockwise");
       motorBackward(0, 50);
       motorForward(1, 100);
       motorBackward(0, 50);
@@ -81,7 +85,7 @@ void loop() {
       break;
 
     case '1':
-      Serial.write("backwards anticlockwise\n");
+      Serial.println("backwards anticlockwise");
       motorForward(0, 100);
       motorBackward(1, 50);
       motorForward(2, 100);
@@ -89,7 +93,7 @@ void loop() {
 
     //flippers open
     case 'k':
-      Serial.write("flippers open\n");
+      Serial.println("flippers open");
       motorForward(5, 80);
       delay(300);
       motorStop(5);
@@ -97,7 +101,7 @@ void loop() {
 
     //flippers close
     case 'l':
-      Serial.write("flippers close\n");
+      Serial.println("flippers close");
       motorBackward(5, 80);
       delay(300);
       motorStop(5);
@@ -105,7 +109,7 @@ void loop() {
 
 //    //left flipper open
 //    case 'a':
-//      Serial.write("left flipper open\n");
+//      Serial.println("left flipper open");
 //      motorForward(4, 80);
 //      delay(300);
 //      motorStop(4);
@@ -113,7 +117,7 @@ void loop() {
 //
 //    //left flipper close
 //    case 's':
-//      Serial.write("left flipper close\n");
+//      Serial.println("left flipper close");
 //      motorBackward(4, 80);
 //      delay(300);
 //      motorStop(4);
@@ -121,7 +125,7 @@ void loop() {
 
     //kicker down
     case 'h':
-      Serial.write("kicker down\n");
+      Serial.println("kicker down");
       motorForward(3, 100);
       delay(300);
       motorStop(3);
@@ -129,7 +133,7 @@ void loop() {
 
     // kick
     case 'y':
-      Serial.write("kick\n");
+      Serial.println("kick");
       motorBackward(3, 100);
       delay(300);
       motorForward(3, 100);
@@ -137,5 +141,4 @@ void loop() {
       motorStop(3);
       break;
   }
-}
-
+  }

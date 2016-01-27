@@ -66,17 +66,27 @@ void kickerCalibration(){
 				delta=-50;
 				break;
 			case 'k':
-				Serial.write("kicking at P:");
-				Serial.print(kickerStrength);
-				Serial.write(" T:");
-				Serial.print(kickerTime);
-				Serial.write("\r\n");
-				motorBackward(3, kickerStrength);
-				delay(kickerTime);
-				motorForward(3, 30);
-				delay(1000);
-				motorStop(3);
-				break;
+			  //close flippers
+			  motorBackward(5, 60);
+			  //move kicker back out way
+			  delay(800);
+			  //move flippers away
+			  motorForward(5, 80);
+			  delay(800);
+			  motorAllStop();
+			  delay(400);
+
+			  Serial.write("kicking at P:");
+			  Serial.print(kickerStrength);
+			  Serial.write(" T:");
+			  Serial.print(kickerTime);
+			  Serial.write("\r\n");
+			  motorBackward(3, kickerStrength);
+			  delay(kickerTime);
+			  motorForward(3, 30);
+			  delay(1000);
+			  motorStop(3);
+			break;
 		}
 		if(adjustTime){
 			kickerTime+=delta;
