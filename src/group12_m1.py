@@ -69,13 +69,28 @@ def doData():
     comms.send(cmd, robot_id)
 
 
+def doOpts():
+    subcmd = int(raw_input("[trkm]: "))
+    if subcmd == "t":
+        cmd = b"ot"+struct.pack(">B", int(raw_input("t value: ")))
+    elif subcmd == "r":
+        cmd = b"or"+struct.pack(">B", int(raw_input("r value: ")))
+    elif subcmd == "k":
+        cmd = b"ok"+struct.pack(">B", int(raw_input("k1 value: ")))+struct.pack(">B", int(raw_input("k1 value: ")))
+    elif subcmd == "m":
+        cmd = b"om"+struct.pack(">B", int(raw_input("m value: ")))
+    else:
+        return
+    comms.send(cmd, robot_id)
+
+
 def main():
     serial_device = raw_input("RF Dongle Device: ")  # or on linux /dev/ttyACM0 etc
     comms.init(serial_device, rf_channel, guard_chars, listen=True)
 
     while (True):
         try:
-            command = raw_input("Command to execute (m/k/d) or q to quit")
+            command = raw_input("Command to execute (m/k/d) or q to quit: ")
             if command == "M":
                 doMoveAndTurn()
             elif command == "m":
@@ -86,6 +101,8 @@ def main():
                 doKick()
             elif command == "d":
                 doData()
+            elif command == "o":
+                doOpts()
             elif command == "q":
                 break
 
