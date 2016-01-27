@@ -146,7 +146,7 @@ void doMove(byte * message) {
   finalHeading = (startHeading + finalHeading + 360) % 360; // absulute finish heading
 
   move(direction,distance); // move in relative heading
-  turn(getHeadingDiff(finalHeading, getCurrentHeading())); // turn to calculated final abs heading
+  turn(getHeadingDiff(finalHeading, getCurrentHeading()),0); // turn to calculated final abs heading
 }
 
 void doTurn(byte * message) {
@@ -154,7 +154,7 @@ void doTurn(byte * message) {
 
   int finalHeading = (getCurrentHeading() + heading + 360) % 360; // absolute finish heading
 
-  turn(getHeadingDiff(finalHeading, getCurrentHeading())); // turn to calculated final abs heading
+  turn(getHeadingDiff(finalHeading, getCurrentHeading()),0); // turn to calculated final abs heading
 }
 
 void doKick(byte * message) {
@@ -191,7 +191,7 @@ void sendData() {
 // move some distance in specified direction, ideally by changing heading minimally
 // distance in mm, direction in degrees
 void move(int direction, int distance) {
-  turn(getHeadingDiff(getCurrentHeading(),direction));
+  turn(getHeadingDiff(getCurrentHeading(),direction),0);
   long degToMetre = 1250;
   long degrees = (distance*degToMetre)/1000;
   Serial.print("I am going to move:");
@@ -292,7 +292,7 @@ void move(int direction, int distance) {
 int fullRot=300;
 //in a full rotation left should go 550 right should go 550
 // turn a certain number of degrees
-void turn(long degrees){
+void turn(long degrees, int depth){
   int targetHeading=((getCurrentHeading()+360)+degrees)%360;
   int startHeading=getCurrentHeading();
   Serial.print("targetHeading:");
@@ -385,9 +385,9 @@ void turn(long degrees){
 	updateMotorPositions();
   printMotorPositions();
   delay(1000);
-  if(abs(getHeadingDiff(targetHeading,getCurrentHeading()))>30){
+  if(abs(getHeadingDiff(targetHeading,getCurrentHeading()))>5&depth<3){
     Serial.println("too far out...correcting");
-    turn(getHeadingDiff(targetHeading,getCurrentHeading()));
+    turn(getHeadingDiff(targetHeading,getCurrentHeading()),depth+1);
   }
 	Serial.print("Finished at: ");
   Serial.print("currentHeading:");
