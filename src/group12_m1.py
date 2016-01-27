@@ -13,6 +13,12 @@ chunk_size = 30
 
 
 def doMove():
+    distance = int(raw_input("Distance: "))
+
+    cmd = b"m"+struct.pack(">h", distance)
+    comms.send(cmd, robot_id)
+
+def doMoveAndTurn():
     x = int(raw_input("X: "))
     y = int(raw_input("Y: "))
     heading = math.degrees(math.atan2(y, x))
@@ -20,7 +26,12 @@ def doMove():
 
     finalHeading = int(raw_input("Final Heading: "))
 
-    cmd = b"k"+struct.pack(">h", heading)+struct.pack(">h", distance)+struct.pack(">h", finalHeading)
+    cmd = b"M"+struct.pack(">h", heading)+struct.pack(">h", distance)+struct.pack(">h", finalHeading)
+    comms.send(cmd, robot_id)
+
+def doTurn():
+    angle = int(raw_input("Angle: "))
+    cmd = b"t"+struct.pack(">h", angle)
     comms.send(cmd, robot_id)
 
 def doKick():
@@ -59,19 +70,24 @@ def doData():
 
 
 def main():
-    serial_device = raw_input("RF Dongle Device: ")  # or on linux /dev/ttyACM0 etc
+    # serial_device = raw_input("RF Dongle Device: ")  # or on linux /dev/ttyACM0 etc
+    serial_device = "COM16"
     comms.init(serial_device, rf_channel, guard_chars, listen=True)
 
     while (True):
         try:
             command = raw_input("Command to execute (m/k/d) or q to quit")
-            if command == "m":
+            if command == "M":
+                doMoveAndTurn()
+            elif command == "m":
                 doMove()
-            if command == "k":
+            elif command == "t":
+                doTurn()
+            elif command == "k":
                 doKick()
-            if command == "d":
+            elif command == "d":
                 doData()
-            if command == "q":
+            elif command == "q":
                 break
 
         except ValueError:
