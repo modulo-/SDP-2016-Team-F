@@ -1,15 +1,20 @@
 import math
 
-def move(distance):
-    print("Moving distance {0}".format(distance))
+class CommsManager:
 
-def move_to(x, y):
-    heading = math.degrees(math.atan2(y, x))
-    distance = math.sqrt(x**2+y**2)
-    print("Turning to head {0} and moving distance {1}".format(heading, distance))
+    def __init__(self, robot):
+        self.robot = robot
 
-def turn(angle):
-    print("Turning angle {0}".format(angle))
+    def move(self, distance):
+        print("Moving robot {0} distance {1}".format(self.robot, distance))
 
-def kick(distance):
-    print("Kicking distance {0}".format(distance))
+    def move_to(self, x, y):
+        heading = math.degrees(math.atan2(y, x))
+        distance = math.sqrt(x**2+y**2)
+        print("Turning robot {0} to head {1} and moving distance {2}".format(self.robot, heading, distance))
+
+    def turn(self, angle):
+        print("Turning robot {0} angle {1}".format(self.robot, angle))
+
+    def kick(self, distance):
+        print("Robot {0} kicking distance {1}".format(self.robot, distance))
