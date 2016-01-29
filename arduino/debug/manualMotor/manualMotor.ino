@@ -1,5 +1,4 @@
 #include "SDPArduino.h"
-#include "Comms.h"
 #include <Wire.h>
 int i = 0;
 
@@ -19,7 +18,6 @@ Motor mapping
 void setup() {
   SDPsetup();
   helloWorld();
-  commsSetup();
 }
 
 void loop() {

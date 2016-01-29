@@ -28,7 +28,7 @@ static bool tryCmd(const char *prefix, const char *cmd) {
     }
     return !Serial.find("OK");
 }
-
+    
 bool init(const char *chan, const char *control) {
     Serial.setTimeout(5000);
     if(tryCmd(control, NULL))
