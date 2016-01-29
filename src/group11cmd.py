@@ -4,6 +4,7 @@ import comms
 import sys
 from math import ceil, atan, sqrt, pi
 from logging import error
+import readline
 
 def rotation_time_from_angle(angle):
     return int(200 + 21 * angle / 3)
@@ -177,5 +178,6 @@ else:
                 i += 3
             else:
                 i += 1
-        comms.send(''.join(chr(x) for x in cmdbytes), '1')
+        if cmdbytes:
+            comms.send(''.join(chr(x) for x in cmdbytes), '1')
 
