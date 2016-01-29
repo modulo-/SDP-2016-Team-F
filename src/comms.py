@@ -3,6 +3,7 @@ import thread
 from threading import Timer, Lock, Condition
 import b64
 import serial
+from logging import info, debug
 
 ENCKEY = '3327BDBAAF48C59410FB5C4115777F26'
 PANID = '6810'
@@ -21,7 +22,7 @@ def monitor_comms():
         line = commserial.readline().strip()
         if len(line) < 4:
             continue
-        if not line.startswith(DEVICEID):
+        if not line.startswith(DEVICEID) and not line.startswith('d'):
             continue
         if line[1] == '$' and len(line) == 4:
             # ACK
@@ -29,7 +30,7 @@ def monitor_comms():
             index = None
             for (i, packet) in enumerate(packetlist):
                 if line[2:4] == packet[-4:-2]:
-                    print "ACK", line
+                    debug('Package ACK: %s', line)
                     index = i
                     break;
             if index != None:
@@ -38,7 +39,6 @@ def monitor_comms():
                 packetcond.notify()
             packetcond.release()
             continue
-        #print repr(line)
         if not b64.valid(line):
             continue
         if b64.checksum(line[:-2]) != line[-2:]:
@@ -48,8 +48,11 @@ def monitor_comms():
         commserial.flush()
         commlock.release()
         data = b64.decode(line[2:-2])
-        for callback in callbacks:
-            thread.start_new_thread(callback, (data, ))
+        if line.startswith('d'):
+            info('Debug message recieved: %s', data)
+        else:
+            for callback in callbacks:
+                thread.start_new_thread(callback, (data, ))
 
 def waitok():
     buf = (None, None)
@@ -94,7 +97,7 @@ def check_recieved(packet):
     packetcond.release()
 
 def send(data, target):
-    print repr(data)
+    debug('Sent: %r', data)
     packet = target + DEVICEID + b64.encode(data)
     sum = b64.checksum(packet)
     packet += sum + '\r\n'

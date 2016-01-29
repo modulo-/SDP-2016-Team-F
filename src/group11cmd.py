@@ -3,6 +3,7 @@ from __future__ import division
 import comms
 import sys
 from math import ceil, atan, sqrt, pi
+from logging import error
 
 def rotation_time_from_angle(angle):
     return int(200 + 21 * angle / 3)
@@ -19,22 +20,19 @@ def kick_time_from_distance(dist):
 def guardedint(arg):
     ret = int(arg)
     if ret > 10000:
-        print "time given greater than 10 secs. ignoring."
+        error("time given greater than 10 secs. ignoring.")
         return -1
     elif ret < 0:
-        print "stop trying to break my code you asshole."
+        error("stop trying to break my code you asshole.")
         return -1
     else:
         return ret
 
-def echocb(data):
-    print repr(data)
-
 if len(sys.argv) < 2:
+    error('RF device not specified')
     print "Please provide the RF device as an argument (e.g. '/dev/ttyACM0')"
 else:
     comms.init(sys.argv[1], '60', '+++')
-    comms.registercb(echocb)
     print "Comms system online. The following commands are supported:"
     print ""
     print "led_on <time>"
