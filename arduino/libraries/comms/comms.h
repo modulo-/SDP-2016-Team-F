@@ -31,7 +31,7 @@ bool init(const char *chan, const char *control);
 void poll();
 
 // Sends a packet of data to a target.
-void send(void *data, char target, size_t len);
+void send(const void *data, char target, size_t len);
 
 // Processes recieved data.
 //

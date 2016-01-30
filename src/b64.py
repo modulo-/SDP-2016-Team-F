@@ -24,7 +24,7 @@ def validchar(chr):
         or chr == '/')
 
 def valid(data):
-    all(map(validchar, data))
+    return all(map(validchar, data))
 
 def value(chr):
     if chr >= 'A' and chr <= 'Z':

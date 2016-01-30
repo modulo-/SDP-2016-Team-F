@@ -96,6 +96,7 @@ void decode(const char *ptr, size_t len, char **dec_ptr, size_t *dec_len) {
 }
 
 void encode(const char *ptr, size_t len, char **enc_ptr, size_t *enc_len) {
+    uint8_t *ptr2 = (uint8_t *)ptr;
     *enc_len = (len * 4);
     *enc_len = *enc_len / 3 + (*enc_len % 3 == 0 ? 0 : 1);
     *enc_ptr = (char *)realloc(*enc_ptr, sizeof(char) * (*enc_len + 1));
@@ -106,20 +107,20 @@ void encode(const char *ptr, size_t len, char **enc_ptr, size_t *enc_len) {
     for(size_t i = 0; i < len; i++) {
         switch(bits_in_buf) {
         case 0:
-            *nextc = chr(ptr[i] >> 2);
+            *nextc = chr(ptr2[i] >> 2);
             nextc++;
-            buf = ptr[i] & 0x03;
+            buf = ptr2[i] & 0x03;
             bits_in_buf = 2;
             break;
         case 2:
-            *nextc = chr(buf << 4 | ptr[i] >> 4);
+            *nextc = chr(buf << 4 | ptr2[i] >> 4);
             nextc++;
-            buf = ptr[i] & 0x0f;
+            buf = ptr2[i] & 0x0f;
             bits_in_buf = 4;
             break;
         case 4:
-            nextc[0] = chr(buf << 2 | ptr[i] >> 6);
-            nextc[1] = chr(ptr[i] & 0x3f);
+            nextc[0] = chr(buf << 2 | ptr2[i] >> 6);
+            nextc[1] = chr(ptr2[i] & 0x3f);
             nextc += 2;
             buf = 0x00;
             bits_in_buf = 0;
