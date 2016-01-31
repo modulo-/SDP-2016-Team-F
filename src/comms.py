@@ -32,7 +32,7 @@ def monitor_comms():
                 if line[2:4] == packet[-4:-2]:
                     debug('Package ACK: %s', line)
                     index = i
-                    break;
+                    break
             if index != None:
                 packetlist.pop(index)
             if packetlist == []:
