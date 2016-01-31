@@ -36,13 +36,48 @@
 // negative: anticlockwise) relative to the current direction, in degrees.
 #define CMD_MV               0x83
 
-#define cmdArg(offset, type) (((type) *)(cmds + cmd_at + (offset)))
+// Defines the forward/backward combinations for a movement command.
+// The least significant 4 bits store this, with 0 being backward and 1 being
+// forward for the corresponding motor ID.
+#define MOVE_LEFT  ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
+#define MOVE_RIGHT ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
+#define MOVE_CC    ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_RIGHT))
+#define MOVE_CW    ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_LEFT))
+
+#define cmdArg(offset, type) ((type *)(cmds + cmd_at + (offset)))
+
+// Since fixed-size arrays cannot be returned directly.
+typedef struct motor_powers {
+    uint8_t powers[4];
+} MotorPowers;
+
+#define POWER_FULL ((MotorPowers){{100, 100, 100, 100}})
 
 uint8_t *cmds;
 size_t cmd_len = 0;
 size_t cmd_at = 0;
-
+int64_t motor_positions[4] = {0};
 unsigned long last_time = 0;
+
+void motorSet(uint8_t directions, MotorPowers powers) {
+    for(int i = 0; i < 4; i++) {
+        if(directions & (1 << i)) {
+            motorForward(i, powers.powers[i]);
+        } else {
+            motorBackward(i, powers.powers[i]);
+        }
+    }
+}
+
+int64_t dist(int64_t motor_positions[4]) {
+    // TODO
+    return 0;
+}
+
+MotorPowers adjustedMotorPowers() {
+    // TODO
+    return (MotorPowers){0};
+}
 
 size_t argLen(uint8_t cmd) {
     if(cmd & 0xf0 == 0x00) {
@@ -68,14 +103,15 @@ bool cmdQueueEmpty() {
 }
 
 void cmdAdvance() {
+    for(int i = 0; i < 4; i++) {
+        motor_positions[i] = 0;
+    }
     if(cmdQueueEmpty()) {
         // Should really be stopped already, but hey, let's make sure.
         motorAllStop();
         return;
     }
     switch(cmds[cmd_at]) {
-    case CMD_NOP_T:
-        break;
     case CMD_KICKER_RETRACT_T:
         motorForward(MOTOR_KICKER1, 100);
         motorForward(MOTOR_KICKER2, 100);
@@ -85,28 +121,16 @@ void cmdAdvance() {
         motorBackward(MOTOR_KICKER2, 100);
         break;
     case CMD_MV_RIGHT_T:
-        motorBackward(MOTOR_FRONT_LEFT, 100);
-        motorForward(MOTOR_FRONT_RIGHT, 100);
-        motorBackward(MOTOR_BACK_LEFT, 100);
-        motorForward(MOTOR_BACK_RIGHT, 100);
+        motorSet(MOVE_RIGHT, POWER_FULL);
         break;
     case CMD_MV_LEFT_T:
-        motorForward(MOTOR_FRONT_LEFT, 100);
-        motorBackward(MOTOR_FRON_RIGHT, 100);
-        motorForward(MOTOR_BACK_LEFT, 100);
-        motorBackward(MOTOR_BACK_RIGHT, 100);
+        motorSet(MOVE_LEFT, POWER_FULL);
         break;
     case CMD_SPIN_CC_T:
-        motorForward(MOTOR_FRONT_LEFT, 100);
-        motorBackward(MOTOR_FRONT_RIGHT, 100);
-        motorBackward(MOTOR_BACK_LEFT, 100);
-        motorForward(MOTOR_BACK_RIGHT, 100);
+        motorSet(MOVE_CC, POWER_FULL);
         break;
     case CMD_SPIN_CW_T:
-        motorBackward(MOTOR_FRONT_LEFT, 100);
-        motorForward(MOTOR_FRONT_RIGHT, 100);
-        motorForward(MOTOR_BACK_LEFT, 100);
-        motorBackward(MOTOR_BACK_RIGHT, 100);
+        motorSet(MOVE_CW, POWER_FULL);
         break;
     }
     last_time = millis();
@@ -123,6 +147,7 @@ void cmdFinish(bool advance) {
     case CMD_MV_LEFT_T:
     case CMD_SPIN_CC_T:
     case CMD_SPIN_CW_T:
+    case CMD_MV_STRAIT:
         motorStop(MOTOR_FRONT_LEFT);
         motorStop(MOTOR_FRONT_RIGHT);
         motorStop(MOTOR_BACK_LEFT);
@@ -143,13 +168,22 @@ void cmdRun() {
     unsigned long delta = new_time - last_time;
     last_time = new_time;
     // If it's a time command (0x0*):
-    if(cmd[cmd_at] & 0xf0 == 0x00) {
+    if(cmds[cmd_at] & 0xf0 == 0x00) {
         uint16_t *data = cmdArg(1, uint16_t);
         if(delta >= *data) {
             *data = 0;
             cmdFinish(true);
         } else {
             *data -= delta;
+        }
+    } else if(cmds[cmd_at] == CMD_MV_STRAIT) {
+        int16_t data = *cmdArg(1, int16_t);
+        if(abs(dist(motor_positions)) >= abs(data)) {
+            cmdFinish(true);
+        } else {
+            motorSet(
+                data > 0 ? MOVE_RIGHT : MOVE_LEFT,
+                adjustedMotorPowers());
         }
     }
 }
@@ -172,7 +206,9 @@ namespace comms {
     }
 }
 
-int i = 0;
+void pollSensors() {
+    // TODO
+}
 
 void setup() {
     SDPsetup();
@@ -186,5 +222,6 @@ void setup() {
 
 void loop() {
     comms::poll();
+    pollSensors();
     cmdRun();
 }
