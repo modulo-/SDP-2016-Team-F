@@ -13,7 +13,7 @@
 
 // All `_T` commands take a 16-bit millisecond paramter, and execute for the
 // specified time.
-#define CMD_NOP_T            0x00
+#define CMD_WAIT_T           0x00
 #define CMD_KICKER_RETRACT_T 0x01
 #define CMD_KICKER_EXTEND_T  0x02
 #define CMD_MV_RIGHT_T       0x03
@@ -24,7 +24,7 @@
 // millimeters to move strait. Positive amounts denote moving to the right,
 // negative amounts moving to the left.
 #define CMD_MV_STRAIT        0x80
-// CMD_SPIN takes a 16-bit signed integer, representing the number of degrees
+// CMD_SPIN takes a 16-bit signed integer, representing the number of minutes
 // to spin clockwise.
 #define CMD_SPIN             0x81
 // CMD_KICK takes a 16-bit signed integer, representing the number of
@@ -33,7 +33,7 @@
 // CMD_MV executes complex movement. Takes 3 16-bit arguments: x (positive:
 // right, negative: left) and y (positive: forwards, negative: backwards)
 // displacement in mm, and an angle to face at the end (postive: clockwise,
-// negative: anticlockwise) relative to the current direction, in degrees.
+// negative: anticlockwise) relative to the current direction, in minutes.
 #define CMD_MV               0x83
 
 // Defines the forward/backward combinations for a movement command.
