@@ -58,3 +58,8 @@ fabric.properties
 
 # Python bytecode
 *.pyc
+
+# TeX junk
+*.aux
+*.dvi
+*.log
