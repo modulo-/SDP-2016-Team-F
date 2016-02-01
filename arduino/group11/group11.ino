@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define ROTARY_SLAVE_ADDRESS 5
+#define ROTARY_COUNT 6
+
 #define MOTOR_FRONT_LEFT  0
 #define MOTOR_FRONT_RIGHT 1
 #define MOTOR_BACK_LEFT   2
@@ -39,8 +42,8 @@
 // Defines the forward/backward combinations for a movement command.
 // The least significant 4 bits store this, with 0 being backward and 1 being
 // forward for the corresponding motor ID.
-#define MOVE_LEFT  ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
-#define MOVE_RIGHT ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
+#define MOVE_RIGHT ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
+#define MOVE_LEFT  ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
 #define MOVE_CC    ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_RIGHT))
 #define MOVE_CW    ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_LEFT))
 
@@ -53,7 +56,7 @@ typedef struct motor_powers {
 
 #define POWER_FULL ((MotorPowers){{100, 100, 100, 100}})
 
-uint8_t *cmds;
+uint8_t *cmds = NULL;
 size_t cmd_len = 0;
 size_t cmd_at = 0;
 int64_t motor_positions[4] = {0};
@@ -69,14 +72,46 @@ void motorSet(uint8_t directions, MotorPowers powers) {
     }
 }
 
-int64_t dist(int64_t motor_positions[4]) {
-    // TODO
-    return 0;
+uint64_t dist(int64_t motor_positions[4]) {
+    uint64_t total = 0;
+    for(uint8_t i = 0; i < 4; i++) {
+        total += abs(motor_positions[i]);
+    }
+    // 1250 rotation units are ~ 1m without gearing.
+    // -> 1 rotation unit is ~ (1/1.25)mm without gearing.
+    // Gearing factor is 40/24 = 5/3
+    // -> 1 rotation unit is ~ 1 * (5/6) / 1.25
+    //  = 5/3 * 4/5 = 20/15 = 4/3
+    // Since it's the sum of all motors, it needs to be averaged by dividing by
+    // 4. => 1 rotation unit = (1/3)mm
+    return total / 3;
 }
 
 MotorPowers adjustedMotorPowers() {
-    // TODO
-    return (MotorPowers){0};
+    int64_t _max = INT64_MIN;
+    int64_t _min = INT64_MAX;
+    for(uint8_t i = 0; i < 4; i++) {
+        if(abs(motor_positions[i]) > _max) {
+            _max = abs(motor_positions[i]);
+        }
+        if(abs(motor_positions[i]) < _min) {
+            _min = abs(motor_positions[i]);
+        }
+    }
+    if(_max - _min < 5) {
+        return POWER_FULL;
+    }
+    uint8_t high_pow = 100;
+    uint8_t low_pow = _max - _min < 20 ? 90 : 80;
+    MotorPowers ret;
+    for(uint8_t i = 0; i < 4; i++) {
+        if(_max - abs(motor_positions[i]) >= 10) {
+            ret.powers[i] = high_pow;
+        } else {
+            ret.powers[i] = low_pow;
+        }
+    }
+    return ret;
 }
 
 size_t argLen(uint8_t cmd) {
@@ -178,7 +213,7 @@ void cmdRun() {
         }
     } else if(cmds[cmd_at] == CMD_MV_STRAIT) {
         int16_t data = *cmdArg(1, int16_t);
-        if(abs(dist(motor_positions)) >= abs(data)) {
+        if(dist(motor_positions) >= abs(data)) {
             cmdFinish(true);
         } else {
             motorSet(
@@ -207,7 +242,12 @@ namespace comms {
 }
 
 void pollSensors() {
-    // TODO
+    Wire.requestFrom(ROTARY_SLAVE_ADDRESS, ROTARY_COUNT);
+    for(uint8_t i = 0; i < 4; i++) {
+        motor_positions[i] += (int8_t)Wire.read();
+    }
+    Wire.read();
+    Wire.read();
 }
 
 void setup() {
