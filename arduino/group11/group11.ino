@@ -72,19 +72,22 @@ void motorSet(uint8_t directions, MotorPowers powers) {
     }
 }
 
-uint64_t dist(int64_t motor_positions[4]) {
+uint64_t sumMotors(int64_t motor_positions[4]) {
     uint64_t total = 0;
     for(uint8_t i = 0; i < 4; i++) {
         total += abs(motor_positions[i]);
     }
-    // 1250 rotation units are ~ 1m without gearing.
-    // -> 1 rotation unit is ~ (1/1.25)mm without gearing.
-    // Gearing factor is 40/24 = 5/3
-    // -> 1 rotation unit is ~ 1 * (5/6) / 1.25
-    //  = 5/3 * 4/5 = 20/15 = 4/3
-    // Since it's the sum of all motors, it needs to be averaged by dividing by
-    // 4. => 1 rotation unit = (1/3)mm
-    return total / 3;
+    return total;
+}
+
+uint64_t rotDist(int64_t motor_positions[4]) {
+    // Determined through totally scientific trial-and-error.
+    return (sumMotors(motor_positions) * 360) / 23;
+}
+
+uint64_t dist(int64_t motor_positions[4]) {
+    // Determined through totally scientific trial-and-error.
+    return (sumMotors(motor_positions) * 349) / 1000;
 }
 
 MotorPowers adjustedMotorPowers() {
@@ -98,14 +101,24 @@ MotorPowers adjustedMotorPowers() {
             _min = abs(motor_positions[i]);
         }
     }
-    if(_max - _min < 5) {
+    int64_t delta = _max - _min;
+    if(delta <= 1) {
         return POWER_FULL;
     }
     uint8_t high_pow = 100;
-    uint8_t low_pow = _max - _min < 20 ? 90 : 80;
+    uint8_t low_pow;
+    if(delta < 4) {
+        low_pow = 90;
+    } else if(delta < 10) {
+        low_pow = 80;
+    } else if(delta < 20) {
+        low_pow = 70;
+    } else {
+        low_pow = 50;
+    }
     MotorPowers ret;
     for(uint8_t i = 0; i < 4; i++) {
-        if(_max - abs(motor_positions[i]) >= 10) {
+        if(_max > abs(motor_positions[i])) {
             ret.powers[i] = high_pow;
         } else {
             ret.powers[i] = low_pow;
@@ -183,6 +196,7 @@ void cmdFinish(bool advance) {
     case CMD_SPIN_CC_T:
     case CMD_SPIN_CW_T:
     case CMD_MV_STRAIT:
+    case CMD_SPIN:
         motorStop(MOTOR_FRONT_LEFT);
         motorStop(MOTOR_FRONT_RIGHT);
         motorStop(MOTOR_BACK_LEFT);
@@ -218,6 +232,15 @@ void cmdRun() {
         } else {
             motorSet(
                 data > 0 ? MOVE_RIGHT : MOVE_LEFT,
+                adjustedMotorPowers());
+        }
+    } else if(cmds[cmd_at] == CMD_SPIN) {
+        int16_t data = *cmdArg(1, int16_t);
+        if(rotDist(motor_positions) >= abs(data)) {
+            cmdFinish(true);
+        } else {
+            motorSet(
+                data > 0 ? MOVE_CW : MOVE_CC,
                 adjustedMotorPowers());
         }
     }

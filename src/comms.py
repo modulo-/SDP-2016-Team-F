@@ -97,7 +97,6 @@ def check_recieved(packet):
     packetcond.release()
 
 def send(data, target):
-    debug('Sent: %r', data)
     packet = target + DEVICEID + b64.encode(data)
     sum = b64.checksum(packet)
     packet += sum + '\r\n'
@@ -105,6 +104,7 @@ def send(data, target):
     packetlist.append(packet)
     packetcond.release()
     commlock.acquire()
+    debug('Sent packet %r', packet)
     commserial.write(packet)
     commserial.flush()
     commlock.release()
