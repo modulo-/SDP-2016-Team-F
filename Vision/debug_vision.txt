@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "main.py", line 126, in <module>
+    pitch=int(args.pitch), color=args.color, our_side=args.side).main()
+  File "main.py", line 42, in __init__
+    self.camera = Camera(port=video_port, pitch=self.pitch)
+  File "/afs/inf.ed.ac.uk/user/s12/s1235260/Desktop/sdp_12/sdp_12/vision/vision.py", line 249, in __init__
+    radial_data = tools.get_radial_data()
+  File "/afs/inf.ed.ac.uk/user/s12/s1235260/Desktop/sdp_12/sdp_12/vision/tools.py", line 53, in get_radial_data
+    _file = open(filename, 'r')
+IOError: [Errno 2] No such file or directory: '/afs/inf.ed.ac.uk/user/s12/s1235260/Desktop/sdp_12/sdp_12/vision/calibrations/undistort.txt'
+
