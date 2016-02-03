@@ -14,6 +14,7 @@ CMD_RIGHT_T          = 0x03
 CMD_LEFT_T           = 0x04
 CMD_SPIN_CC_T        = 0x05
 CMD_SPIN_CW_T        = 0x06
+CMD_BREAK_T          = 0x07
 CMD_MV_STRAIT        = 0x80
 CMD_SPIN             = 0x81
 CMD_KICK             = 0x82
@@ -39,6 +40,7 @@ cmd_left_t = i16fn(CMD_LEFT_T)
 cmd_right_t = i16fn(CMD_RIGHT_T)
 cmd_spin_cc_t = i16fn(CMD_SPIN_CC_T)
 cmd_spin_cw_t = i16fn(CMD_SPIN_CW_T)
+cmd_break_t = i16fn(CMD_BREAK_T)
 cmd_mv_strait = i16fn(CMD_MV_STRAIT)
 cmd_spin = i16fn(CMD_SPIN)
 cmd_kick = i16fn(CMD_KICK)
@@ -89,6 +91,9 @@ commands = {
         [('time', parse_t)]),
     'spin_cc_t': Command(cmd_spin_cc_t,
         'spins counter-clockwise for the specified time',
+        [('time', parse_t)]),
+    'break_t': Command(cmd_break_t,
+        'breaks for the specified time',
         [('time', parse_t)]),
     'mv_strait': Command(cmd_mv_strait,
         'moves strait (positive: right) the specified distance',

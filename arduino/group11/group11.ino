@@ -23,6 +23,7 @@
 #define CMD_MV_LEFT_T        0x04
 #define CMD_SPIN_CC_T        0x05
 #define CMD_SPIN_CW_T        0x06
+#define CMD_BREAK_T          0x07
 // CMD_MV_STRAIT takes a 16-bit signed integer, representing the number of
 // millimeters to move strait. Positive amounts denote moving to the right,
 // negative amounts moving to the left.
@@ -82,12 +83,12 @@ uint64_t sumMotors(int64_t motor_positions[4]) {
 
 uint64_t rotDist(int64_t motor_positions[4]) {
     // Determined through totally scientific trial-and-error.
-    return (sumMotors(motor_positions) * 360) / 23;
+    return (sumMotors(motor_positions) * 1440) / 101;
 }
 
 uint64_t dist(int64_t motor_positions[4]) {
     // Determined through totally scientific trial-and-error.
-    return (sumMotors(motor_positions) * 349) / 1000;
+    return (sumMotors(motor_positions) * 177) / 500;
 }
 
 MotorPowers adjustedMotorPowers() {
@@ -180,6 +181,9 @@ void cmdAdvance() {
     case CMD_SPIN_CW_T:
         motorSet(MOVE_CW, POWER_FULL);
         break;
+    case CMD_SPIN:
+        motorSet(*cmdArg(1, int16_t) > 0 ? MOVE_CW : MOVE_CC, POWER_FULL);
+        break;
     }
     last_time = millis();
 }
@@ -195,6 +199,7 @@ void cmdFinish(bool advance) {
     case CMD_MV_LEFT_T:
     case CMD_SPIN_CC_T:
     case CMD_SPIN_CW_T:
+    case CMD_BREAK_T:
     case CMD_MV_STRAIT:
     case CMD_SPIN:
         motorStop(MOTOR_FRONT_LEFT);
@@ -219,6 +224,17 @@ void cmdRun() {
     // If it's a time command (0x0*):
     if(cmds[cmd_at] & 0xf0 == 0x00) {
         uint16_t *data = cmdArg(1, uint16_t);
+        if(cmds[cmd_at] == CMD_BREAK_T) {
+            for(uint8_t i = 0; i < 4; i++) {
+                if(motor_positions[i] < -3) {
+                    motorForward(i, 50);
+                } else if(motor_positions[i] > 3) {
+                    motorBackward(i, 50);
+                } else {
+                    motorStop(i);
+                }
+            }
+        }
         if(delta >= *data) {
             *data = 0;
             cmdFinish(true);
@@ -238,10 +254,6 @@ void cmdRun() {
         int16_t data = *cmdArg(1, int16_t);
         if(rotDist(motor_positions) >= abs(data)) {
             cmdFinish(true);
-        } else {
-            motorSet(
-                data > 0 ? MOVE_CW : MOVE_CC,
-                adjustedMotorPowers());
         }
     }
 }
