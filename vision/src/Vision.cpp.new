@@ -1,0 +1,88 @@
+//
+//  main.cpp
+//  OpenCV Sandbox
+//
+//  Created by Euan James Hunter on 30/01/2016.
+//  Copyright (c) 2016 EJH. All rights reserved.
+//
+
+#include <iostream>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
+
+using namespace cv;
+using namespace std;
+
+int main(int argc, const char * argv[]) {
+    VideoCapture vid("test.avi");
+
+    if(!vid.isOpened()) {
+        cout << "Failed to open video" << endl;
+        return 1;
+    }
+
+    namedWindow("Circles");
+    int framenumber = 0;
+    createTrackbar("Frame Number", "Circles", &framenumber, vid.get(CAP_PROP_FRAME_COUNT)-1);
+    int circleRatio = 1;
+    createTrackbar("Accumulator Ration", "Circles", &circleRatio, 4);
+    int circleMinDist = 30;
+    createTrackbar("Minimum Distance", "Circles", &circleMinDist, vid.get(CAP_PROP_FRAME_WIDTH));
+    int circleThres = 200;
+    createTrackbar("Edge Threshold", "Circles", &circleThres, 500);
+    int circleDetect = 100;
+    createTrackbar("Detection Threshold", "Circles", &circleDetect, 500);
+    int circleMinRad = 0;
+    createTrackbar("Minimum Radius", "Circles", &circleMinRad, vid.get(CAP_PROP_FRAME_WIDTH));
+    int circleMaxRad = 0;
+    createTrackbar("Maximum Radius", "Circles", &circleMaxRad, vid.get(CAP_PROP_FRAME_WIDTH));
+
+    namedWindow("Blur");
+    int blurSize = 9;
+    createTrackbar("Size", "Blur", &blurSize, 15);
+    int blurSigX = 2;
+    createTrackbar("Sigma X", "Blur", &blurSigX, 16);
+    int blurSigY = 2;
+    createTrackbar("Sigma Y", "Blur", &blurSigY, 16);
+
+    namedWindow("Edges");
+
+    Mat frame;
+    Mat blur;
+    Mat edges;
+    vector<Vec3f> circles;
+
+    while(vid.read(frame)) {
+      if(blurSize % 2 == 0) blurSize++;
+      if(circleRatio == 0) circleRatio++;
+      if(circleMinDist == 0) circleMinDist++;
+
+      circles.clear();
+
+      cvtColor(frame, blur, COLOR_BGR2GRAY);
+      GaussianBlur(blur, blur, Size(blurSize, blurSize), (double)blurSigX, (double)blurSigY);
+      HoughCircles(blur, circles, HOUGH_GRADIENT, (double)circleRatio, (double)circleMinDist, (double)circleThres, (double)circleDetect, circleMinRad, circleMaxRad);
+
+      Canny(blur, edges, ((double)circleThres)/2, (double)circleThres);
+
+      for(size_t i=0;i<circles.size();i++) {
+          Point center(cvRound(circles[i][0]), cvRound(circles[i][1]));
+          int rad = cvRound(circles[i][2]);
+          circle(frame, center, 3, Scalar(0,255,0), -1);
+          circle(frame, center, rad, Scalar(0,0,255), 3);
+      }
+
+      imshow("Circles", frame);
+      imshow("Blur", blur);
+      imshow("Edges", edges);
+
+      if(waitKey(1) != -1) {
+          break;
+      }
+
+      vid.set(CAP_PROP_POS_FRAMES, framenumber);
+    }
+
+    return 0;
+}
