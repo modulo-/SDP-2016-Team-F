@@ -4,6 +4,7 @@
 #include "hlcmd.h"
 #include "llcmd.h"
 #include <Wire.h>
+#include <stdint.h>
 #include <stddef.h>
 
 namespace comms {
@@ -28,4 +29,4 @@ void loop() {
     comms::poll();
     io::poll();
     llcmd::run();
-}
+} 

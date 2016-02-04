@@ -7,18 +7,12 @@ import logging
 from logging import debug, error
 import readline
 
-CMD_WAIT_T           = 0x00
-CMD_KICKER_RETRACT_T = 0x01
-CMD_KICKER_EXTEND_T  = 0x02
-CMD_RIGHT_T          = 0x03
-CMD_LEFT_T           = 0x04
-CMD_SPIN_CC_T        = 0x05
-CMD_SPIN_CW_T        = 0x06
-CMD_BRAKE_T          = 0x07
-CMD_MV_STRAIT        = 0x80
-CMD_SPIN             = 0x81
-CMD_KICK             = 0x82
-CMD_MV               = 0x83
+CMD_WAIT   = 0x00
+CMD_BRAKE  = 0x01
+CMD_STRAIT = 0x02
+CMD_SPIN   = 0x03
+CMD_KICK   = 0x04
+CMD_MV     = 0x05
 
 class TractorCrabException(Exception):
     def __init__(self, s):
@@ -33,15 +27,9 @@ class Command:
 def i16fn(opcode):
     return lambda x: [opcode, x & 0xff, (x >> 8) & 0xff]
 
-cmd_wait_t = i16fn(CMD_WAIT_T);
-cmd_kicker_extend_t = i16fn(CMD_KICKER_EXTEND_T)
-cmd_kicker_retract_t = i16fn(CMD_KICKER_RETRACT_T)
-cmd_left_t = i16fn(CMD_LEFT_T)
-cmd_right_t = i16fn(CMD_RIGHT_T)
-cmd_spin_cc_t = i16fn(CMD_SPIN_CC_T)
-cmd_spin_cw_t = i16fn(CMD_SPIN_CW_T)
-cmd_brake_t = i16fn(CMD_BRAKE_T)
-cmd_mv_strait = i16fn(CMD_MV_STRAIT)
+cmd_wait = i16fn(CMD_WAIT);
+cmd_brake = i16fn(CMD_BRAKE)
+cmd_strait = i16fn(CMD_STRAIT)
 cmd_spin = i16fn(CMD_SPIN)
 cmd_kick = i16fn(CMD_KICK)
 
@@ -72,30 +60,12 @@ def parse_angle(s):
     return d
 
 commands = {
-    'wait_t': Command(cmd_wait_t, 'waits for the specified time',
+    'wait': Command(cmd_wait, 'waits for the specified time',
         [('time', parse_t)]),
-    'kicker_extend_t': Command(cmd_kicker_extend_t,
-        'extends the kicker for the specified time',
-        [('time', parse_t)]),
-    'kicker_retract_t': Command(cmd_kicker_retract_t,
-        'retracts the kicker for the specified time',
-        [('time', parse_t)]),
-    'left_t': Command(cmd_left_t,
-        'moves left for the specified time',
-        [('time', parse_t)]),
-    'right_t': Command(cmd_right_t,
-        'moves right for the specified time',
-        [('time', parse_t)]),
-    'spin_cw_t': Command(cmd_spin_cw_t,
-        'spins clockwise for the specified time',
-        [('time', parse_t)]),
-    'spin_cc_t': Command(cmd_spin_cc_t,
-        'spins counter-clockwise for the specified time',
-        [('time', parse_t)]),
-    'brake_t': Command(cmd_brake_t,
+    'brake': Command(cmd_brake,
         'brakes for the specified time',
         [('time', parse_t)]),
-    'mv_strait': Command(cmd_mv_strait,
+    'strait': Command(cmd_strait,
         'moves strait (positive: right) the specified distance',
         [('dist', parse_dist)]),
     'spin': Command(cmd_spin,

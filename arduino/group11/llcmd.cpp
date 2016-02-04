@@ -21,35 +21,20 @@
 #define MOVE_CC    ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_RIGHT))
 #define MOVE_CW    ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_LEFT))
 
-// All `_T` commands take a 16-bit millisecond paramter, and execute for the
-// specified time.
-#define CMD_WAIT_T           0x00
-#define CMD_KICKER_RETRACT_T 0x01
-#define CMD_KICKER_EXTEND_T  0x02
-#define CMD_MV_RIGHT_T       0x03
-#define CMD_MV_LEFT_T        0x04
-#define CMD_SPIN_CC_T        0x05
-#define CMD_SPIN_CW_T        0x06
-#define CMD_BRAKE_T          0x07
-// CMD_MV_STRAIT takes a 16-bit signed integer, representing the number of
-// millimeters to move strait. Positive amounts denote moving to the right,
-// negative amounts moving to the left.
-#define CMD_MV_STRAIT        0x80
-// CMD_SPIN takes a 16-bit signed integer, representing the number of minutes
-// to spin clockwise.
-#define CMD_SPIN             0x81
-// CMD_KICK takes a 16-bit signed integer, representing the number of
-// millimeters to kick the ball.
-#define CMD_KICK             0x82
-// CMD_MV executes complex movement. Takes 3 16-bit arguments: x (positive:
-// right, negative: left) and y (positive: forwards, negative: backwards)
-// displacement in mm, and an angle to face at the end (postive: clockwise,
-// negative: anticlockwise) relative to the current direction, in minutes.
-#define CMD_MV               0x83
-
 #define cmdArg(offset, type) ((type *)(cmds + cmd_at + (offset)))
 
 namespace llcmd {
+    const uint8_t WAIT           = 0x00;
+    const uint8_t KICKER_RETRACT = 0x01;
+    const uint8_t KICKER_EXTEND  = 0x02;
+    const uint8_t BRAKE          = 0x03;
+    const uint8_t LED            = 0x07;
+    const uint8_t STRAIT         = 0x08;
+    const uint8_t SPIN           = 0x09;
+    const uint8_t NOP            = 0x7f;
+
+    const uint8_t FLAG_UNINTERRUPTABLE = 0x80;
+
     const size_t cmd_cap = 256;
     uint8_t cmds[cmd_cap];
     size_t cmd_len = 0;
@@ -57,16 +42,13 @@ namespace llcmd {
     unsigned long last_time = 0;
 
     static size_t argLen(uint8_t cmd) {
-        if(cmd & 0xf0 == 0x00) {
+        if((cmd & 0x78) == 0x00) {
             return sizeof(uint16_t);
         }
-        switch(cmd) {
-        case CMD_MV_STRAIT:
-        case CMD_SPIN:
-        case CMD_KICK:
+        switch(cmd & 0x7f) {
+        case STRAIT:
+        case SPIN:
             return sizeof(int16_t);
-        case CMD_MV:
-            return sizeof(int16_t) * 3;
         default:
             return 0;
         }
@@ -86,10 +68,10 @@ namespace llcmd {
         unsigned long new_time = millis();
         unsigned long delta = new_time - last_time;
         last_time = new_time;
-        // If it's a time command (0x0*):
-        if(cmds[cmd_at] & 0xf0 == 0x00) {
+        // If it's a time command (8bx000 0xxx)
+        if((cmds[cmd_at] & 0x78) == 0x00) {
             uint16_t *data = cmdArg(1, uint16_t);
-            if(cmds[cmd_at] == CMD_BRAKE_T) {
+            if((cmds[cmd_at] & 0x7f) == BRAKE) {
                 for(uint8_t i = 0; i < 4; i++) {
                     if(io::motor_positions[i] < -3) {
                         io::forward(i, 0x7f);
@@ -106,7 +88,7 @@ namespace llcmd {
             } else {
                 *data -= delta;
             }
-        } else if(cmds[cmd_at] == CMD_MV_STRAIT) {
+        } else if((cmds[cmd_at] & 0x7f) == STRAIT) {
             int16_t data = *cmdArg(1, int16_t);
             if(io::dist() >= abs(data)) {
                 finish(true);
@@ -115,7 +97,7 @@ namespace llcmd {
                     data > 0 ? MOVE_RIGHT : MOVE_LEFT,
                     io::adjustedMotorPowers());
             }
-        } else if(cmds[cmd_at] == CMD_SPIN) {
+        } else if((cmds[cmd_at] & 0x7f) == SPIN) {
             int16_t data = *cmdArg(1, int16_t);
             if(io::rotDist() >= abs(data)) {
                 finish(true);
@@ -124,23 +106,22 @@ namespace llcmd {
     }
 
     void finish(bool advance) {
-        switch(cmds[cmd_at]) {
-        case CMD_KICKER_RETRACT_T:
-        case CMD_KICKER_EXTEND_T:
+        switch(cmds[cmd_at] & 0x7f) {
+        case KICKER_RETRACT:
+        case KICKER_EXTEND:
             io::stop(MOTOR_KICKER1);
             io::stop(MOTOR_KICKER2);
             break;
-        case CMD_MV_RIGHT_T:
-        case CMD_MV_LEFT_T:
-        case CMD_SPIN_CC_T:
-        case CMD_SPIN_CW_T:
-        case CMD_BRAKE_T:
-        case CMD_MV_STRAIT:
-        case CMD_SPIN:
+        case BRAKE:
+        case STRAIT:
+        case SPIN:
             io::stop(MOTOR_FRONT_LEFT);
             io::stop(MOTOR_FRONT_RIGHT);
             io::stop(MOTOR_BACK_LEFT);
             io::stop(MOTOR_BACK_RIGHT);
+            break;
+        case LED:
+            digitalWrite(13, LOW);
             break;
         }
         cmd_at += 1 + argLen(cmds[cmd_at]);
@@ -158,32 +139,39 @@ namespace llcmd {
             io::stopAll();
             return;
         }
-        switch(cmds[cmd_at]) {
-        case CMD_KICKER_RETRACT_T:
+        switch(cmds[cmd_at] & 0x7f) {
+        case KICKER_RETRACT:
             io::forward(MOTOR_KICKER1, 100);
             io::forward(MOTOR_KICKER2, 100);
             break;
-        case CMD_KICKER_EXTEND_T:
+        case KICKER_EXTEND:
             io::backward(MOTOR_KICKER1, 100);
             io::backward(MOTOR_KICKER2, 100);
             break;
-        case CMD_MV_RIGHT_T:
-            io::motorSet(MOVE_RIGHT, io::POWER_FULL);
-            break;
-        case CMD_MV_LEFT_T:
-            io::motorSet(MOVE_LEFT, io::POWER_FULL);
-            break;
-        case CMD_SPIN_CC_T:
-            io::motorSet(MOVE_CC, io::POWER_FULL);
-            break;
-        case CMD_SPIN_CW_T:
-            io::motorSet(MOVE_CW, io::POWER_FULL);
-            break;
-        case CMD_SPIN:
+        case SPIN:
             io::motorSet(*cmdArg(1, int16_t) > 0 ? MOVE_CW : MOVE_CC,
                 io::POWER_FULL);
             break;
+        case NOP:
+            cmd_at++;
+            start();
+            break;
+        case LED:
+            digitalWrite(13, HIGH);
+            break;
         }
         last_time = millis();
+    }
+
+    size_t uninterruptableChainLen() {
+        size_t at = cmd_at;
+        while(true) {
+            if(at >= cmd_len) {
+                return at - cmd_at;
+            } else if((cmds[at] & FLAG_UNINTERRUPTABLE) == 0) {
+                return at - cmd_at;
+            }
+            at += 1 + argLen(cmds[at]);
+        }
     }
 }

@@ -22,7 +22,9 @@ def monitor_comms():
         line = commserial.readline().strip()
         if len(line) < 4:
             continue
-        if not line.startswith(DEVICEID) and not line.startswith('d'):
+        if (not line.startswith(DEVICEID)
+                and not line.startswith('d')
+                and not line.startswith('e')):
             continue
         if line[1] == '$' and len(line) == 4:
             # ACK
@@ -50,6 +52,8 @@ def monitor_comms():
         data = b64.decode(line[2:-2])
         if line.startswith('d'):
             info('Debug message recieved: %s', data)
+        elif line.startswith('e'):
+            error('Error message recieved: %s', data)
         else:
             for callback in callbacks:
                 thread.start_new_thread(callback, (data, ))
@@ -108,7 +112,7 @@ def send(data, target):
     commserial.write(packet)
     commserial.flush()
     commlock.release()
-    Timer(0.1, lambda: check_recieved(packet)).start()
+    #Timer(0.1, lambda: check_recieved(packet)).start()
 
 # Prevents any packets from being resent.
 #
