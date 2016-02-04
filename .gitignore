@@ -63,3 +63,9 @@ fabric.properties
 *.aux
 *.dvi
 *.log
+
+# Code::Blocks
+Codeblock/
+*.cbp
+*.depend
+*.layout
