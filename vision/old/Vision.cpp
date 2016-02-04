@@ -15,7 +15,7 @@ using namespace cv;
 using namespace std;
 
 int main(int argc, const char * argv[]) {
-    VideoCapture vid("test.avi");
+    VideoCapture vid(0);
 
     if(!vid.isOpened()) {
         cout << "Failed to open video" << endl;
@@ -24,7 +24,7 @@ int main(int argc, const char * argv[]) {
 
     namedWindow("Circles");
     int framenumber = 0;
-    createTrackbar("Frame Number", "Circles", &framenumber, vid.get(CAP_PROP_FRAME_COUNT)-1);
+    //createTrackbar("Frame Number", "Circles", &framenumber, vid.get(CAP_PROP_FRAME_COUNT)-1);
     int circleRatio = 1;
     createTrackbar("Accumulator Ration", "Circles", &circleRatio, 4);
     int circleMinDist = 30;
@@ -60,7 +60,12 @@ int main(int argc, const char * argv[]) {
 
       circles.clear();
 
-      cvtColor(frame, blur, COLOR_BGR2GRAY);
+      applyColorMap(frame, blur, COLORMAP_RAINBOW );
+
+      //cvtColor(frame, blur, COLOR_BGR2HSV);
+      /*Mat channels[3];
+      split(blur, channels);
+      blur = channels[2];
       GaussianBlur(blur, blur, Size(blurSize, blurSize), (double)blurSigX, (double)blurSigY);
       HoughCircles(blur, circles, HOUGH_GRADIENT, (double)circleRatio, (double)circleMinDist, (double)circleThres, (double)circleDetect, circleMinRad, circleMaxRad);
 
@@ -72,16 +77,16 @@ int main(int argc, const char * argv[]) {
           circle(frame, center, 3, Scalar(0,255,0), -1);
           circle(frame, center, rad, Scalar(0,0,255), 3);
       }
-
-      imshow("Circles", frame);
-      imshow("Blur", blur);
-      imshow("Edges", edges);
+      */
+      imshow("Circles", blur);
+      //imshow("Blur", channels[2]);
+      //imshow("Edges", edges);
 
       if(waitKey(1) != -1) {
           break;
       }
 
-      vid.set(CAP_PROP_POS_FRAMES, framenumber);
+      //vid.set(CAP_PROP_POS_FRAMES, framenumber);
     }
 
     return 0;
