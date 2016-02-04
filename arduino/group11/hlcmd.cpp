@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <Arduino.h>
+#include <math.h>
 
 #define cmdArg(cmd, offset, type) ((type *)((cmd) + (offset)))
 
@@ -71,6 +72,44 @@ namespace hlcmd {
         }
     }
 
+    static void compileMV(const uint8_t *in, uint8_t *out) {
+        int32_t x = *cmdArg(in, 1, int16_t);
+        int32_t y = *cmdArg(in, 3, int16_t);
+        int16_t angle = *cmdArg(in, 5, int16_t);
+        int16_t mv_angle;
+        if(x == 0) {
+            mv_angle = 5400;
+        } else {
+            mv_angle = -atan(float(y) / float(x)) * 10800 / M_PI;
+        }
+        int16_t dist = (int16_t)sqrt(x*x + y*y);
+        if(x <= 0) {
+            dist = -dist;
+        }
+        int16_t face_angle = (angle - mv_angle) % 21600;
+        if(face_angle > 10800) {
+            face_angle -= 21600;
+        }
+        // 1. Spin
+        out[0] = llcmd::SPIN;
+        *((int16_t *)(out + 1)) = mv_angle;
+        // 2. Brake
+        out[3] = llcmd::BRAKE;
+        *((int16_t *)(out + 4)) = 100;
+        // 3. Strait
+        out[6] = llcmd::STRAIT;
+        *((int16_t *)(out + 4)) = 100;
+        // 4. Brake
+        out[9] = llcmd::BRAKE;
+        *((int16_t *)(out + 10)) = dist;
+        // 5. Spin
+        out[12] = llcmd::SPIN;
+        *((int16_t *)(out + 13)) = face_angle;
+        // 6. Brake
+        out[15] = llcmd::BRAKE;
+        *((int16_t *)(out + 16)) = 100;
+    }
+
     // Compiles a command from in to out.
     void cmdCompile(const uint8_t *in, uint8_t *out) {
         switch(*in) {
@@ -99,14 +138,7 @@ namespace hlcmd {
             out[9] = llcmd::NOP;
             break;
         case MV:
-            // TODO
-            // 1. Spin
-            // 2. Brake
-            // 3. Strait
-            // 4. Brake
-            // 5. Spin
-            // 6. Brake
-            memset(out, llcmd::NOP, 18);
+            compileMV(in, out);
             break;
         }
     }
