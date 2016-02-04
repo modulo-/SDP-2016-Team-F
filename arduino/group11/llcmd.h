@@ -3,7 +3,8 @@
 #include <stddef.h>
 
 namespace llcmd {
-    extern uint8_t *cmds;
+    extern const size_t cmd_cap;
+    extern uint8_t cmds[];
     extern size_t cmd_len;
     extern size_t cmd_at;
 

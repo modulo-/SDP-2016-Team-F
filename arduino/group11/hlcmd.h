@@ -2,5 +2,5 @@
 #include <stddef.h>
 
 namespace hlcmd {
-    void process(void *data, size_t len);
+    void process(const void *data, size_t len);
 }

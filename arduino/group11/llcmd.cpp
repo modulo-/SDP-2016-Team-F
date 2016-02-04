@@ -50,7 +50,8 @@
 #define cmdArg(offset, type) ((type *)(cmds + cmd_at + (offset)))
 
 namespace llcmd {
-    uint8_t *cmds = NULL;
+    const size_t cmd_cap = 256;
+    uint8_t cmds[cmd_cap];
     size_t cmd_len = 0;
     size_t cmd_at = 0;
     unsigned long last_time = 0;

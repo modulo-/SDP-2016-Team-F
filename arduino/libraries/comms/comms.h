@@ -38,8 +38,8 @@ void send(const void *data, char target, size_t len);
 // This is NOT defined by the comms library, but must be defined in the core
 // arduino code.
 //
-// This recieves ownership of `data`, and *must* free it when it is no longer
-// used.
-void process(void *data, size_t len);
+// This DOES NOT recieves ownership of `data`, and *must not* assume it to be
+// persistant.
+void process(const void *data, size_t len);
 
 }

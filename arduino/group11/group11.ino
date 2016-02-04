@@ -4,13 +4,12 @@
 #include "hlcmd.h"
 #include "llcmd.h"
 #include <Wire.h>
-#include <stdint.h>
 #include <stddef.h>
 
 namespace comms {
     const char DEVICEID = '1';
 
-    void process(void *data, size_t len) {
+    void process(const void *data, size_t len) {
         hlcmd::process(data, len);
     }
 }
