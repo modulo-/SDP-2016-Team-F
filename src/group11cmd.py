@@ -80,23 +80,32 @@ commands = {
 }
 
 def help_cmd(cmd):
-    # TODO
-    pass
+    if cmd not in commands:
+        print "No entry for '{}'.".format(cmd)
+        return
+    parts = [cmd]
+    for arg in commands[cmd].argl:
+        parts.append('<' + arg[0] + '>')
+    print ' '.join(parts)
+    print ''
+    print commands[cmd].desc
 
 def help_cmds():
-    # TODO
     print "Commands available:"
     print ""
-    print "wait, kicker_ext_t, kicker_ret_t, left_t, right_t, spin_cw_t,"
-    print "spin_cc_t, kick_t, left, right, spin_cw, spin_cc, kick, mv, exit,"
-    print "help."
+    cmdnames = list(commands.keys())
+    cmdnames.extend(['help', 'exit'])
+    cmdnames.sort()
+    print ', '.join(cmdnames)
     print ""
     print "Run 'help <cmd>' for more details about '<cmd>'."
     print "Commands are run in a shell-like style, and take arguments"
     print "sererated with spaces. (e.g. 'wait 100')"
     print ""
     print "Commands take a fixed number of arguments, and may be chained in"
-    print "sequence (e.g. left 1000 right 1000)."
+    print "sequence (e.g. strait 100 strait -100)."
+    print ""
+    print "Distances are measured in mm, angles in degrees and times in ms."
     print ""
     print "Commands which cannot be used in a chain are 'help' and 'exit'."
 
@@ -106,7 +115,7 @@ if __name__ == '__main__':
         error('RF device not specified')
         print "Please provide the RF device as an argument (e.g. '/dev/ttyACM0')"
     else:
-        comms.init(sys.argv[1], '60', '+++')
+        #comms.init(sys.argv[1], '60', '+++')
         print "Comms system online. Type 'help' for command information."
         print ""
         print "time is given in milliseconds. Please wait for a command to complete before sending a new one."
