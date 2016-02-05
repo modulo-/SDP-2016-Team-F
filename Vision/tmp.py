@@ -11,75 +11,111 @@ from vision.findHSV import CalibrationGUI
 from vision.tracker import Tracker
 import time
 
+import numpy as np
+
 # C = cal.Configure(0)
 # C.run(True)
 
-cam = Camera()
-frame = cam.get_frame()
+class vision():
+    def __init__(self):
+        self.cam = Camera()
+        self.calibrate()
 
-"""
-c = tools.get_colors(0)
-b = fh.CalibrateGUI(c)
+    def calibrate(self):
+        frame = self.cam.get_frame()
 
-b.show(frame)
-"""
+        """
+        c = tools.get_colors(0)
+        b = fh.CalibrateGUI(c)
 
-scalibration = tools.get_colors(0)
-#  print scalibration
+        b.show(frame)
+        """
 
-vision = Vision(
-pitch=0,
-color='blue',
-our_side='left',
-frame_shape=frame.shape,
-frame_center=cam.get_adjusted_center(frame),
-calibration=scalibration)
+        scalibration = tools.get_colors(0)
+        #  print scalibration
 
-# Set up postprocessing for vision
+        self.vision = Vision(
+            pitch=0,
+            color='blue',
+            our_side='left',
+            frame_shape=frame.shape,
+            frame_center=self.cam.get_adjusted_center(frame),
+            calibration=scalibration)
 
-postprocessing = Postprocessing()
+        # Set up postprocessing for vision
 
-GUI = GUI(calibration=scalibration, pitch=0)
+        # self.GUI = GUI(calibration=scalibration, pitch=0)
 
+    def getPreprocessed(self):
+        preprocessing = Preprocessing()
 
-preprocessing = Preprocessing()
+        postprocessing = Postprocessing()
 
-counter = 1L
-timer = time.clock()
+        frame = self.cam.get_frame()
+        pre_options = preprocessing.options
+        # Apply preprocessing methods toggled in the UI
+        preprocessed = preprocessing.run(frame, pre_options)
 
-c = True
-while c != 27:
+        height, width, channels = frame.shape
 
-	frame = cam.get_frame()
-	pre_options = preprocessing.options
-	# Apply preprocessing methods toggled in the UI
-	preprocessed = preprocessing.run(frame, pre_options)
-	frame = preprocessed['frame']
-	if 'background_sub' in preprocessed:
-		cv2.imshow('bg sub', preprocessed['background_sub'])
-		cv2.waitKey()
+        model_positions, regular_positions = self.vision.locate(frame)
+        model_positions = postprocessing.analyze(model_positions)
 
-	height, width, channels = frame.shape
+        #	print model_positions
+        # frame_h = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        # print frame[(464-128), 111]
 
-	model_positions, regular_positions = vision.locate(frame)
-	model_positions = postprocessing.analyze(model_positions)
+        return preprocessed
 
-	print model_positions
-	# frame_h = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-	print frame[(464-128), 111]
+    def showFrame(self):
+        c = True
 
-	cv2.imshow('frame', frame)
-	cv2.waitKey()
+        counter = 1L
+        timer = time.clock()
+        while c != 27:
+            preprocessed = self.getPreprocessed()
 
-	c = cv2.waitKey(2) & 0xFF
-	actions = []
-	fps = float(counter) / (time.clock() - timer)
-	"""
-	GUI.draw(
-		frame, model_positions, actions, regular_positions, fps, None,
-		None, None, None, False,
-		our_color='blue', our_side = 'left', key=c, preprocess=pre_options)
-	"""
+            # if 'background_sub' in preprocessed:
+            #     cv2.imshow('bg sub', preprocessed['background_sub'])
+            #     cv2.waitKey()
 
+            green_mask, green_res = self.green(preprocessed['frame'])
+            cv2.imshow('frame', preprocessed['frame'])
+            # cv2.imshow('res_g', green_res)
+            # cv2.imshow('mask_g', green_mask)
 
+            c = cv2.waitKey(2) & 0xFF
+            actions = []
+            fps = float(counter) / (time.clock() - timer)
+            """
+            GUI.draw(
+                frame, model_positions, actions, regular_positions, fps, None,
+                None, None, None, False,
+                our_color='blue', our_side = 'left', key=c, preprocess=pre_options)
+            """
+        else:
+            cv2.destroyAllWindows()
 
+    def green(self, frame):
+
+        # Convert BGR to HSV
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        # define range of green color in HSV
+        lower_green = np.array([50, 100, 100])
+        upper_green = np.array([70, 400, 400])
+
+        # ([50, 100, 100])
+        # 70, 255, 255]
+
+        # Threshold the HSV image to get only blue colors
+        mask = cv2.inRange(hsv, lower_green, upper_green)
+
+        # Bitwise-AND mask and original image
+        res = cv2.bitwise_and(frame, frame, mask=mask)
+
+        return mask, res
+
+if __name__=="__main__":
+    v = vision()
+    v.showFrame()
