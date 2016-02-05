@@ -1,5 +1,6 @@
 
-#include <stdio.h>
+#include <cstdio>
+#include <cmath>
 
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
@@ -9,6 +10,7 @@
 // Video macros for debugging
 #define USE_VIDEO
 #define VIDEO_FILE "/home/euan/Downloads/test4.avi"
+#define START_FRAME 10
 
 // Camera number to use (/dev/video#)
 #define CAMERA_NUMBER 0
@@ -19,7 +21,8 @@
 // Prototypes
 void preprocessFrame(cv::InputArray, cv::OutputArray);
 void processFrame(cv::InputArray);
-void drawCircles(std::vector<cv::Vec3f>, cv::InputOutputArray, cv::Scalar);
+void findCircles(std::vector<std::vector<cv::Point> >, std::vector<cv::Vec3f> &c, double, double);
+double euclidianDistance(cv::Point2f, cv::Point2f);
 
 /*
     Pipeline:
@@ -40,6 +43,9 @@ void drawCircles(std::vector<cv::Vec3f>, cv::InputOutputArray, cv::Scalar);
 */
 
 int main(const int argc, const char* argv[]) {
+    // Ensure OpenCV is using optimized code
+    cv::setUseOptimized(true);
+
     // Open camera (or video file)
     #ifdef USE_VIDEO
         cv::VideoCapture capture(VIDEO_FILE);
@@ -72,7 +78,7 @@ int main(const int argc, const char* argv[]) {
 
     // If using video, create trackbar to allow scrubing
     #ifdef USE_VIDEO
-        int frameNumber = 0;
+        int frameNumber = START_FRAME;
         cv::createTrackbar("Frame Number", "Capture", &frameNumber, int(capture.get(cv::CAP_PROP_FRAME_COUNT))-1);
     #endif // USE_VIDEO
 
@@ -114,6 +120,8 @@ void preprocessFrame(cv::InputArray frame, cv::OutputArray processed) {
 
 // Do main frame processing
 void processFrame(cv::InputArray processed) {
+    int64 start = cv::getTickCount();
+
     cv::UMat hsv;
     cv::UMat blur;
     cv::UMat redMask;
@@ -126,11 +134,13 @@ void processFrame(cv::InputArray processed) {
     std::vector<std::vector<cv::Point> > yellowContours;
     std::vector<std::vector<cv::Point> > pinkContours;
     std::vector<std::vector<cv::Point> > greenContours;
-    std::vector<std::vector<cv::Point> > redHull;
-    std::vector<std::vector<cv::Point> > blueHull;
-    std::vector<std::vector<cv::Point> > yellowHull;
-    std::vector<std::vector<cv::Point> > pinkHull;
-    std::vector<std::vector<cv::Point> > greenHull;
+    std::vector<cv::Vec3f> redCircles;
+    std::vector<cv::Vec3f> blueCircles;
+    std::vector<cv::Vec3f> yellowCircles;
+    std::vector<cv::Vec3f> pinkCircles;
+    std::vector<cv::Vec3f> greenCircles;
+
+    // Debug image
     cv::UMat circles;
 
     // Blur before colour convertion to reduce effects of noise
@@ -150,7 +160,7 @@ void processFrame(cv::InputArray processed) {
     cv::inRange(hsv, cv::Scalar(80, 100, 100), cv::Scalar(100,255,255), blueMask);
 
     // Create mask for yellow
-    cv::inRange(hsv, cv::Scalar(20, 100, 100), cv::Scalar(40,255,255), yellowMask);
+    cv::inRange(hsv, cv::Scalar(25, 100, 100), cv::Scalar(45,255,255), yellowMask);
 
     // Create mask for pink
     cv::inRange(hsv, cv::Scalar(160, 100, 100), cv::Scalar(180,255,255), pinkMask);
@@ -165,55 +175,35 @@ void processFrame(cv::InputArray processed) {
     cv::findContours(pinkMask, pinkContours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
     cv::findContours(greenMask, greenContours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
-    // Find convex hulls from contours, removing those that are too small, too big or not actually convex
-    for(size_t i = 0; i<redContours.size();++i) {
-        std::vector<cv::Point> hull;
-        cv::convexHull(redContours[i], hull);
-        double area = cv::contourArea(hull);
-        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
-            redHull.push_back(hull);
-        }
-    }
-    for(size_t i = 0; i<blueContours.size();++i) {
-        std::vector<cv::Point> hull;
-        cv::convexHull(blueContours[i], hull);
-        double area = cv::contourArea(hull);
-        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
-            blueHull.push_back(hull);
-        }
-    }
-    for(size_t i = 0; i<yellowContours.size();++i) {
-        std::vector<cv::Point> hull;
-        cv::convexHull(yellowContours[i], hull);
-        double area = cv::contourArea(hull);
-        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
-            yellowHull.push_back(hull);
-        }
-    }
-    for(size_t i = 0; i<pinkContours.size();++i) {
-        std::vector<cv::Point> hull;
-        cv::convexHull(pinkContours[i], hull);
-        double area = cv::contourArea(hull);
-        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
-            pinkHull.push_back(hull);
-        }
-    }
-    for(size_t i = 0; i<greenContours.size();++i) {
-        std::vector<cv::Point> hull;
-        cv::convexHull(greenContours[i], hull);
-        double area = cv::contourArea(hull);
-        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
-            greenHull.push_back(hull);
-        }
-    }
+    // Find circles
+    findCircles(redContours, redCircles, 1, 1);
+    findCircles(blueContours, blueCircles, 1, 1);
+    findCircles(yellowContours, yellowCircles, 1, 1);
+    findCircles(pinkContours, pinkCircles, 1, 10);
+    findCircles(greenContours, greenCircles, 1, 5);
 
-    // Debug draw hulls
+    // Debug draw circles
     processed.copyTo(circles);
-    cv::drawContours(circles, redHull, -1, cv::Scalar(0,0,255));
-    cv::drawContours(circles, blueHull, -1, cv::Scalar(255,0,0));
-    cv::drawContours(circles, yellowHull, -1, cv::Scalar(0,255,255));
-    cv::drawContours(circles, pinkHull, -1, cv::Scalar(255,0,255));
-    cv::drawContours(circles, greenHull, -1, cv::Scalar(0,255,0));
+    for(size_t i = 0; i < redCircles.size();i++) {
+        cv::Vec3f c = redCircles[i];
+        cv::circle(circles, cv::Point2f(c[0], c[1]), cvRound(c[2]), cv::Scalar(0,0,255));
+    }
+    for(size_t i = 0; i < blueCircles.size();i++) {
+        cv::Vec3f c = blueCircles[i];
+        cv::circle(circles, cv::Point2f(c[0], c[1]), cvRound(c[2]), cv::Scalar(255,0,0));
+    }
+    for(size_t i = 0; i < yellowCircles.size();i++) {
+        cv::Vec3f c = yellowCircles[i];
+        cv::circle(circles, cv::Point2f(c[0], c[1]), cvRound(c[2]), cv::Scalar(0,255,255));
+    }
+    for(size_t i = 0; i < pinkCircles.size();i++) {
+        cv::Vec3f c = pinkCircles[i];
+        cv::circle(circles, cv::Point2f(c[0], c[1]), cvRound(c[2]), cv::Scalar(255,0,255));
+    }
+    for(size_t i = 0; i < greenCircles.size();i++) {
+        cv::Vec3f c = greenCircles[i];
+        cv::circle(circles, cv::Point2f(c[0], c[1]), cvRound(c[2]), cv::Scalar(0,255,0));
+    }
 
     // Debug shows
     cv::imshow("Red Mask", redMask);
@@ -222,13 +212,51 @@ void processFrame(cv::InputArray processed) {
     cv::imshow("Pink Mask", pinkMask);
     cv::imshow("Green Mask", greenMask);
     cv::imshow("Circles", circles);
+
+    printf("%f\n", (cv::getTickCount() - start) / cv::getTickFrequency());
 }
 
-void drawCircles(std::vector<cv::Vec3f> circles, cv::InputOutputArray img, cv::Scalar colour) {
-    for(size_t c=0;c<circles.size(); c++) {
-        cv::Point center(cvRound(circles[c][0]), cvRound(circles[c][1]));
-        int radius = cvRound(circles[c][2]);
+// Takes contours and finds circles
+// Theory: find the circle and ellipse that fit around a contour. If the contour is circular, the circle and ellipse should be similar
+// Also, if the contour is circular, the fit circle should be a good approximation of it
+void findCircles(std::vector<std::vector<cv::Point> > contours, std::vector<cv::Vec3f> &circles, double centerEpsilon, double radiusEpsilon) {
+    // Iterate over each contour
+    for(size_t i = 0; i < contours.size(); i++) {
+        std::vector<cv::Point> contour = contours[i];
 
-        cv::circle(img, center, radius, colour, 5);
+        // Discard is less than five points in contour
+        // Both as can't fit ellipse otherwise and is unlikely to be a circle with five points
+        if(contour.size() < 5) {
+            continue;
+        }
+
+        // Find minimum enclosing circle
+        cv::Point2f center;
+        float radius;
+        cv::minEnclosingCircle(contour, center, radius);
+
+        // Fit an ellipse around the contour
+        cv::RotatedRect ellipse = cv::fitEllipse(contour);
+        cv::Point2f eCenter = ellipse.center;
+        cv::Point2f eAxesRadius = ellipse.size;
+        // Need to half to as currently axes (diameter)
+        eAxesRadius.x = eAxesRadius.x / 2;
+        eAxesRadius.y = eAxesRadius.y / 2;
+
+        // Compare the circle and ellipse
+        // Uses Euclidian distance. Better alternatives?
+        double centerDistance = euclidianDistance(center, eCenter);
+        double radiusDistance = euclidianDistance(cv::Point2f(radius, radius), eAxesRadius);
+
+        if(centerDistance > centerEpsilon || radiusDistance > radiusEpsilon) {
+            continue;
+        }
+
+        // Add the found circle to the output vector
+        circles.push_back(cv::Vec3f(center.x, center.y, radius));
     }
+}
+
+double euclidianDistance(cv::Point2f p1, cv::Point2f p2) {
+    return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
 }
