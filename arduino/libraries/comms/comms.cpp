@@ -1,7 +1,6 @@
 #include "comms.h"
 #include "base64.h"
 
-#include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
 #include <Arduino.h>
@@ -28,7 +27,7 @@ static bool tryCmd(const char *prefix, const char *cmd) {
     }
     return !Serial.find("OK");
 }
-
+    
 bool init(const char *chan, const char *control) {
     Serial.setTimeout(5000);
     if(tryCmd(control, NULL))
@@ -80,9 +79,9 @@ static void processPacket() {
     Serial.print(chksum.sum[1]);
     Serial.println("");
     // Decode
-    char *decoded = NULL;
-    size_t decoded_len;
-    base64::decode(buf + 2, buflen - 6, &decoded, &decoded_len);
+    size_t decoded_len = base64::decLen(buflen - 6);
+    char decoded[decoded_len];
+    base64::decode(buf + 2, buflen - 6, decoded);
     buflen = 0;
     process(decoded, decoded_len);
 }
@@ -105,9 +104,9 @@ void poll() {
 void send(const void *data, char target, size_t len) {
     // Note that as of right now, the arduino will IGNORE acknowledgement
     // packets.
-    char *encoded = NULL;
-    size_t enclen;
-    base64::encode((char *)data, len, &encoded, &enclen);
+    size_t enclen = base64::encLen(len);
+    char encoded[enclen];
+    base64::encode((char *)data, len, encoded);
     Serial.print(target);
     Serial.print(DEVICEID);
     Serial.print(encoded);
@@ -119,7 +118,6 @@ void send(const void *data, char target, size_t len) {
     Serial.print(chksum.sum[0]);
     Serial.print(chksum.sum[1]);
     Serial.println("");
-    free(encoded);
 }
 
 }

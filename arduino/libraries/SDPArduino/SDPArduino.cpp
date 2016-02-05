@@ -88,6 +88,21 @@ void motorAllStop() {
   byte fred = Wire.endTransmission();		//end I2C commucation.
 }
 
+
+//experimental...
+
+void motorBrake(int motorNum) {
+  if (motorNum >= 0 and motorNum <= 5) {
+    int motorMode = 1;
+    byte motor1 = motorNum<<5 | 16 | motorMode<<1;
+    uint8_t sender[1] = {motor1};
+    Wire.beginTransmission(MotorBoardI2CAddress);
+    Wire.write(sender, 1);
+    byte fred = Wire.endTransmission();
+  }
+}
+
+
 void setPWMpin(int portNum, int power){ //PortNum is the Sensor port used, pwm is the power of the output (between 0-100)
   if (portNum >= 0 and portNum <= 3){
     if (power < 0){

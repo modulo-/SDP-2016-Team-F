@@ -3,181 +3,159 @@ from __future__ import division
 import comms
 import sys
 from math import ceil, atan, sqrt, pi
+import logging
+from logging import debug, error
+import readline
 
-def rotation_time_from_angle(angle):
-    return int(200 + 21 * angle / 3)
+CMD_WAIT   = 0x00
+CMD_BRAKE  = 0x01
+CMD_STRAIT = 0x02
+CMD_SPIN   = 0x03
+CMD_KICK   = 0x04
+CMD_MV     = 0x05
 
-def move_time_from_distance(dist):
-    return int(200 + 100 * dist / 3)
+class TractorCrabException(Exception):
+    def __init__(self, s):
+        super(Exception, self).__init__(s)
 
-def kick_time_from_distance(dist):
-    if dist >= 150:
-        return 350
+class Command:
+    def __init__(self, f, desc, argl):
+        self.f = f
+        self.desc = desc
+        self.argl = argl
+
+def i16fn(opcode):
+    return lambda x: [opcode, x & 0xff, (x >> 8) & 0xff]
+
+cmd_wait = i16fn(CMD_WAIT);
+cmd_brake = i16fn(CMD_BRAKE)
+cmd_strait = i16fn(CMD_STRAIT)
+cmd_spin = i16fn(CMD_SPIN)
+cmd_kick = i16fn(CMD_KICK)
+
+def cmd_mv(x, y, angle):
+    return [CMD_MV,
+        x & 0xff, (x >> 8) & 0xff,
+        y & 0xff, (y >> 8) & 0xff,
+        angle & 0xff, (angle >> 8) & 0xff]
+
+def parse_t(s):
+    t = int(s)
+    if t <= 0:
+        raise TractorCrabException('Time must be > 0!')
+    elif t > 0xffff:
+        raise TractorCrabException('Time out of range!')
+    return t
+
+def parse_dist(s):
+    d = int(float(s) * 10)
+    if d < -0x8000 or d > 0x7fff:
+        raise TractorCrabException('Distance out of range!')
+    return d
+
+def parse_angle(s):
+    d = int(float(s) * 60)
+    if d < -0x8000 or d > 0x7fff:
+        raise TractorCrabException('Angle out of range!')
+    return d
+
+commands = {
+    'wait': Command(cmd_wait, 'waits for the specified time',
+        [('time', parse_t)]),
+    'brake': Command(cmd_brake,
+        'brakes for the specified time',
+        [('time', parse_t)]),
+    'strait': Command(cmd_strait,
+        'moves strait (positive: right) the specified distance',
+        [('dist', parse_dist)]),
+    'spin': Command(cmd_spin,
+        'Spins on the spot the specified angle (positive: clockwise)',
+        [('angle', parse_angle)]),
+    'kick': Command(cmd_kick,
+        'Kicks the ball the specified distance',
+        [('dist', parse_dist)]),
+    'mv': Command(cmd_mv,
+        'Moves to a x and y offset, facing a specified angle',
+        [('x', parse_dist), ('y', parse_dist), ('angle', parse_angle)]),
+}
+
+def help_cmd(cmd):
+    if cmd not in commands:
+        print "No entry for '{}'.".format(cmd)
+        return
+    parts = [cmd]
+    for arg in commands[cmd].argl:
+        parts.append('<' + arg[0] + '>')
+    print ' '.join(parts)
+    print ''
+    print commands[cmd].desc
+
+def help_cmds():
+    print "Commands available:"
+    print ""
+    cmdnames = list(commands.keys())
+    cmdnames.extend(['help', 'exit'])
+    cmdnames.sort()
+    print ', '.join(cmdnames)
+    print ""
+    print "Run 'help <cmd>' for more details about '<cmd>'."
+    print "Commands are run in a shell-like style, and take arguments"
+    print "sererated with spaces. (e.g. 'wait 100')"
+    print ""
+    print "Commands take a fixed number of arguments, and may be chained in"
+    print "sequence (e.g. strait 100 strait -100)."
+    print ""
+    print "Distances are measured in mm, angles in degrees and times in ms."
+    print ""
+    print "Commands which cannot be used in a chain are 'help' and 'exit'."
+
+if __name__ == '__main__':
+    logging.root.setLevel(logging.DEBUG)
+    if len(sys.argv) < 2:
+        error('RF device not specified')
+        print "Please provide the RF device as an argument (e.g. '/dev/ttyACM0')"
     else:
-        return int(170 + 18 * dist / 50)
-
-def guardedint(arg):
-    ret = int(arg)
-    if ret > 10000:
-        print "time given greater than 10 secs. ignoring."
-        return -1
-    elif ret < 0:
-        print "stop trying to break my code you asshole."
-        return -1
-    else:
-        return ret
-
-def echocb(data):
-    print repr(data)
-
-if len(sys.argv) < 2:
-    print "Please provide the RF device as an argument (e.g. '/dev/ttyACM0')"
-else:
-    comms.init(sys.argv[1], '60', '+++')
-    comms.registercb(echocb)
-    print "Comms system online. The following commands are supported:"
-    print ""
-    print "led_on <time>"
-    print "kicker_fwd <time>"
-    print "kicker_bwd <time>"
-    print "left_t <time>"
-    print "right_t <time>"
-    print "spin_cw_t <time>"
-    print "spin_cc_t <time>"
-    print "left <dist>"
-    print "right <dist>"
-    print "spin_cw <dist>"
-    print "spin_cc <dist>"
-    print "kick_t <time>"
-    print "kick <dist>"
-    print "mv <x> <y> <angle>"
-    print "exit"
-    print ""
-    print "time is given in milliseconds. Please wait for a command to complete before sending a new one."
-    print "commands aside from 'exit' may be chained. E.g.:"
-    print ""
-    print "kicker_fwd 500 led_on 1000 kicker_bwd 500"
-    print ""
-    print "Please use this responsibly, packets are limited in effective size!"
-    while True:
-        line = raw_input('% ')
-        if line == 'exit':
-            exit(0)
-        args = line.split()
-        print repr(args)
-        i = 0
-        if len(args) == 0:
-            continue
-        cmdbytes = []
-        while i < len(args):
-            if args[i] in ['led_on', 'kicker_fwd', 'kicker_bwd', 'left_t',
-                    'right_t', 'spin_cw_t', 'spin_cc_t']:
-                cmd = None
-                if args[i] == 'led_on':
-                    cmd = 0
-                elif args[i] == 'kicker_fwd':
-                    cmd = 1
-                elif args[i] == 'kicker_bwd':
-                    cmd = 2
-                elif args[i] == 'right_t':
-                    cmd = 3
-                elif args[i] == 'left_t':
-                    cmd = 4
-                elif args[i] == 'spin_cc_t':
-                    cmd = 5
-                elif args[i] == 'spin_cw_t':
-                    cmd = 6
-                time = guardedint(args[i + 1])
-                if time != -1:
-                    cmdbytes.extend([cmd, time & 0xff, (time >> 8) & 0xff])
-                i += 2
-            elif args[i] in ['left', 'right']:
-                cmd = None
-                if args[i] == 'right':
-                    cmd = 3
-                elif args[i] == 'left':
-                    cmd = 4
-                dist = guardedint(args[i + 1])
-                time = move_time_from_distance(dist)
-                if dist != -1:
-                    cmdbytes.extend([cmd, time & 0xff, (time >> 8) & 0xff])
-                i += 2
-            elif args[i] in ['spin_cw', 'spin_cc']:
-                cmd = None
-                if args[i] == 'spin_cc':
-                    cmd = 5
-                elif args[i] == 'spin_cw':
-                    cmd = 6
-                angle = guardedint(args[i + 1])
-                time = rotation_time_from_angle(angle)
-                if angle != -1:
-                    cmdbytes.extend([cmd, time & 0xff, (time >> 8) & 0xff])
-                i += 2
-            elif args[i] == 'kick_t':
-                time = guardedint(args[i + 1])
-                cmdbytes.extend([0x02, time & 0xff, (time >> 8) & 0xff])
-                # Led on 100ms (basically a wait)
-                cmdbytes.extend([0x00, 0x64, 0x00])
-                # Kicker forward 270 ms
-                cmdbytes.extend([0x01, 0x0e, 0x01])
-                i += 2
-            elif args[i] == 'kick':
-                dist = guardedint(args[i + 1])
-                time = kick_time_from_distance(dist)
-                cmdbytes.extend([0x02, time & 0xff, (time >> 8) & 0xff])
-                # Led on 100ms (basically a wait)
-                cmdbytes.extend([0x00, 0x64, 0x00])
-                # Kicker forward 270 ms
-                cmdbytes.extend([0x01, 0x0e, 0x01])
-                i += 2
-            elif args[i] == 'mv':
-                x = int(args[i + 1])
-                y = int(args[i + 2])
-                angle = int(args[i + 3])
-                mv_angle = None
-                if x == 0:
-                    mv_angle = 90
-                else:
-                    mv_angle = -atan(y/x) * 180.0 / pi
-                dist = sqrt(x**2 + y**2)
-                if x <= 0:
-                    dist = -dist
-                face_angle = (angle - mv_angle) % 360
-                if face_angle > 180:
-                    face_angle -= 360
-                print x, y, angle, mv_angle, dist, face_angle
-                # Rotate mv_angle
-                # Move dist
-                # Rotate face_angle
-                if mv_angle != 0:
-                    cmd = None
-                    if mv_angle > 0:
-                        cmd = 0x06
+        comms.init(sys.argv[1], '60', '+++')
+        print "Comms system online. Type 'help' for command information."
+        print ""
+        print "time is given in milliseconds. Please wait for a command to complete before sending a new one."
+        print "commands aside from 'exit' may be chained. E.g.:"
+        print ""
+        print "kicker_extend_t 500 wait_t 1000 kicker_retract_t 500"
+        print ""
+        print "Please use this responsibly, packets are limited in effective size!"
+        while True:
+            try:
+                line = raw_input('% ')
+                args = line.split()
+                i = 0
+                if len(args) == 0:
+                    continue
+                elif args[0] == 'exit':
+                    exit(0)
+                elif args[0] == 'help':
+                    if(len(args) >= 2):
+                        help_cmd(args[1])
                     else:
-                        cmd = 0x05
-                    time = rotation_time_from_angle(abs(mv_angle))
-                    cmdbytes.extend([cmd, time & 0xff, (time >> 8) & 0xff,
-                        0x00, 0x64, 0x00])
-                if dist != 0:
-                    cmd = None
-                    if dist < 0:
-                        cmd = 0x03
-                    else:
-                        cmd = 0x04
-                    time = move_time_from_distance(abs(dist))
-                    cmdbytes.extend([cmd, time & 0xff, (time >> 8) & 0xff,
-                        0x00, 0x64, 0x00])
-                if face_angle != 0:
-                    cmd = None
-                    if face_angle > 0:
-                        cmd = 0x06
-                    else:
-                        cmd = 0x05
-                    time = rotation_time_from_angle(abs(face_angle))
-                    cmdbytes.extend([cmd, time & 0xff, (time >> 8) & 0xff,
-                        0x00, 0x64, 0x00])
-                i += 3
-            else:
-                i += 1
-        comms.send(''.join(chr(x) for x in cmdbytes), '1')
+                        help_cmds()
+                    continue
+                cmdbytes = []
+                while i < len(args):
+                    if args[i] not in commands:
+                        raise TractorCrabException("Unknown command: '" + args[i] + "'")
+                    cmd = commands[args[i]]
+                    cmd_arglen = len(cmd.argl)
+                    if len(args) < cmd_arglen + i + 1:
+                        raise TractorCrabException('Too few arguments!')
+                    cmd_args = args[i + 1 : i + 1 + cmd_arglen]
+                    parsed_args = []
+                    for (argspec, arg) in zip(cmd.argl, cmd_args):
+                        parsed_args.append(argspec[1](arg))
+                    cmdbytes.extend(cmd.f(*parsed_args))
+                    i += cmd_arglen + 1
+                if cmdbytes:
+                    debug('Sent command sequence %r', cmdbytes)
+                    comms.send(''.join(chr(x) for x in cmdbytes), '1')
+            except TractorCrabException as e:
+                error('%s', e)
 

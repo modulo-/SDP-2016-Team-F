@@ -1,8 +1,10 @@
 import os
+import random
 import thread
 from threading import Timer, Lock, Condition
 import b64
 import serial
+from logging import info, debug
 
 ENCKEY = '3327BDBAAF48C59410FB5C4115777F26'
 PANID = '6810'
@@ -21,7 +23,9 @@ def monitor_comms():
         line = commserial.readline().strip()
         if len(line) < 4:
             continue
-        if not line.startswith(DEVICEID):
+        if (not line.startswith(DEVICEID)
+                and not line.startswith('d')
+                and not line.startswith('e')):
             continue
         if line[1] == '$' and len(line) == 4:
             # ACK
@@ -29,16 +33,15 @@ def monitor_comms():
             index = None
             for (i, packet) in enumerate(packetlist):
                 if line[2:4] == packet[-4:-2]:
-                    print "ACK", line
+                    debug('Package ACK: %s', line)
                     index = i
-                    break;
+                    break
             if index != None:
                 packetlist.pop(index)
             if packetlist == []:
                 packetcond.notify()
             packetcond.release()
             continue
-        #print repr(line)
         if not b64.valid(line):
             continue
         if b64.checksum(line[:-2]) != line[-2:]:
@@ -48,8 +51,13 @@ def monitor_comms():
         commserial.flush()
         commlock.release()
         data = b64.decode(line[2:-2])
-        for callback in callbacks:
-            thread.start_new_thread(callback, (data, ))
+        if line.startswith('d'):
+            info('Debug message recieved: %s', data)
+        elif line.startswith('e'):
+            error('Error message recieved: %s', data)
+        else:
+            for callback in callbacks:
+                thread.start_new_thread(callback, (data, ))
 
 def waitok():
     buf = (None, None)
@@ -59,23 +67,28 @@ def waitok():
 def init(fname, chan, control, listen=True):
     global commserial
     commserial = serial.Serial(fname)
-    commserial.reset_input_buffer()
-    commserial.reset_output_buffer()
+    commserial.flushInput()
+    commserial.flushOutput()
     cmds = [
         control,
         'ATEE1\r',
         'ATAC\r',
         'ATEK' + ENCKEY + '\r',
         'ATID' + PANID + '\r',
-        'ATCN' + chan + '\r',
+        'ATCN' + str(chan) + '\r',
         'ATAC\r',
+        'ATWR\r',
         'ATDN\r',
     ]
+
     for cmd in cmds:
+        print cmd
         commlock.acquire()
         commserial.write(cmd)
         commlock.release()
+        print "sent",
         waitok()
+        print "done"
     if listen:
         thread.start_new_thread(monitor_comms, ())
 
@@ -90,22 +103,22 @@ def check_recieved(packet):
         commserial.write(packet)
         commserial.flush()
         commlock.release()
-        Timer(0.1, lambda: check_recieved(packet)).start()
+        Timer(getStandoff(), lambda: check_recieved(packet)).start()
     packetcond.release()
 
 def send(data, target):
-    print repr(data)
-    packet = target + DEVICEID + b64.encode(data)
+    packet = str(target) + DEVICEID + b64.encode(data)
     sum = b64.checksum(packet)
     packet += sum + '\r\n'
     packetcond.acquire()
     packetlist.append(packet)
     packetcond.release()
     commlock.acquire()
+    debug('Sent packet %r', packet)
     commserial.write(packet)
     commserial.flush()
     commlock.release()
-    Timer(0.1, lambda: check_recieved(packet)).start()
+    Timer(getStandoff(), lambda: check_recieved(packet)).start()
 
 # Prevents any packets from being resent.
 #
@@ -117,7 +130,10 @@ def send(data, target):
 # Use the empty string as target to stop all resending.
 def stop_resend(target):
     global packetlist
-    packetlist = [x for x in packetlist if not x.startswith(target)]
+    packetlist = [x for x in packetlist if not x.startswith(str(target))]
+
+def getStandoff():
+    return random.random()*0.9+0.1
 
 def wait():
     packetcond.acquire()

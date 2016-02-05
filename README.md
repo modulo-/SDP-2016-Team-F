@@ -1,4 +1,5 @@
 # SDP-2016-Team-F
+![Awesome Logo](/doc/Logo/spartan-warrior.png "This is SPARTA")
 
 ## Configuring the SRF stick and the RF chip
 Guard character are likely to be # or ~.
