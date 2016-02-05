@@ -7,7 +7,7 @@
 #include <opencv2/videoio.hpp>
 
 // Video macros for debugging
-//#define USE_VIDEO
+#define USE_VIDEO
 #define VIDEO_FILE "/home/euan/Downloads/test4.avi"
 
 // Camera number to use (/dev/video#)
@@ -121,12 +121,17 @@ void processFrame(cv::InputArray processed) {
     cv::UMat yellowMask;
     cv::UMat pinkMask;
     cv::UMat greenMask;
+    std::vector<std::vector<cv::Point> > redContours;
+    std::vector<std::vector<cv::Point> > blueContours;
+    std::vector<std::vector<cv::Point> > yellowContours;
+    std::vector<std::vector<cv::Point> > pinkContours;
+    std::vector<std::vector<cv::Point> > greenContours;
+    std::vector<std::vector<cv::Point> > redHull;
+    std::vector<std::vector<cv::Point> > blueHull;
+    std::vector<std::vector<cv::Point> > yellowHull;
+    std::vector<std::vector<cv::Point> > pinkHull;
+    std::vector<std::vector<cv::Point> > greenHull;
     cv::UMat circles;
-    std::vector<cv::Vec3f> redCicles;
-    std::vector<cv::Vec3f> blueCicles;
-    std::vector<cv::Vec3f> yellowCicles;
-    std::vector<cv::Vec3f> pinkCicles;
-    std::vector<cv::Vec3f> greenCicles;
 
     // Blur before colour convertion to reduce effects of noise
     cv::medianBlur(processed, blur, 9);
@@ -138,7 +143,7 @@ void processFrame(cv::InputArray processed) {
     // Note on how to get HSV values (in Python):
     // cv2.cvtColor(numpy.uint8([[[B,G,R]]]), cv2.COLOR_BGR2HSV) returns [H, S, V] for colour in BGR format
     // Lower bound is then [H - 10, 100, 100] (capping at 0)
-    // Upper bound is then [H + 10, 255, 255] (capping at 255)
+    // Upper bound is then [H + 10, 255, 255] (capping at 180)
     cv::inRange(hsv, cv::Scalar(0, 100, 100), cv::Scalar(10,255,255), redMask);
 
     // Create mask for blue
@@ -153,32 +158,67 @@ void processFrame(cv::InputArray processed) {
     // Create mask for green
     cv::inRange(hsv, cv::Scalar(50, 100, 100), cv::Scalar(70,255,255), greenMask);
 
-    // Blur masks to make circle detection easier
-    cv::GaussianBlur(redMask, redMask, cv::Size(9,9), 2, 2);
-    cv::GaussianBlur(blueMask, blueMask, cv::Size(9,9), 2, 2);
-    cv::GaussianBlur(yellowMask, yellowMask, cv::Size(9,9), 2, 2);
-    cv::GaussianBlur(pinkMask, pinkMask, cv::Size(9,9), 2, 2);
-    cv::GaussianBlur(greenMask, greenMask, cv::Size(9,9), 2, 2);
+    // Find the contours in each of the masks
+    cv::findContours(redMask, redContours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(blueMask, blueContours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(yellowMask, yellowContours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(pinkMask, pinkContours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
+    cv::findContours(greenMask, greenContours, cv::RETR_LIST, cv::CHAIN_APPROX_SIMPLE);
 
-    // Detect circles in each of the masks
-    cv::HoughCircles(redMask, redCicles, CV_HOUGH_GRADIENT, 1, 10, 50, 20, 0, 0);
-    cv::HoughCircles(blueMask, blueCicles, CV_HOUGH_GRADIENT, 1, 10, 50, 20, 0, 0);
-    //cv::HoughCircles(yellowMask, yellowCicles, CV_HOUGH_GRADIENT, 1, yellowMask.rows/8, 50, 20, 0, 0);
-    cv::HoughCircles(pinkMask, pinkCicles, CV_HOUGH_GRADIENT, 1, 10, 50, 20, 0, 0);
-    cv::HoughCircles(greenMask, greenCicles, CV_HOUGH_GRADIENT, 1, 10, 50, 20, 0, 0);
+    // Find convex hulls from contours, removing those that are too small, too big or not actually convex
+    for(size_t i = 0; i<redContours.size();++i) {
+        std::vector<cv::Point> hull;
+        cv::convexHull(redContours[i], hull);
+        double area = cv::contourArea(hull);
+        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
+            redHull.push_back(hull);
+        }
+    }
+    for(size_t i = 0; i<blueContours.size();++i) {
+        std::vector<cv::Point> hull;
+        cv::convexHull(blueContours[i], hull);
+        double area = cv::contourArea(hull);
+        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
+            blueHull.push_back(hull);
+        }
+    }
+    for(size_t i = 0; i<yellowContours.size();++i) {
+        std::vector<cv::Point> hull;
+        cv::convexHull(yellowContours[i], hull);
+        double area = cv::contourArea(hull);
+        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
+            yellowHull.push_back(hull);
+        }
+    }
+    for(size_t i = 0; i<pinkContours.size();++i) {
+        std::vector<cv::Point> hull;
+        cv::convexHull(pinkContours[i], hull);
+        double area = cv::contourArea(hull);
+        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
+            pinkHull.push_back(hull);
+        }
+    }
+    for(size_t i = 0; i<greenContours.size();++i) {
+        std::vector<cv::Point> hull;
+        cv::convexHull(greenContours[i], hull);
+        double area = cv::contourArea(hull);
+        if(cv::isContourConvex(hull) && area >= 50 && area <= 150) {
+            greenHull.push_back(hull);
+        }
+    }
 
-    // Debug draw circles on masks
+    // Debug draw hulls
     processed.copyTo(circles);
-    drawCircles(redCicles, circles, cv::Scalar(0,0,255));
-    drawCircles(blueCicles, circles, cv::Scalar(255,0,0));
-    //drawCircles(yellowCicles, circles, cv::Scalar(0,255,255));
-    drawCircles(pinkCicles, circles, cv::Scalar(255,0,255));
-    drawCircles(greenCicles, circles, cv::Scalar(0,255,0));
+    cv::drawContours(circles, redHull, -1, cv::Scalar(0,0,255));
+    cv::drawContours(circles, blueHull, -1, cv::Scalar(255,0,0));
+    cv::drawContours(circles, yellowHull, -1, cv::Scalar(0,255,255));
+    cv::drawContours(circles, pinkHull, -1, cv::Scalar(255,0,255));
+    cv::drawContours(circles, greenHull, -1, cv::Scalar(0,255,0));
 
     // Debug shows
     cv::imshow("Red Mask", redMask);
     cv::imshow("Blue Mask", blueMask);
-    //cv::imshow("Yellow Mask", yellowMask);
+    cv::imshow("Yellow Mask", yellowMask);
     cv::imshow("Pink Mask", pinkMask);
     cv::imshow("Green Mask", greenMask);
     cv::imshow("Circles", circles);
