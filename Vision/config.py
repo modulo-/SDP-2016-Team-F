@@ -82,6 +82,11 @@ class Config:
         }
     }
 
+    dot_areas = {
+        'blue': 2,
+        'yellow': 5,
+        'red': 15
+    }
     filters = OrderedDict()
     filter_stack = []  # OrderedSet()
     OUTPUT_TITLE = 'Filter Output'
