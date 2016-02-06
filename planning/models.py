@@ -35,7 +35,7 @@ class Action (object):
     # Test the action's preconditions
     def is_possible(self):
         for condition in self.preconditions:
-            if not condition(world):
+            if not condition(self.world, self.robot):
                 return False
         return True
 
@@ -58,3 +58,19 @@ class GrabBall (Action):
 
     def perform(self, comms):
         comms.close_grabbers()
+
+class TurnToGoal (Action):
+    preconditions = [lambda w, r: r.has_ball(w.ball)]
+
+    def perform(self, comms):
+        # TODO find best point to shoot to
+        x = self.world.goal.x + self.world.goal.width / 2
+        y = self.world.goal.y
+        comms.turn(self.world.get_rotation_to_point(x, y))
+
+class Shoot (Action):
+    preconditions = [lambda w, r: r.has_ball(w.ball),
+                     lambda w, r: utils.can_score(w, r, w.their_goal())]
+
+    def perform(self, comms):
+        comms.kick_full_power()
