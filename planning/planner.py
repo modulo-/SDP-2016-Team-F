@@ -21,4 +21,5 @@ class Planner:
         robot = world.our_attacker()
         goal = get_goal(world, robot)
         action = goal.generate_action()
+        messages = action.get_messages()
         actuate(action)

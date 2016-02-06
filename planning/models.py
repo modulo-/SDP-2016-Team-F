@@ -13,12 +13,16 @@ class Goal (object):
 # Go to and grab ball
 class GetBall (Goal):
     def generate_action(self):
-        actions = [GrabBall(self, self.world, self.robot),
-                   GoToStaticBall(world, self.robot)]
+        actions = [GrabBall(self.world, self.robot),
+                   GoToStaticBall(self.world, self.robot)]
         for a in actions:
             if a.is_possible():
                 return a
         return None
+
+class Score (Goal):
+    def generate_action(self):
+        pass
 
 # Base class for actions
 class Action (object):
@@ -38,6 +42,10 @@ class Action (object):
     # Do comms to perform action
     def perform(self, comms):
         raise NotImplemented
+
+    # Get messages relating to action
+    def get_messages(self):
+        return []
 
 class GoToStaticBall (Action):
     preconditions = [lambda w, r: utils.ball_is_static(w)]
