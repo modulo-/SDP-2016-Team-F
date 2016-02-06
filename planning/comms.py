@@ -18,3 +18,9 @@ class CommsManager:
 
     def kick(self, distance):
         print("Robot {0} kicking distance {1}".format(self.robot, distance))
+
+    def close_grabbers(self):
+        print("Robot {0} closing grabbers".format(self.robot))
+
+    def release_grabbers(self):
+        print("Robot {0} releasing grabbers".format(self.robot))
