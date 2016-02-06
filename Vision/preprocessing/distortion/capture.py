@@ -6,6 +6,8 @@
 
 import cv2, time
 
+        createTrackbar('Erode',
+                       self.calibration[self.color]['erode'])
 capture = cv2.VideoCapture(0)
 
 interval = 20

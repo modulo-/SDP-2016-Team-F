@@ -80,7 +80,7 @@ class Tracker(object):
                                         kernel,
                                         iterations=adjustments['erode'])
             
-            _, contours, hierarchy = cv2.findContours(
+            contours, hierarchy = cv2.findContours(
                 frame_mask,
                 cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE

@@ -1,5 +1,5 @@
 import cv2
-import tools
+import oldvision.tools as tools
 import numpy as np
 
 
@@ -8,7 +8,7 @@ class Camera(object):
     Camera access wrapper.
     """
 
-    def __init__(self, port=0, pitch=0):
+    def __init__(self, pitch, port=0):
         self.capture = cv2.VideoCapture(port)
         calibration = tools.get_croppings(pitch=pitch)
         self.crop_values = tools.find_extremes(calibration['outline'])
@@ -28,13 +28,7 @@ class Camera(object):
         # status, frame = True, cv2.imread('img/i_all/00000003.jpg')
         status, frame = self.capture.read()
         frame = self.fix_radial_distortion(frame)
-        """
-        rows, cols, _ = frame.shape
-        rot = cv2.getRotationMatrix2D((cols/2, rows/2), 3, 1)
-        frame2 = cv2.warpAffine(frame, rot, (cols, rows))
-        cv2.imshow('frame2', frame2)
-        cv2.waitKey()
-        """
+
         if status:
             return frame[
                 self.crop_values[2]:self.crop_values[3],

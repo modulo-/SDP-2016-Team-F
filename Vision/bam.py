@@ -1,20 +1,17 @@
 import cv2
-import matplotlib
-from vision.vision import Vision
-from vision.camera import Camera
-from vision.GUI import GUI
-import vision.tools as tools
+
+from oldvision.vision import _Vision
+from camera import Camera
+from oldvision.GUI import GUI
+import oldvision.tools as tools
 from postprocessing.postprocessing import Postprocessing
 from preprocessing.preprocessing import Preprocessing
-from vision.tracker import BallTracker, RobotTracker
-from vision.findHSV import CalibrationGUI
-from vision.tracker import Tracker
-import time
+
 
 # C = cal.Configure(0)
 # C.run(True)
 
-cam = Camera()
+cam = Camera(pitch=0)
 frame = cam.get_frame()
 
 """
@@ -27,7 +24,7 @@ b.show(frame)
 scalibration = tools.get_colors(0)
 #  print scalibration
 
-vision = Vision(
+vision = _Vision(
 pitch=0,
 color='blue',
 our_side='left',
@@ -35,7 +32,7 @@ frame_shape=frame.shape,
 frame_center=cam.get_adjusted_center(frame),
 calibration=scalibration)
 
-# Set up postprocessing for vision
+# Set up postprocessing for oldvision
 
 postprocessing = Postprocessing()
 
@@ -55,7 +52,7 @@ if 'background_sub' in preprocessed:
 
 height, width, channels = frame.shape
 
-frame = frame[425:445, 5:25]
+# frame = frame[425:445, 5:25]
 
 frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 

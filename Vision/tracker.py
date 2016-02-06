@@ -24,7 +24,7 @@ class Tracker(object):
             pass
         return inte
 
-    def get_contours(self, frame, crop, adjustments, o_type=None):
+    def get_contours(self, frame, crop, colour, o_type=None):
         """
         Adjust the given frame based on 'min', 'max', 'contrast' and 'blur'
         keys in adjustments dictionary.
@@ -34,53 +34,16 @@ class Tracker(object):
                 frame = frame[crop[2]:crop[3], crop[0]:crop[1]]
             if frame is None:
                 return None
-            if adjustments['blur'] >= 1:
-                blur = self.oddify(adjustments['blur'])
-                # print adjustments['blur']
-
-                frame =  cv2.GaussianBlur(frame, (blur, blur), 0)
-                # plt.imshow(frame)
-                # plt.show()
-
-            if adjustments['contrast'] >= 1.0:
-                frame = cv2.add(frame,
-                                np.array([float(adjustments['contrast'])]))
 
             # Convert frame to HSV
             frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
             # Create a mask
-            frame_mask = cv2.inRange(frame_hsv,
-                                     adjustments['min'],
-                                     adjustments['max'])
-            
-            print adjustments
-            
-            # print frame_mask
+            frame_mask = cv2.inRange(frame,
+                                     colour['min'],
+                                     colour['max'])
 
-           	
-
-            # Find contours
-            if adjustments['open'] >= 1:
-                kernel = np.ones((2,2),np.uint8)
-                frame_mask = cv2.morphologyEx(frame_mask,
-                                              cv2.MORPH_OPEN,
-                                              kernel,
-                                              iterations=adjustments['open'])
-
-            if adjustments['close'] >= 1:
-                kernel = np.ones((2,2),np.uint8)
-                frame_mask = cv2.dilate(frame_mask,
-                                        kernel,
-                                        iterations=adjustments['close'])
-
-            if adjustments['erode'] >= 1:
-                kernel = np.ones((2,2),np.uint8)
-                frame_mask = cv2.dilate(frame_mask,
-                                        kernel,
-                                        iterations=adjustments['erode'])
-            
-            _, contours, hierarchy = cv2.findContours(
+            contours, hierarchy = cv2.findContours(
                 frame_mask,
                 cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE
@@ -257,7 +220,7 @@ class RobotTracker(Tracker):
             frame = cv2.bitwise_and(frame,
                                     frame,
                                     mask=mask_frame)
-            adjustment = self.calibration['dot']
+            adjustment = self.calibration['blue']
             contours = self.get_contours(frame,self.crop, adjustment,'dot')[0]
             if contours and len(contours) > 0:
                 # Take the largest contour
@@ -419,7 +382,7 @@ class BallTracker(Tracker):
                  crop,
                  offset,
                  pitch,
-                 calibration,
+                 colour,
                  name='ball'):
         """
         Initialize tracker.
@@ -435,10 +398,11 @@ class BallTracker(Tracker):
         #     self.color = PITCH0['red']
         # else:
         #     self.color = PITCH1['red']
-        self.color = [calibration['red']]
+        from collections import defaultdict
+
+        self.color = [defaultdict(int, colour)]
         self.offset = offset
         self.name = name
-        self.calibration = calibration
 
     def find(self, frame, queue):
         for color in self.color:

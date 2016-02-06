@@ -17,7 +17,7 @@ PROCESSING_DEBUG = False
 Center = namedtuple('Center', 'x y')
 
 
-class Vision:
+class _Vision:
     """
     Locate objects on the pitch.
     """
@@ -30,7 +30,7 @@ class Vision:
                  frame_center,
                  calibration):
         """
-        Initialize the vision system.
+        Initialize the oldvision system.
 
         Params:
             [int] pitch         pitch number (0 or 1)
