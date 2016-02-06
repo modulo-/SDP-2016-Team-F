@@ -41,7 +41,8 @@ class Vision:
         if colours is not None:
             for colour, data in colours.iteritems():
                 if data is not None:
-                    self.config.colours[colour] = np.uint8([[data]])
+                    for field in data:
+                        self.config.colours[colour][field] = np.uint8([[data[field]]])
             print("Colors recorded")
         print("Colors calibration skipped")
 
@@ -94,14 +95,13 @@ class Vision:
                 print q.get()
 
             h, w, d = frame.shape
-            col = self.config.colours
 
             #note hte potential to detect in threads and then join back!
-            r=BallTracker((0,w,0,h),0,0,col['red'], "red-ball")
+            r=BallTracker((0,w,0,h),0,0,'red', self.config, "red-ball")
             r.find(frame, q)
-            r=BallTracker((0,w,0,h),0,0,col['yellow'], "yellow-dot")
+            r=BallTracker((0,w,0,h),0,0,'yellow', self.config, "yellow-dot")
             r.find(frame, q)
-            r=BallTracker((0,w,0,h),0,0,col['blue'], "blue-dot")
+            r=BallTracker((0,w,0,h),0,0,'blue', self.config, "blue-dot")
             r.find(frame, q)
 
             # found items will be stored in the queue, and accessed if/when drawing the overlay
@@ -118,7 +118,7 @@ class Vision:
                              lambda event, x, y, flags, param:self.p(event, x, y, flags, param, frame))
 
 
-            c = cv2.waitKey(5000) & 0xFF
+            c = cv2.waitKey(50) & 0xFF
         else:
             cv2.destroyAllWindows()
 

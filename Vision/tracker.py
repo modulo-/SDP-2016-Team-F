@@ -108,6 +108,13 @@ class Tracker(object):
         areas = [cv2.contourArea(c) for c in contours]
         return contours[np.argmax(areas)]
 
+    def get_largest_contour_index(self, contours):
+        """
+        Find the largest of all contours.
+        """
+        areas = [cv2.contourArea(c) for c in contours]
+        return np.argmax(areas)
+
     def get_smallest_contour(self, contours):
         """
         Find the smallest of all contours.
@@ -383,6 +390,7 @@ class BallTracker(Tracker):
                  offset,
                  pitch,
                  colour,
+                 config,
                  name='ball'):
         """
         Initialize tracker.
@@ -400,12 +408,14 @@ class BallTracker(Tracker):
         #     self.color = PITCH1['red']
         from collections import defaultdict
 
-        self.color = [defaultdict(int, colour)]
+        self.config = config
+        self.colour_name = colour
+        self.colour = [defaultdict(int, self.config.colours[colour])]
         self.offset = offset
         self.name = name
 
     def find(self, frame, queue):
-        for color in self.color:
+        for colour in self.colour:
             """
             contours, hierarchy, mask = self.preprocess(
                 frame,
@@ -419,26 +429,33 @@ class BallTracker(Tracker):
             # adjustments = {'min':,'mz'}
             contours, hierarchy, mask = self.get_contours(frame.copy(),
                                                           self.crop,
-                                                          color,
+                                                          colour,
                                                           'BALL')
 
-            if len(contours) <= 0:
-                print 'No {} found.'.format(self.name)
-                pass
-                # queue.put(None)
-            else:
-                # Trim contours matrix
-                cnt = self.get_largest_contour(contours)
+            for i in xrange(2):
+                if len(contours) <= 0:
+                    # print 'No {}_{} found.'.format(self.name, i)
+                    pass
+                    # queue.put(None)
+                else:
+                    # Trim contours matrix
+                        cnt_index = self.get_largest_contour_index(contours)
+                        cnt = contours.pop(cnt_index)
+                        if cv2.contourArea(cnt) < self.config.dot_areas[self.colour_name]:
+                            break
 
-                # Get center
-                (x, y), radius = cv2.minEnclosingCircle(cnt)
+                        # Get center
+                        (x, y), radius = cv2.minEnclosingCircle(cnt)
 
-                queue.put({
-                    'name': self.name,
-                    'x': x,
-                    'y': y,
-                    'angle': None,
-                    'velocity': None
-                })
+                        queue.put({
+                            'name': self.name + '_' + str(i),
+                            'x': x,
+                            'y': y,
+                            'angle': None,
+                            'velocity': None,
+                            'area': cv2.contourArea(cnt),
+                            'colour': self.colour_name
+                        })
+
         queue.put(None)
         pass
