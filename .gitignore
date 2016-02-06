@@ -9,7 +9,7 @@
 *.pyc
 
 *.bak
-#*~
+*~
 
 ## Directory-based project format:
 .idea/
