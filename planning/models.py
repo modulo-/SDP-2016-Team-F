@@ -10,11 +10,12 @@ class Goal (object):
 
 class GetBall (Goal):
     def generate_action(self):
-        goto_static = GoToStaticBall(world, self.robot)
-        if goto_static.is_possible():
-            return goto_static
-        else:
-            return None
+        actions = [CatchBall(self, self.world, self.robot),
+                   GoToStaticBall(world, self.robot)]
+        for a in actions:
+            if a.is_possible():
+                return a
+        return None
 
 class Action (object):
     preconditions = []
@@ -33,7 +34,13 @@ class Action (object):
         raise NotImplemented
 
 class GoToStaticBall (Action):
-    preconditions = [utils.ball_is_static]
+    preconditions = [lambda w, r: utils.ball_is_static(w)]
 
     def perform(self, comms):
         comms.move_to(world.ball.x, world.ball.y)
+
+class CatchBall (Action):
+    preconditions = [lambda w, r: r.can_catch_ball(w.ball)]
+
+    def perform(self, comms):
+        comms.close_grabbers()
