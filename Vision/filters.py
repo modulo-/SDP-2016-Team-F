@@ -6,8 +6,10 @@ def filter_dummy(frame, config):
     return frame
 
 
-def filter_overlay(objects, frame, config):
-    # print(objects)
+def filter_overlay(detected_objects, frame, config):
+    q = detected_objects
+    while not q.empty():
+        print q.get() # this queue can be used to draw the objects on the overlay.
     return frame
 
 

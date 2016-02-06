@@ -423,7 +423,7 @@ class BallTracker(Tracker):
                                                           'BALL')
 
             if len(contours) <= 0:
-                print 'No ball found.'
+                print 'No {} found.'.format(self.name)
                 pass
                 # queue.put(None)
             else:

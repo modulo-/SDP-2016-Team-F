@@ -45,8 +45,8 @@ class Vision:
             print("Colors recorded")
         print("Colors calibration skipped")
 
-        overlay_objects=[]
-        self.config.addFilter("overlay", partial(filters.filter_overlay, overlay_objects), default=1)
+        self.detected_objects = Queue()
+        self.config.addFilter("overlay", partial(filters.filter_overlay, self.detected_objects), default=1)
         self.config.addFilter("grayscale", filters.filter_grayscale)
         self.config.addFilter("normalised", filters.filter_normalize)
         self.config.addFilter("red", partial(filters.filter_colour, "red"))
@@ -89,6 +89,23 @@ class Vision:
             preprocessed = self.getPreprocessed()
             frame = preprocessed['frame']
 
+            q = self.detected_objects
+            while not q.empty(): # make sure no old stuff is in the queue, like when overlay wasn't drawn
+                print q.get()
+
+            h, w, d = frame.shape
+            col = self.config.colours
+
+            #note hte potential to detect in threads and then join back!
+            r=BallTracker((0,w,0,h),0,0,col['red'], "red-ball")
+            r.find(frame, q)
+            r=BallTracker((0,w,0,h),0,0,col['yellow'], "yellow-dot")
+            r.find(frame, q)
+            r=BallTracker((0,w,0,h),0,0,col['blue'], "blue-dot")
+            r.find(frame, q)
+
+            # found items will be stored in the queue, and accessed if/when drawing the overlay
+
             for name in self.config.filter_stack:
                 filter = self.config.filters[name]
                 if filter["option"].selected:
@@ -100,18 +117,6 @@ class Vision:
             cv2.setMouseCallback(self.config.OUTPUT_TITLE,
                              lambda event, x, y, flags, param:self.p(event, x, y, flags, param, frame))
 
-            h, w, d = frame.shape
-
-            col = self.config.colours
-            q = Queue()
-            r=BallTracker((0,w,0,h),0,0,col['red'], "red-ball")
-            r.find(frame, q)
-            r=BallTracker((0,w,0,h),0,0,col['yellow'], "yellow-dot")
-            r.find(frame, q)
-            r=BallTracker((0,w,0,h),0,0,col['blue'], "blue-dot")
-            r.find(frame, q)
-            while not q.empty():
-                print q.get()
 
             c = cv2.waitKey(5000) & 0xFF
         else:
