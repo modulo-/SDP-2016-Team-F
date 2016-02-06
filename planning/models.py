@@ -22,7 +22,12 @@ class GetBall (Goal):
 
 class Score (Goal):
     def generate_action(self):
-        pass
+        actions = [Shoot(self.world, self.robot),
+                   TurnToGoal(self.world, self.robot)]
+        for a in actions:
+            if a.is_possible():
+                return a
+        return None
 
 # Base class for actions
 class Action (object):
