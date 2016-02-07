@@ -5,6 +5,7 @@
 
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/video.hpp>
 
 #include "Camera.h"
 #include "Config.h"
@@ -29,31 +30,7 @@ void processFrame(cv::InputArray);
 void findCircles(CONTOUR_T, std::vector<cv::Vec3f> &c, double, double);
 double euclidianDistance(cv::Point2f, cv::Point2f);
 std::vector<std::tuple<int, cv::Vec3f> > findColouredCirclesInFrame(cv::InputArray, cv::InputArray);
-
-void drawTupleCircle(std::tuple<int, cv::Vec3f> tup, cv::InputOutputArray img) {
-    cv::Vec3f c = std::get<1>(tup);
-    cv::Scalar colour;
-    switch(std::get<0>(tup)) {
-        default:
-        case 0:
-            colour = cv::Scalar(0, 0, 255);
-            break;
-        case 1:
-            colour = cv::Scalar(255, 0, 0);
-            break;
-        case 2:
-            colour = cv::Scalar(0, 255, 255);
-            break;
-        case 3:
-            colour = cv::Scalar(255, 0, 255);
-            break;
-        case 4:
-            colour = cv::Scalar(0, 255, 0);
-            break;
-    }
-
-    cv::circle(img, cv::Point2f(c[0], c[1]), cvRound(c[2]), colour);
-}
+void drawTupleCircle(std::tuple<int, cv::Vec3f>, cv::InputOutputArray);
 
 int main(const int argc, const char* argv[]) {
     // Ensure OpenCV is using optimized code
@@ -91,9 +68,12 @@ int main(const int argc, const char* argv[]) {
 }
 
 std::vector<std::tuple<int, cv::Vec3f> > findColouredCirclesInFrame(cv::InputArray frame, cv::InputArray background) {
+    cv::UMat foreground;
     cv::UMat processed;
-    cv::subtract(frame, background, processed);
-    processed.convertTo(processed, -1, 3); // HEURISTIC: 3 = multiplication after background subtraction
+    cv::Ptr<cv::BackgroundSubtractorMOG2> bs = cv::createBackgroundSubtractorMOG2(1, 254, false); // HEURISTIC: 254 = parameter for background subtractor
+    bs->apply(background, foreground, 1);
+    bs->apply(frame, foreground, 0);
+    frame.copyTo(processed, foreground);
 
     cv::medianBlur(processed, processed, 9); // HEURISTIC: 9 = amount of blur applied before colour convertion
 
@@ -180,4 +160,29 @@ void findCircles(CONTOUR_T contours, std::vector<cv::Vec3f> &circles, double cen
 
 double euclidianDistance(cv::Point2f p1, cv::Point2f p2) {
     return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
+}
+
+void drawTupleCircle(std::tuple<int, cv::Vec3f> tup, cv::InputOutputArray img) {
+    cv::Vec3f c = std::get<1>(tup);
+    cv::Scalar colour;
+    switch(std::get<0>(tup)) {
+        default:
+        case 0:
+            colour = cv::Scalar(0, 0, 255);
+            break;
+        case 1:
+            colour = cv::Scalar(255, 0, 0);
+            break;
+        case 2:
+            colour = cv::Scalar(0, 255, 255);
+            break;
+        case 3:
+            colour = cv::Scalar(255, 0, 255);
+            break;
+        case 4:
+            colour = cv::Scalar(0, 255, 0);
+            break;
+    }
+
+    cv::circle(img, cv::Point2f(c[0], c[1]), cvRound(c[2]), colour);
 }
