@@ -10,8 +10,7 @@
 #define MOTOR_FRONT_RIGHT 1
 #define MOTOR_BACK_LEFT   2
 #define MOTOR_BACK_RIGHT  3
-#define MOTOR_KICKER1     4
-#define MOTOR_KICKER2     5
+#define MOTOR_GRABBERS    4
 
 // Defines the forward/backward combinations for a movement command.
 // The least significant 4 bits store this, with 0 being backward and 1 being
@@ -25,12 +24,13 @@
 
 namespace llcmd {
     const uint8_t WAIT           = 0x00;
-    const uint8_t KICKER_RETRACT = 0x01;
-    const uint8_t KICKER_EXTEND  = 0x02;
-    const uint8_t BRAKE          = 0x03;
+    const uint8_t BRAKE          = 0x01;
+    const uint8_t GRABBER_OPEN   = 0x02;
+    const uint8_t GRABBER_CLOSE  = 0x03;
     const uint8_t LED            = 0x07;
     const uint8_t STRAIT         = 0x08;
-    const uint8_t SPIN           = 0x09;
+    const uint8_t SPIN           = 0x0a;
+    const uint8_t HOLD_SPIN      = 0x0b;
     const uint8_t NOP            = 0x7f;
 
     const uint8_t FLAG_UNINTERRUPTABLE = 0x80;
@@ -48,6 +48,7 @@ namespace llcmd {
         switch(cmd & 0x7f) {
         case STRAIT:
         case SPIN:
+        case HOLD_SPIN:
             return sizeof(int16_t);
         default:
             return 0;
@@ -97,7 +98,7 @@ namespace llcmd {
                     data > 0 ? MOVE_RIGHT : MOVE_LEFT,
                     io::adjustedMotorPowers());
             }
-        } else if((cmds[cmd_at] & 0x7f) == SPIN) {
+        } else if((cmds[cmd_at] & 0x7f) == SPIN || (cmds[cmd_at] & 0x7f) == HOLD_SPIN) {
             int16_t data = *cmdArg(1, int16_t);
             if(io::rotDist() >= abs(data)) {
                 finish(true);
@@ -107,11 +108,8 @@ namespace llcmd {
 
     void finish(bool advance) {
         switch(cmds[cmd_at] & 0x7f) {
-        case KICKER_RETRACT:
-        case KICKER_EXTEND:
-            io::stop(MOTOR_KICKER1);
-            io::stop(MOTOR_KICKER2);
-            break;
+        case HOLD_SPIN:
+            io::stop(MOTOR_GRABBERS);
         case BRAKE:
         case STRAIT:
         case SPIN:
@@ -122,6 +120,10 @@ namespace llcmd {
             break;
         case LED:
             digitalWrite(13, LOW);
+            break;
+        case GRABBER_OPEN:
+        case GRABBER_CLOSE:
+            io::stop(MOTOR_GRABBERS);
             break;
         }
         cmd_at += 1 + argLen(cmds[cmd_at]);
@@ -140,14 +142,14 @@ namespace llcmd {
             return;
         }
         switch(cmds[cmd_at] & 0x7f) {
-        case KICKER_RETRACT:
-            io::forward(MOTOR_KICKER1, 100);
-            io::forward(MOTOR_KICKER2, 100);
+        case GRABBER_OPEN:
+            io::forward(MOTOR_GRABBERS, 50);
             break;
-        case KICKER_EXTEND:
-            io::backward(MOTOR_KICKER1, 100);
-            io::backward(MOTOR_KICKER2, 100);
+        case GRABBER_CLOSE:
+            io::backward(MOTOR_GRABBERS, 50);
             break;
+        case HOLD_SPIN:
+            io::backward(MOTOR_GRABBERS, 20);
         case SPIN:
             io::motorSet(*cmdArg(1, int16_t) > 0 ? MOVE_CW : MOVE_CC,
                 io::POWER_FULL);

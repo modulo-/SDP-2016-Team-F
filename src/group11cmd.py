@@ -7,12 +7,15 @@ import logging
 from logging import debug, error
 import readline
 
-CMD_WAIT   = 0x00
-CMD_BRAKE  = 0x01
-CMD_STRAIT = 0x02
-CMD_SPIN   = 0x03
-CMD_KICK   = 0x04
-CMD_MV     = 0x05
+CMD_WAIT          = 0x00
+CMD_BRAKE         = 0x01
+CMD_STRAIT        = 0x02
+CMD_SPIN          = 0x03
+CMD_KICK          = 0x04
+CMD_MV            = 0x05
+CMD_GRABBER_OPEN  = 0x06;
+CMD_GRABBER_CLOSE = 0x07;
+CMD_HOLD_SPIN     = 0x08;
 
 class TractorCrabException(Exception):
     def __init__(self, s):
@@ -32,6 +35,9 @@ cmd_brake = i16fn(CMD_BRAKE)
 cmd_strait = i16fn(CMD_STRAIT)
 cmd_spin = i16fn(CMD_SPIN)
 cmd_kick = i16fn(CMD_KICK)
+cmd_grabber_open = i16fn(CMD_GRABBER_OPEN)
+cmd_grabber_close = i16fn(CMD_GRABBER_CLOSE)
+cmd_hold_spin = i16fn(CMD_HOLD_SPIN)
 
 def cmd_mv(x, y, angle):
     return [CMD_MV,
@@ -77,6 +83,16 @@ commands = {
     'mv': Command(cmd_mv,
         'Moves to a x and y offset, facing a specified angle',
         [('x', parse_dist), ('y', parse_dist), ('angle', parse_angle)]),
+    'grabber_open': Command(cmd_grabber_open,
+        'Opens the grabbers',
+        [('time', parse_t)]),
+    'grabber_close': Command(cmd_grabber_close,
+        'Closes the grabbers',
+        [('time', parse_t)]),
+    'hold_spin': Command(cmd_hold_spin,
+        'Spins on the spot the specified angle (positive: clockwise), ' +
+        'holding the ball in place.',
+        [('angle', parse_angle)]),
 }
 
 def help_cmd(cmd):
