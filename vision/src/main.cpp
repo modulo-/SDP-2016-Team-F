@@ -52,6 +52,42 @@ int main(const int argc, const char* argv[]) {
             drawTupleCircle(circles[i], frame);
         }
 
+        // This is really inefficient, and probably broken
+
+        cv::Point2f ball;
+        for(size_t i = 0; i < circles.size(); i++) {
+            // TODO: handle case where more than one red circle detected
+            if(std::get<0>(circles[i]) == 0) {
+                ball.x = std::get<1>(circles[i])[0];
+                ball.y = std::get<1>(circles[i])[1];
+            }
+        }
+
+        // This is also really inflexible. Again, probably broken
+        std::vector<cv::Vec3f> robots;
+        for(size_t i = 0; i < circles.size(); i++) {
+            if(std::get<0>(circles[i]) == 1 && std::get<0>(circles[i]) == 2) {
+                std::vector<cv::Point2f> markers;
+                for(size_t m = 0; m < circles.size(); m++) {
+                    if(circles[i] != circles[m]) {
+                        if(markers.size() < 4) {
+                            markers.push_back(cv::Point2f(std::get<1>(circles[m][0], std::get<1>(circles[m][1])));
+                        } else {
+                            double candDist = euclidianDistance(cv::Point2f(std::get<1>(circles[m][0], std::get<1>(circles[m][1]))), cv::Point2f(std::get<1>(circles[i][0], std::get<1>(circles[i][1]));
+                            for(size_t c = 0; c < markers.size(); c++) {
+                            if(candDist < euclidianDistance(markers[c], cv::Point2f(std::get<1>(circles[i][0], std::get<1>(circles[i][1]))) {
+                                markers[c] = cv::Point2f(std::get<1>(circles[m][0], std::get<1>(circles[m][1])));
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+            }
+        }
+
         // Show the raw frame
         cv::imshow("Capture", frame);
 

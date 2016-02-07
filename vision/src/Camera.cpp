@@ -21,7 +21,7 @@ namespace vision {
         camera = cv::VideoCapture(filename);
 
         if(!camera.isOpened()) {
-            throw std::runtime_error("Failed to open video file "+ filename);
+            throw std::runtime_error("Failed to open video file " + filename);
         }
     }
 
