@@ -20,6 +20,7 @@ packetcond = Condition()
 def monitor_comms():
     while True:
         line = commserial.readline().strip()
+        print line
         if len(line) < 4:
             continue
         if not line.startswith(DEVICEID):

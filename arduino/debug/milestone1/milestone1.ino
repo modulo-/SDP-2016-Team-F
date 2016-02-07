@@ -24,7 +24,7 @@
 #define OPTIONS 'o'
 
 #define MAX_DATA_SIZE 255
-#define SERIAL_DEBUG true
+#define SERIAL_DEBUG false
 #define DEVICE_ID '2'
 #define TURN_ALLOWANCE 3
 
@@ -551,10 +551,10 @@ void resetMotorPositions() {
 }
 
 void printMotorPositions() {
-  Serial.print("Motor positions: ");
+  //Serial.print("Motor positions: ");
   for (int i = 0; i < ROTARY_COUNT; i++) {
-    Serial.print(positions[i]);
-    Serial.print(' ');
+    //Serial.print(positions[i]);
+    //Serial.print(' ');
   }
-  Serial.println();
+  //Serial.println();
 }
