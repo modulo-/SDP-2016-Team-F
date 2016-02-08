@@ -3,13 +3,23 @@ from models import *
 
 class Planner:
 
+    def set_task(self, task):
+        self.current_task = task
+
     def __init__(self):
         self.comms = [CommsManager(0)]
         self.robot_actions = [None]
+        self.current_task = 'move-grab'
 
     # Get goal for robot in world
     def get_goal(self, world, robot):
-        raise NotImplementedError
+        # For milestone 2
+        if self.current_task == 'move-grab':
+            return GetBall(world, robot)
+        elif self.current_task == 'turn-move-grab':
+            return GetBall(world, robot)
+        elif self.current_task == 'turn-shoot':
+            return Score(world, robot)
 
     # Perform actions
     def actuate(self, actions):
