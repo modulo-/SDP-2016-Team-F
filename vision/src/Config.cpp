@@ -11,7 +11,7 @@
 namespace vision {
 
     //TODO: add loading config from file
-    Config::Config(const cv::String& filename) {
+    Config::Config(const cv::String&/* filename*/) {
         cv::Point2f src303[3] = {
             cv::Point2f(320, 240),
             cv::Point2f(310, 465),
