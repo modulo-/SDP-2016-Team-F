@@ -74,3 +74,6 @@ Codeblock/
 *.cbp
 *.depend
 *.layout
+
+# Vision executable
+/vision/vision

@@ -4,7 +4,9 @@ from os import mkfifo, path
 from tempfile import mkdtemp
 from threading import Lock, Thread
 from shutil import rmtree
+from time import sleep
 import json
+import subprocess
 
 class Robot:
     def __init__(self, x, y, facing):
@@ -27,6 +29,10 @@ visionpipe = path.join(tmpdir, 'visionpipe')
 
 state = None
 statelock = Lock()
+
+def update_plan(state):
+    # TODO: magic
+    pass
 
 def genrobot(obj):
     return Robot(obj['x'], obj['y'], obj['f'])
@@ -56,11 +62,26 @@ def monitor_vision():
             state = genstate(obj)
             statelock.release()
 
+def poll_plan():
+    while True:
+        statelock.acquire()
+        statecp = state
+        statelock.release()
+        update_plan(statecp)
+        sleep(3)
+
 team = 'y'
 player = 'p'
 
 mkfifo(visionpipe)
 t = Thread(target=monitor_vision)
+t2 = Thread(target=poll_plan)
+t2.daemon = True
 t.start()
+t2.start()
+
+print visionpipe
+subprocess.call(['../vision/vision', visionpipe])
+
 t.join()
 rmtree(tmpdir)
