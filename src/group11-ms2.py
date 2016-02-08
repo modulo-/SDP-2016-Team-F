@@ -17,16 +17,20 @@ KICK = 3
 
 target = IDLE
 
+def translate_pos(p):
+    # TODO: calibrate to some sensible ratio.
+    return p
+
 class Robot:
     def __init__(self, x, y, facing):
-        self.x = x
-        self.y = y
+        self.x = translate_pos(x)
+        self.y = translate_pos(y)
         self.facing = facing
 
 class Ball:
     def __init__(self, x, y):
-        self.x = x
-        self.y = y
+        self.x = translate_pos(x)
+        self.y = translate_pos(y)
 
 class State:
     def __init__(self, robots, ball):
