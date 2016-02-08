@@ -14,7 +14,8 @@ class Goal (object):
 class GetBall (Goal):
     def generate_action(self):
         actions = [GrabBall(self.world, self.robot),
-                   GoToStaticBall(self.world, self.robot)]
+                   GoToStaticBall(self.world, self.robot),
+                   TurnToBall(self.world, self.robot)]
         for a in actions:
             if a.is_possible():
                 return a
@@ -53,10 +54,11 @@ class Action (object):
         return []
 
 class GoToStaticBall (Action):
-    preconditions = [lambda w, r: utils.ball_is_static(w)]
+    preconditions = [lambda w, r: utils.ball_is_static(w),
+                     lambda w, r: r.get_rotation_to_point(w.ball.x, w.ball.y) == 0]
 
     def perform(self, comms):
-        comms.move_to(world.ball.x, world.ball.y)
+        comms.move_to(self.world.ball.x, self.world.ball.y)
 
 class GrabBall (Action):
     preconditions = [lambda w, r: r.can_catch_ball(w.ball)]
@@ -71,7 +73,13 @@ class TurnToGoal (Action):
         # TODO find best point to shoot to
         x = self.world.goal.x + self.world.goal.width / 2
         y = self.world.goal.y
-        comms.turn(self.world.get_rotation_to_point(x, y))
+        comms.turn(self.robot.get_rotation_to_point(x, y))
+
+class TurnToBall (Action):
+    def perform(self, comms):
+        x = self.world.ball.x
+        y = self.world.ball.y
+        comms.turn(self.robot.get_rotation_to_point(x, y))
 
 class Shoot (Action):
     preconditions = [lambda w, r: r.has_ball(w.ball),

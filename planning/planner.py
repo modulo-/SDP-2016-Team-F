@@ -27,4 +27,4 @@ class Planner:
         if action != self.robot_actions[0]:
             actions[0] = action
         self.robot_actions = actions
-        actuate(actions)
+        self.actuate(actions)
