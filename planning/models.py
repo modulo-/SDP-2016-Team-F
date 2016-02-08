@@ -8,7 +8,7 @@ class Goal (object):
 
     # Return the next action necesary to achieve the goal
     def generate_action(self):
-        raise NotImplemented
+        raise NotImplementedError
 
 # Go to and grab ball
 class GetBall (Goal):
@@ -46,7 +46,7 @@ class Action (object):
 
     # Do comms to perform action
     def perform(self, comms):
-        raise NotImplemented
+        raise NotImplementedError
 
     # Get messages relating to action
     def get_messages(self):
