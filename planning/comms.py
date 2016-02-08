@@ -1,5 +1,6 @@
 import math
 
+
 class CommsManager:
 
     def __init__(self, robot):
@@ -10,7 +11,7 @@ class CommsManager:
 
     def move_to(self, x, y):
         heading = math.degrees(math.atan2(y, x))
-        distance = math.sqrt(x**2+y**2)
+        distance = math.sqrt(x**2 + y**2)
         print("Turning robot {0} to head {1} and moving distance {2}".format(self.robot, heading, distance))
 
     def turn(self, angle):

@@ -1,7 +1,12 @@
+from world import Robot
+from math import pi, tan
+
+
 def ball_is_static(world):
     # TODO find real threshold value
-    STATIC_THRESHOLD = 0.1
-    return world.ball.velocity < STATIC_THRESHOLD
+    static_treshold = 0.1
+    return world.ball.velocity < static_treshold
+
 
 # Test if robot can score
 # From 2015 Group 12 behaviour/utilities.py
@@ -24,6 +29,7 @@ def can_score(world, our_robot, their_goal, turn=0):
 
     return goal_posts[0][1] < predicted_y < goal_posts[1][1]
 
+
 # From 2015 Group 12 behaviour/utilities.py
 def predict_y_intersection(world, predict_for_x, robot, full_width=False, bounce=False):
         '''
@@ -34,17 +40,18 @@ def predict_y_intersection(world, predict_for_x, robot, full_width=False, bounce
         '''
         x = robot.x
         y = robot.y
-        top_y = world._pitch.height - 60 if full_width else world.our_goal.y + (world.our_goal.width/2) - 30
-        bottom_y = 60 if full_width else world.our_goal.y - (world.our_goal.width/2) + 30
+        top_y = world._pitch.height - 60 if full_width else world.our_goal.y + (world.our_goal.width / 2) - 30
+        bottom_y = 60 if full_width else world.our_goal.y - (world.our_goal.width / 2) + 30
         angle = robot.angle
-        if (robot.x < predict_for_x and not (pi/2 < angle < 3*pi/2)) or (robot.x > predict_for_x and (3*pi/2 > angle > pi/2)):
+        if (robot.x < predict_for_x and not (pi / 2 < angle < 3 * pi / 2)) or (robot.x > predict_for_x and (3 * pi / 2 > angle > pi / 2)):
             if bounce:
                 if not (0 <= (y + tan(angle) * (predict_for_x - x)) <= world._pitch.height):
                     bounce_pos = 'top' if (y + tan(angle) * (predict_for_x - x)) > world._pitch.height else 'bottom'
                     x += (world._pitch.height - y) / tan(angle) if bounce_pos == 'top' else (0 - y) / tan(angle)
                     y = world._pitch.height if bounce_pos == 'top' else 0
-                    angle = (-angle) % (2*pi)
+                    angle = (-angle) % (2 * pi)
             predicted_y = (y + tan(angle) * (predict_for_x - x))
+
             # Correcting the y coordinate to the closest y coordinate on the goal line:
             if predicted_y > top_y:
                 return top_y

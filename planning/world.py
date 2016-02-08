@@ -1,7 +1,7 @@
 from Polygon.cPolygon import Polygon
-from math import cos, sin, hypot, pi, atan2
-#from vision import tools
-from postprocessing.postprocessing import Vector
+from math import hypot, pi, atan2
+# from vision import tools
+from position import Vector
 
 # Width measures the front and back of an object
 # Length measures along the sides of an object
@@ -17,6 +17,7 @@ BALL_HEIGHT = 5
 GOAL_WIDTH = 140
 GOAL_LENGTH = 1
 GOAL_HEIGHT = 10
+
 
 class PitchObject(object):
     '''
@@ -73,20 +74,21 @@ class PitchObject(object):
 
     @vector.setter
     def vector(self, new_vector):
-        if new_vector == None or not isinstance(new_vector, Vector):
+        if new_vector is None or not isinstance(new_vector, Vector):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
-            self._vector = Vector(new_vector.x, new_vector.y, new_vector.angle - self._angle_offset, new_vector.velocity)
+            self._vector = Vector(
+                new_vector.x, new_vector.y, new_vector.angle - self._angle_offset, new_vector.velocity)
 
     def get_generic_polygon(self, width, length):
         '''
         Get polygon drawn around the current object, but with some
         custom width and length:
         '''
-        front_left = (self.x + length/2, self.y + width/2)
-        front_right = (self.x + length/2, self.y - width/2)
-        back_left = (self.x - length/2, self.y + width/2)
-        back_right = (self.x - length/2, self.y - width/2)
+        front_left = (self.x + length / 2, self.y + width / 2)
+        front_right = (self.x + length / 2, self.y - width / 2)
+        back_left = (self.x - length / 2, self.y + width / 2)
+        back_right = (self.x - length / 2, self.y - width / 2)
         poly = Polygon((front_left, front_right, back_left, back_right))
         poly.rotate(self.angle, self.x, self.y)
         return poly[0]
@@ -117,10 +119,10 @@ class Robot(PitchObject):
 
     @property
     def catcher_area(self):
-        front_left = (self.x + self._receiving_area['front_offset'] + self._receiving_area['height'], self.y + self._receiving_area['width']/2.0)
-        front_right = (self.x + self._receiving_area['front_offset'] + self._receiving_area['height'], self.y - self._receiving_area['width']/2.0)
-        back_left = (self.x + self._receiving_area['front_offset'], self.y + self._receiving_area['width']/2.0)
-        back_right = (self.x + self._receiving_area['front_offset'], self.y - self._receiving_area['width']/2.0)
+        front_left = (self.x + self._receiving_area['front_offset'] + self._receiving_area['height'], self.y + self._receiving_area['width'] / 2.0)
+        front_right = (self.x + self._receiving_area['front_offset'] + self._receiving_area['height'], self.y - self._receiving_area['width'] / 2.0)
+        back_left = (self.x + self._receiving_area['front_offset'], self.y + self._receiving_area['width'] / 2.0)
+        back_right = (self.x + self._receiving_area['front_offset'], self.y - self._receiving_area['width'] / 2.0)
         area = Polygon((front_left, front_right, back_left, back_right))
         area.rotate(self.angle, self.x, self.y)
         return area
@@ -161,11 +163,11 @@ class Robot(PitchObject):
         if displacement == 0:
             theta = 0
         else:
-            theta = atan2(delta_y, delta_x) - self.angle#atan2(sin(self.angle), cos(self.angle))
+            theta = atan2(delta_y, delta_x) - self.angle  # atan2(sin(self.angle), cos(self.angle))
             if theta > pi:
-                theta -= 2*pi
+                theta -= 2 * pi
             elif theta < -pi:
-                theta += 2*pi
+                theta += 2 * pi
         assert -pi <= theta <= pi
         return theta
 
@@ -225,12 +227,8 @@ class Pitch(object):
     '''
 
     def __init__(self, pitch_num):
-        #config_json = tools.get_croppings(pitch=pitch_num)
-
-        #self._width = max([point[0] for point in config_json['outline']]) - min([point[0] for point in config_json['outline']])
-        #self._height = max([point[1] for point in config_json['outline']]) - min([point[1] for point in config_json['outline']])
-        self._width = 100 # TODO
-        self._height = 100 # TODO
+        self._width = 100
+        self._height = 100
 
     def is_within_bounds(self, robot, x, y):
         '''
@@ -258,38 +256,28 @@ class Pitch(object):
 class World(object):
     '''
     This class describes the environment
+    Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
     _robots = []
     _robots.append(Robot(0, 0, 0, 0, 0))
-    _robots.append(Robot(1, 0, 0, 0, 0))
-    _robots.append(Robot(2, 0, 0, 0, 0))
-    _robots.append(Robot(3, 0, 0, 0, 0))
+    _our_robot_index = 0
     _goals = []
 
     def __init__(self, our_side, pitch_num):
+        '''
+        Sets the sides and goals
+        '''
         assert our_side in ['left', 'right']
         self._pitch = Pitch(pitch_num)
         self._our_side = our_side
         self._their_side = 'left' if our_side == 'right' else 'right'
-        self._goals.append(Goal(0, 0, self._pitch.height/2.0, 0))
-        self._goals.append(Goal(3, self._pitch.width, self._pitch.height/2.0, pi))
+        self._goals.append(Goal(0, 0, self._pitch.height / 2.0, 0))
+        self._goals.append(Goal(3, self._pitch.width, self._pitch.height / 2.0, pi))
 
     @property
-    def our_attacker(self):
-        return self._robots[2] if self._our_side == 'left' else self._robots[1]
-
-    @property
-    def their_attacker(self):
-        return self._robots[1] if self._our_side == 'left' else self._robots[2]
-
-    @property
-    def our_defender(self):
-        return self._robots[0] if self._our_side == 'left' else self._robots[3]
-
-    @property
-    def their_defender(self):
-        return self._robots[3] if self._our_side == 'left' else self._robots[0]
+    def our_robot(self):
+        return self._robots[self._our_robot_index]
 
     @property
     def ball(self):
@@ -308,18 +296,9 @@ class World(object):
         return self._pitch
 
     def update_positions(self, pos_dict):
-        ''' This method will update the positions of the pitch objects
-            that it gets passed by the vision system '''
-        self.our_attacker.vector = pos_dict['our_attacker']
-        self.their_attacker.vector = pos_dict['their_attacker']
-        self.our_defender.vector = pos_dict['our_defender']
-        self.their_defender.vector = pos_dict['their_defender']
+        '''
+        This method will update the positions of the pitch objects
+        that it gets passed by the vision system
+        '''
+        self.our_robot.vector = pos_dict['our_robot']
         self.ball.vector = pos_dict['ball']
-        # Checking if the robot locations make sense:
-        # Is the side correct:
-        if (self._our_side == 'left' and not(self.our_defender.x < self.their_attacker.x
-            < self.our_attacker.x < self.their_defender.x)):
-            print "WARNING: The sides are probably wrong!"
-        if (self._our_side == 'right' and not(self.our_defender.x > self.their_attacker.x
-            > self.our_attacker.x > self.their_defender.x)):
-            print "WARNING: The sides are probably wrong!"

@@ -1,7 +1,10 @@
 import utils
 
-# Base class for goals
-class Goal (object):
+
+class Goal(object):
+    '''
+    Base class for goals
+    '''
     def __init__(self, world, robot):
         self.world = world
         self.robot = robot
@@ -10,8 +13,11 @@ class Goal (object):
     def generate_action(self):
         raise NotImplementedError
 
-# Go to and grab ball
-class GetBall (Goal):
+
+class GetBall(Goal):
+    '''
+    Go to and grab ball
+    '''
     def generate_action(self):
         actions = [GrabBall(self.world, self.robot),
                    GoToStaticBall(self.world, self.robot),
@@ -21,7 +27,8 @@ class GetBall (Goal):
                 return a
         return None
 
-class Score (Goal):
+
+class Score(Goal):
     def generate_action(self):
         actions = [Shoot(self.world, self.robot),
                    TurnToGoal(self.world, self.robot)]
@@ -30,8 +37,11 @@ class Score (Goal):
                 return a
         return None
 
-# Base class for actions
-class Action (object):
+
+class Action(object):
+    '''
+    Base class for actions
+    '''
     preconditions = []
 
     def __init__(self, world, robot):
@@ -53,20 +63,23 @@ class Action (object):
     def get_messages(self):
         return []
 
-class GoToStaticBall (Action):
+
+class GoToStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
                      lambda w, r: r.get_rotation_to_point(w.ball.x, w.ball.y) == 0]
 
     def perform(self, comms):
         comms.move_to(self.world.ball.x, self.world.ball.y)
 
-class GrabBall (Action):
+
+class GrabBall(Action):
     preconditions = [lambda w, r: r.can_catch_ball(w.ball)]
 
     def perform(self, comms):
         comms.close_grabbers()
 
-class TurnToGoal (Action):
+
+class TurnToGoal(Action):
     preconditions = [lambda w, r: r.has_ball(w.ball)]
 
     def perform(self, comms):
@@ -75,13 +88,15 @@ class TurnToGoal (Action):
         y = self.world.goal.y
         comms.turn(self.robot.get_rotation_to_point(x, y))
 
-class TurnToBall (Action):
+
+class TurnToBall(Action):
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
         comms.turn(self.robot.get_rotation_to_point(x, y))
 
-class Shoot (Action):
+
+class Shoot(Action):
     preconditions = [lambda w, r: r.has_ball(w.ball),
                      lambda w, r: utils.can_score(w, r, w.their_goal())]
 
