@@ -12,6 +12,9 @@
 #define MOTOR_BACK_RIGHT  3
 #define MOTOR_GRABBERS    4
 
+#define PIN_KICKER 8
+#define PIN_LED 13
+
 // Defines the forward/backward combinations for a movement command.
 // The least significant 4 bits store this, with 0 being backward and 1 being
 // forward for the corresponding motor ID.
@@ -27,6 +30,7 @@ namespace llcmd {
     const uint8_t BRAKE          = 0x01;
     const uint8_t GRABBER_OPEN   = 0x02;
     const uint8_t GRABBER_CLOSE  = 0x03;
+    const uint8_t KICK           = 0x04;
     const uint8_t LED            = 0x07;
     const uint8_t STRAIT         = 0x08;
     const uint8_t SPIN           = 0x09;
@@ -118,8 +122,12 @@ namespace llcmd {
             io::stop(MOTOR_BACK_LEFT);
             io::stop(MOTOR_BACK_RIGHT);
             break;
+        case KICK:
+            digitalWrite(PIN_KICKER, LOW);
+            digitalWrite(PIN_LED, LOW);
+            break;
         case LED:
-            digitalWrite(13, LOW);
+            digitalWrite(PIN_LED, LOW);
             break;
         case GRABBER_OPEN:
         case GRABBER_CLOSE:
@@ -158,8 +166,12 @@ namespace llcmd {
             cmd_at++;
             start();
             break;
+        case KICK:
+            digitalWrite(PIN_KICKER, HIGH);
+            digitalWrite(PIN_LED, HIGH);
+            break;
         case LED:
-            digitalWrite(13, HIGH);
+            digitalWrite(PIN_LED, HIGH);
             break;
         }
         last_time = millis();

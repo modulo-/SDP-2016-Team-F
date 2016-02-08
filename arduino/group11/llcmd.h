@@ -11,6 +11,7 @@ namespace llcmd {
     extern const uint8_t SPIN;
     extern const uint8_t HOLD_SPIN;
     extern const uint8_t NOP;
+    extern const uint8_t KICK;
 
     extern const uint8_t FLAG_UNINTERRUPTABLE;
     extern const size_t cmd_cap;

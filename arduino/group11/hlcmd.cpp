@@ -59,7 +59,8 @@ namespace hlcmd {
             return 3;
         case GRABBER_OPEN:
         case GRABBER_CLOSE:
-            // 1. Uninterruptable grabber command
+        case KICK:
+            // 1. Uninterruptable timed command
             // 2. Interruptable NOP.
             return 4;
         case STRAIT:
@@ -67,13 +68,6 @@ namespace hlcmd {
         case SPIN:
             // An implicit 100ms brake
             return 6;
-        case KICK:
-            // 1. Extend
-            // 2. Wait
-            // 3. Retract
-            // 4. Interruptable NOP
-            //return 10;
-            return 0;
         case MV:
             // 1. Spin
             // 2. Brake
@@ -155,14 +149,9 @@ namespace hlcmd {
             *((uint16_t *)(out + 4)) = 100;
             break;
         case KICK:
-            //out[0] = llcmd::KICKER_EXTEND | llcmd::FLAG_UNINTERRUPTABLE;
-            //*((uint16_t *)(out + 1)) = kickTimeFromDist(
-            //    *cmdArg(in, 1, uint16_t));
-            //out[3] = llcmd::WAIT | llcmd::FLAG_UNINTERRUPTABLE;
-            //*((uint16_t *)(out + 4)) = 100;
-            //out[6] = llcmd::KICKER_RETRACT | llcmd::FLAG_UNINTERRUPTABLE;
-            //*((uint16_t *)(out + 7)) = 270;
-            //out[9] = llcmd::NOP;
+            out[0] = llcmd::KICK | llcmd::FLAG_UNINTERRUPTABLE;
+            memcpy(out + 1, in + 1, 2);
+            out[3] = llcmd::NOP;
             break;
         case HOLD_SPIN:
             out[0] = llcmd::HOLD_SPIN;
