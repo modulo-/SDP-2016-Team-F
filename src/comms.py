@@ -52,9 +52,9 @@ def monitor_comms():
         commlock.release()
         data = b64.decode(line[2:-2])
         if line.startswith('d'):
-            info('Debug message recieved: %s', data)
+            info('Debug message recieved: %r', data)
         elif line.startswith('e'):
-            error('Error message recieved: %s', data)
+            error('Error message recieved: %r', data)
         else:
             for callback in callbacks:
                 thread.start_new_thread(callback, (data, ))

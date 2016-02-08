@@ -39,11 +39,11 @@ namespace hlcmd {
         case SPIN:
         case HOLD_SPIN:
         case KICK:
-        case GRABBER_OPEN:
-        case GRABBER_CLOSE:
             return 3;
         case MV:
-            return 7;
+            return 13;
+        case GRABBER_OPEN:
+        case GRABBER_CLOSE:
         default:
             return 1;
         }
@@ -55,10 +55,13 @@ namespace hlcmd {
         switch(*cmd) {
         case WAIT:
         case BRAKE:
-        case GRABBER_OPEN:
-        case GRABBER_CLOSE:
             // 1-to-1 mapping
             return 3;
+        case GRABBER_OPEN:
+        case GRABBER_CLOSE:
+            // 1. Uninterruptable grabber command
+            // 2. Interruptable NOP.
+            return 4;
         case STRAIT:
         case HOLD_SPIN:
         case SPIN:
@@ -85,20 +88,32 @@ namespace hlcmd {
     }
 
     static void compileMV(const uint8_t *in, uint8_t *out) {
-        int32_t x = *cmdArg(in, 1, int16_t);
-        int32_t y = *cmdArg(in, 3, int16_t);
-        int16_t angle = *cmdArg(in, 5, int16_t);
-        int16_t mv_angle;
-        if(x == 0) {
+        int32_t x = *cmdArg(in, 7, int16_t) - *cmdArg(in, 1, int16_t);
+        int32_t y = *cmdArg(in, 9, int16_t) - *cmdArg(in, 3, int16_t);
+        int32_t angle_strt = *cmdArg(in, 5, int16_t);
+        int32_t angle_end = *cmdArg(in, 11, int16_t);
+        int32_t mv_angle;
+        if(x == 0 && y > 0) {
+            mv_angle = 16200;
+        } else if(x == 0) {
             mv_angle = 5400;
         } else {
-            mv_angle = -atan(float(y) / float(x)) * 10800 / M_PI;
+            mv_angle = -atan2f(float(y), float(x)) * 10800 / M_PI;
         }
+        mv_angle = (((mv_angle - angle_strt) % 21600) + 21600) % 21600;
         int16_t dist = (int16_t)sqrt(x*x + y*y);
-        if(x <= 0) {
-            dist = -dist;
+        if(mv_angle > 10800) {
+            mv_angle -= 21600;
         }
-        int16_t face_angle = (angle - mv_angle) % 21600;
+        if(mv_angle > 5400) {
+            dist = -dist;
+            mv_angle -= 10800;
+        } else if(mv_angle < -5400) {
+            dist = -dist;
+            mv_angle += 10800;
+        }
+        int16_t face_angle = (((angle_end - mv_angle - angle_strt) % 21600)
+            + 21600) % 21600;
         if(face_angle > 10800) {
             face_angle -= 21600;
         }
@@ -165,12 +180,14 @@ namespace hlcmd {
             compileMV(in, out);
             break;
         case GRABBER_OPEN:
-            *out = llcmd::GRABBER_OPEN;
-            memcpy(out + 1, in + 1, 2);
+            out[0] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 1)) = 600;
+            out[3] = llcmd::NOP;
             break;
         case GRABBER_CLOSE:
-            *out = llcmd::GRABBER_CLOSE;
-            memcpy(out + 1, in + 1, 2);
+            out[0] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 1)) = 600;
+            out[3] = llcmd::NOP;
             break;
         }
     }
