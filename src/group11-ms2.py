@@ -5,8 +5,17 @@ from tempfile import mkdtemp
 from threading import Lock, Thread
 from shutil import rmtree
 from time import sleep
+from sys import argv
 import json
 import subprocess
+import readline
+
+IDLE = 0
+GRAB = 1
+SPIN_GRAB = 2
+KICK = 3
+
+target = IDLE
 
 class Robot:
     def __init__(self, x, y, facing):
@@ -32,7 +41,12 @@ statelock = Lock()
 
 def update_plan(state):
     # TODO: magic
-    pass
+    if target == GRAB:
+        pass
+    elif target == SPIN_GRAB:
+        pass
+    elif target == KICK:
+        pass
 
 def genrobot(obj):
     return Robot(obj['x'], obj['y'], obj['f'])
@@ -51,9 +65,10 @@ def genstate(obj):
     return State(dict, ball)
 
 def monitor_vision():
+    global state
     with open(visionpipe, 'r') as pipe:
         while True:
-            line = pipe.readline()
+            line = pipe.readline().strip()
             # EOF
             if len(line) == 0:
                 break
@@ -70,18 +85,37 @@ def poll_plan():
         update_plan(statecp)
         sleep(3)
 
-team = 'y'
-player = 'p'
+def shell():
+    global target
+    while True:
+        try:
+            line = raw_input('% ')
+            if line == 'exit':
+                break
+            elif line == 'grab':
+                target = GRAB
+            elif line == 'sgrab':
+                target = SPIN_GRAB
+            elif line == 'kick':
+                target = KICK
+            elif line == 'idle':
+                target = IDLE
+        except:
+            break
+
+player = argv[1]
 
 mkfifo(visionpipe)
 t = Thread(target=monitor_vision)
+t.daemon = True
 t2 = Thread(target=poll_plan)
+t3 = Thread(target=shell)
 t2.daemon = True
 t.start()
 t2.start()
+t3.start()
 
-print visionpipe
 subprocess.call(['../vision/vision', visionpipe])
 
-t.join()
+t3.join()
 rmtree(tmpdir)
