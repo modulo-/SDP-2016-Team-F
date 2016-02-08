@@ -1,3 +1,3 @@
 #!/bin/bash
-g++ --std=c++14 -o vision src/*.cpp -Iinclude -I/usr/include $(pkg-config --libs opencv)
+g++ --std=c++11 -o vision src/*.cpp -Iinclude -I/usr/include $(pkg-config --libs opencv)
 
