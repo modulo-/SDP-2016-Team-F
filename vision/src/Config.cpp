@@ -13,14 +13,14 @@ namespace vision {
     //TODO: add loading config from file
     Config::Config(const cv::String& filename) {
         cv::Point2f src303[3] = {
-            cv::Point2f(310, 220),
-            cv::Point2f(590, 220),
-            cv::Point2f(305, 440)
+            cv::Point2f(320, 240),
+            cv::Point2f(310, 465),
+            cv::Point2f(600, 245)
         };
         cv::Point2f dest303[3] = {
             cv::Point2f(320, 240),
-            cv::Point2f(630, 240),
-            cv::Point2f(320, 470)
+            cv::Point2f(320, 480),
+            cv::Point2f(635, 240)
         };
 
         cv::Point2f src304[3] = {
@@ -48,7 +48,7 @@ namespace vision {
             (cv::Mat_<double>(3, 3) << 1.2e3, 0, 3.1e2, 0, 1.2e3, 2.3e2, 0, 0, 1),
             (cv::Mat_<double>(5, 1) << -1, 0, 0, 0, 0),
             cv::getAffineTransform(src303, dest303),
-            -0.8,
+            -1,
             bg303);
 
         vision::Pitch pitch304(
