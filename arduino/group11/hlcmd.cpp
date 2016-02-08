@@ -110,10 +110,10 @@ namespace hlcmd {
         *((int16_t *)(out + 4)) = 100;
         // 3. Strait
         out[6] = llcmd::STRAIT;
-        *((int16_t *)(out + 4)) = 100;
+        *((int16_t *)(out + 7)) = dist;
         // 4. Brake
         out[9] = llcmd::BRAKE;
-        *((int16_t *)(out + 10)) = dist;
+        *((int16_t *)(out + 10)) = 100;
         // 5. Spin
         out[12] = llcmd::SPIN;
         *((int16_t *)(out + 13)) = face_angle;

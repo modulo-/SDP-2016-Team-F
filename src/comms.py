@@ -82,13 +82,12 @@ def init(fname, chan, control, listen=True):
     ]
 
     for cmd in cmds:
-        print cmd
+        debug('Sending control signal: %r', cmd)
         commlock.acquire()
         commserial.write(cmd)
         commlock.release()
-        print "sent",
         waitok()
-        print "done"
+        debug('Done.')
     if listen:
         thread.start_new_thread(monitor_comms, ())
 

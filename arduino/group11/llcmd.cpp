@@ -15,8 +15,8 @@
 // Defines the forward/backward combinations for a movement command.
 // The least significant 4 bits store this, with 0 being backward and 1 being
 // forward for the corresponding motor ID.
-#define MOVE_RIGHT ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
-#define MOVE_LEFT  ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
+#define MOVE_RIGHT ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
+#define MOVE_LEFT  ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
 #define MOVE_CC    ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_RIGHT))
 #define MOVE_CW    ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_LEFT))
 
@@ -29,8 +29,8 @@ namespace llcmd {
     const uint8_t GRABBER_CLOSE  = 0x03;
     const uint8_t LED            = 0x07;
     const uint8_t STRAIT         = 0x08;
-    const uint8_t SPIN           = 0x0a;
-    const uint8_t HOLD_SPIN      = 0x0b;
+    const uint8_t SPIN           = 0x09;
+    const uint8_t HOLD_SPIN      = 0x0a;
     const uint8_t NOP            = 0x7f;
 
     const uint8_t FLAG_UNINTERRUPTABLE = 0x80;
@@ -98,7 +98,7 @@ namespace llcmd {
                     data > 0 ? MOVE_RIGHT : MOVE_LEFT,
                     io::adjustedMotorPowers());
             }
-        } else if((cmds[cmd_at] & 0x7f) == SPIN || (cmds[cmd_at] & 0x7f) == HOLD_SPIN) {
+        } else if((cmds[cmd_at] & 0x7f) == SPIN) {
             int16_t data = *cmdArg(1, int16_t);
             if(io::rotDist() >= abs(data)) {
                 finish(true);
@@ -149,7 +149,7 @@ namespace llcmd {
             io::backward(MOTOR_GRABBERS, 50);
             break;
         case HOLD_SPIN:
-            io::backward(MOTOR_GRABBERS, 20);
+            io::backward(MOTOR_GRABBERS, 10);
         case SPIN:
             io::motorSet(*cmdArg(1, int16_t) > 0 ? MOVE_CW : MOVE_CC,
                 io::POWER_FULL);
