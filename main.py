@@ -17,7 +17,7 @@ def new_vision(world):
     )
 
 vision = Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
-comms = CommsManager(0, "/dev/ttyACM[NUMBER]")
+comms = RFCommsManager(0, "/dev/ttyACM[NUMBER]")
 planner = Planner(comms=comms)
 
 def run_planner():
