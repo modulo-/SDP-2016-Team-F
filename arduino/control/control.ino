@@ -1,12 +1,13 @@
 #include "SDPArduino.h"
 #include <Wire.h>
 #include "comms.h"
-#ifndef COMPASS
-    #include <Adafruit_Sensor.h>
-    #include <Adafruit_LSM303_U.h>
-    #include <Adafruit_9DOF.h>
-    #include <Adafruit_L3GD20_U.h>
-    #include <avr/wdt.h>
+//#define COMPASS
+#ifdef COMPASS
+#include <Adafruit_Sensor.h>
+#include <Adafruit_LSM303_U.h>
+#include <Adafruit_9DOF.h>
+#include <Adafruit_L3GD20_U.h>
+#include <avr/wdt.h>
 #endif
 
 
@@ -24,12 +25,14 @@
 //the radius of the left and right wheels
 #define LR_WHEELBASE 0.15
 //the radius of the middle wheel
-#define MIDDLE_RADIUS 0.011
+#define MIDDLE_RADIUS 0.11
 #define WHEEL_DIAM 0.05
 #define PI 3.14159
 #define WHEEL_CIRCUM WHEEL_DIAM*PI
 //the number of steps in a rotation for the centre wheel
 #define FULL_ROT_MIDDLE 25.0
+#define FULL_ROT_LR 180.0
+//#define SERIAL_DEBUG
 
 // CMD opcodes
 #define CMD_MOVE 'm'
@@ -40,13 +43,12 @@
 #define OPTIONS 'o'
 
 #define MAX_DATA_SIZE 255
-#define SERIAL_DEBUG false
 #define DEVICE_ID '2'
 #define TURN_ALLOWANCE 3
 
 //motor positioning
 #define ROTARY_SLAVE_ADDRESS 5
-#define ROTARY_COUNT 2
+#define ROTARY_COUNT 6
 #define PRINT_DELAY 200
 
 // Initial motor position is 0.
@@ -56,7 +58,7 @@ int kickerTime50 = 80;
 int kickerTime100 = 110;
 int kickerTime150 = 135;
 long degToMetre = 1250;
-#ifndef COMPASS
+#ifdef COMPASS
 Adafruit_9DOF                  dof   = Adafruit_9DOF();
 Adafruit_LSM303_Accel_Unified  accel = Adafruit_LSM303_Accel_Unified(30301);
 Adafruit_LSM303_Mag_Unified    mag   = Adafruit_LSM303_Mag_Unified(30302);
@@ -142,9 +144,6 @@ void parseOptions(byte* message){
         case 't':
             turnCorrection=message[2]>=1;
             break;
-        case 'r':
-            fullRot += message[2]-127;
-            break;
         case 'k':
             switch(message[2]){
                 case 50:
@@ -166,10 +165,11 @@ void parseOptions(byte* message){
 
 void doMove(byte * message) {
     int distance = (message[1] << 8) | message[2];
-    if (SERIAL_DEBUG) {
+#ifdef SERIAL_DEBUG
         Serial.println("doMove:");
         Serial.println(distance);
     }
+#endif
     move(distance);
 }
 
@@ -178,21 +178,21 @@ void doMoveAndTurn(byte * message) {
     int distance = (message[3] << 8) | message[4];
     int finalHeading = (message[5] << 8) | message[6]; // relative finish heading
 
-    if (SERIAL_DEBUG) {
+    #ifdef SERIAL_DEBUG
         Serial.println("doMoveAndTurn:");
         Serial.println(distance);
         Serial.println(direction);
         Serial.println(finalHeading);
-    }
+    #endif
 
     int startHeading = getCurrentHeading(); // absolute start heading
     finalHeading = (startHeading + finalHeading + 360) % 360; // absulute finish heading
 
-    if (SERIAL_DEBUG) {
+    #ifdef SERIAL_DEBUG
         Serial.println("Augmented headings:");
         Serial.println(startHeading);
         Serial.println(finalHeading);
-    }
+    #endif
 
     turn(direction,0); // turn to calculated final abs heading
     move(distance); // move in relative heading
@@ -246,17 +246,17 @@ void sendData() {
 
 
 // move some distance in specified direction, ideally by changing heading minimally
-// distance in mm, direction in degrees
 void move(int distance) {
+    if(Serial.available()){return;};
     resetMotorPositions();
     long distanceCovered = 0;
     int startHeading = getCurrentHeading();
     long degrees = (distance * degToMetre) / 1000;
 
-    if (SERIAL_DEBUG) {
+    #ifdef SERIAL_DEBUG
         Serial.print("I am going to move:");
         Serial.println(degrees);
-    }
+    #endif
 
     bool finished = false;
     bool forwards = (distance >= 0);
@@ -272,7 +272,7 @@ void move(int distance) {
     int prevTime = millis();
     bool timeout;
 
-    if (SERIAL_DEBUG) {
+    #ifdef SERIAL_DEBUG
         Serial.print("Starting at: ");
         Serial.print(start[0]);
         Serial.print(" ");
@@ -281,12 +281,12 @@ void move(int distance) {
         Serial.print(positions[0] + degrees);
         Serial.print(" ");
         Serial.println(positions[1] + degrees);
-    }
+    #endif
 
-    while (!finished) {
+    while (!finished&&!Serial.available()) {
         updateMotorPositions();
-        delta0 = -(positions[0] - start[0]);
-        delta1 = -(positions[1] - start[1]);
+        delta0 = -(positions[ENCODER_LEFT] - start[0]);
+        delta1 = -(positions[ENCODER_RIGHT] - start[1]);
         if (!forwards) {
             delta0 = -delta0;
             delta1 = -delta1;
@@ -323,88 +323,133 @@ void move(int distance) {
     motorAllStop();
     updateMotorPositions();
 
-    if (SERIAL_DEBUG) {
+    #ifdef SERIAL_DEBUG
         Serial.print("Finished at: ");
         Serial.print(positions[0]);
         Serial.print(" ");
         Serial.print(positions[1]);
         Serial.print("\r\n");
-    }
+    #endif
 }
 
 //in a full rotation left should go 550 right should go 550
 // turn a certain number of degrees
 void turn(long degrees, int depth) {
+    if(Serial.available()){return;};
+    //causes problems, don't know why
+    //debugPrint("turning");
+    //debugPrint((char*) (Serial.available() ? "true":"false"));
     bool cw = degrees > 0;
     bool finished = false;
+    //degrees of rotation of the wheel to rotation of the robot
+    //because 1 reported 2 degree is 2 degrees of rotation
+    float degToDegLR = (360/FULL_ROT_LR)* ((WHEEL_CIRCUM)/(LR_WHEELBASE*PI));
+    float degToDegC =  (360/FULL_ROT_MIDDLE)* ((WHEEL_CIRCUM)/(2*MIDDLE_RADIUS*PI));
+#ifdef SERIAL_DEBUG
+    Serial.print("degToDegLR:");
+    Serial.print(degToDegLR);
+    Serial.print(" degToDegC:");
+    Serial.println(degToDegC);
+#endif
+    //target speed in deg/s
+    int targetRotV = 70;
     //everything is confusing because the motors are mounted backwards
     degrees = abs(degrees);
     if (degrees > 360)degrees = degrees % 360;
+    updateMotorPositions();
     resetMotorPositions();
     updateMotorPositions();
+#ifdef SERIAL_DEBUG
+    printMotorPositions();
+#endif
     int start[] = {positions[ENCODER_LEFT], positions[ENCODER_RIGHT], positions[ENCODER_MIDDLE]};
-    if (SERIAL_DEBUG) {
-        Serial.write(cw ? "clockwise" : "anticlockwise");
-        Serial.println(degrees);
-    }
-    int deltaL=0;
-    int deltaR=0;
-    int deltaC=0;
-    int powL=0;
-    int powR=0;
-    int powC=0;
-    int prevTime = millis();
+    int prevPositions[] = {0,0,0};
+#ifdef SERIAL_DEBUG
+    Serial.write(cw ? "clockwise " : "anticlockwise ");
+    Serial.println(degrees);
+#endif
+    float deltaL=0;
+    float deltaR=0;
+    float deltaC=0;
+    int pows[]={40,40};
+    int startTime=millis();
+    int prevTime=0;
+#ifdef SERIAL_DEBUG
+    int prevPrint=millis();
     bool timeout;
-    while (!finished) {
+#endif
+    while (!finished && !Serial.available()) {
+#ifdef SERIAL_DEBUG
+        timeout=false;
+        if(millis()-prevPrint>100){
+            timeout=true;
+            prevPrint=millis();
+        }
+#endif
         updateMotorPositions();
-        deltaL = (((positions[ENCODER_LEFT]-start[0])/180)*WHEEL_CIRCUM)/(LR_WHEELBASE*PI);
-        deltaR = (((positions[ENCODER_RIGHT]-start[1])/180)*WHEEL_CIRCUM)/(LR_WHEELBASE*PI);
-        deltaC = -(((positions[ENCODER_MIDDLE]-start[2])/FULL_ROT_MIDDLE)*WHEEL_CIRCUM)/(MIDDLE_RADIUS*PI*2);
+        deltaL = -(positions[ENCODER_LEFT]-start[0])*degToDegLR;
+        deltaR =  (positions[ENCODER_RIGHT]-start[1])*degToDegLR;
+        deltaC = (positions[ENCODER_MIDDLE]-start[2])*degToDegC;
+        int deltas[] = {deltaL,deltaR,deltaC};
         if (!cw) {
             deltaL= -deltaL;
             deltaR= -deltaR;
             deltaC= -deltaC;
         }
-        if (powL != 0 && deltaL >= degrees) {
+        int time=millis();
+        if ((deltaL+deltaR)/2 >= degrees) {
             finished=true; 
         }
-        if(deltaR >= degrees) {
-            finished=true;
-        }
-        else{
-            if(deltaL - deltaR > 5) {
-                if (powL > 80)powL = 80;
+        else if(time-prevTime>500){
+            int i=0;
+            int diffs[]={deltaL-prevPositions[0],deltaR-prevPositions[1]};
+            for(i=0;i<2;i++){
+                float rotV= 1000*((float)diffs[i]/(time-prevTime));
+                if(rotV>targetRotV){
+                    pows[i]-=5;
+                }
+                if(rotV<targetRotV){
+                    pows[i]+=5;
+                }
             }
-            else if(deltaR-deltaL > 5) {
-                if (powR > 80)powR = 80;
-            }
-            if(deltaC-deltaR > 5){
-                if (powC > 80) powC=80;
-            }
-            else if(deltaR-deltaC > 5){
-                if (powR > 80) powR=80;
-                if (powL > 80) powL=80;
-                powC=100;
-            }
-            else {
-                powL=100;
-                powR=100;
-                powC=100;
-            }
+            prevPositions[0]=deltaL;
+            prevPositions[1]=deltaR;
+            prevTime=time;
+            #ifdef SERIAL_DEBUG
+            printMotorPositions();
+            #endif 
         }
         if (cw) {
-            motorBackward(MOTOR_LEFT, powL);
-            motorForward(MOTOR_RIGHT, powR);
-            motorBackward(MOTOR_MIDDLE, powC);
+            motorBackward(MOTOR_LEFT, pows[0]);
+            motorForward(MOTOR_RIGHT, pows[1]);
+            //motorBackward(MOTOR_MIDDLE, powC);
         }
         else {
-            motorForward(MOTOR_LEFT, powL);
-            motorBackward(MOTOR_RIGHT, powR);
-            motorForward(MOTOR_MIDDLE, powC);
+            motorForward(MOTOR_LEFT, pows[0]);
+            motorBackward(MOTOR_RIGHT, pows[1]);
+            //motorForward(MOTOR_MIDDLE, powC);
         }
     }
     motorAllStop();
     updateMotorPositions();
+#ifdef SERIAL_DEBUG 
+    Serial.print("degrees:");
+    Serial.print(degrees);
+    Serial.print("\ndeltaL:");
+    Serial.print(deltaL);
+    Serial.print("\ndeltaR:");
+    Serial.print(deltaR);
+    Serial.print("\ndeltaC:");
+    Serial.print(deltaC);
+    Serial.print("\npowL:");
+    Serial.print(pows[0]);
+    Serial.print(" powR:");
+    Serial.print(pows[1]);
+    Serial.print("\ntargetRotV:");
+    Serial.print(targetRotV);
+    Serial.print("\n"); 
+    printMotorPositions();
+#endif
 }
 
 void kick(int distance) { // distance in cm
@@ -425,34 +470,37 @@ void kick(int distance) { // distance in cm
             break;
     }
     //close flippers
-    motorBackward(MOTOR_GRABBER, 60);
-    //move kicker back out way
-    motorForward(MOTOR_KICKER, 30);
+    motorForward(MOTOR_GRABBER, 20);
     delay(800);
-    //
-    motorForward(MOTOR_KICKER, 80);
     //move flippers away
-    motorForward(MOTOR_GRABBER, 80);
+    motorBackward(MOTOR_GRABBER, 20);
     delay(800);
     motorAllStop();
-
-    if (SERIAL_DEBUG) {
+    delay(400);
+    
+    //kick
+    motorForward(MOTOR_KICKER, kickerStrength);
+    delay(kickerTime);
+    //put kicker back down
+    motorBackward(MOTOR_KICKER, 30);
+    delay(600);
+    //put grabbers back in 
+    motorForward(MOTOR_GRABBER, 20);
+    delay(200);
+    motorAllStop();
+    #ifdef SERIAL_DEBUG
         Serial.write("kicking at P:");
         Serial.print(kickerStrength);
         Serial.write(" T:");
         Serial.print(kickerTime);
         Serial.write("\r\n");
-    }
-    motorBackward(MOTOR_KICKER, kickerStrength);
-    delay(kickerTime);
-    motorForward(MOTOR_KICKER, 30);
-    delay(1000);
-    motorStop(MOTOR_KICKER);
+    #endif
 }
 
 
 void initSensors()
 {
+#ifdef COMPASS
     if (!accel.begin())
     {
         /* There was a problem detecting the LSM303 ... check your connections */
@@ -469,6 +517,7 @@ void initSensors()
     {
         /* There was a problem detecting the L3GD20 ... check your connections */
     }
+#endif
 }
 
 
@@ -505,6 +554,7 @@ int getHeadingDiff(int targetHeading, int currentHeading) {
 }
 
 int getCurrentHeading() {
+#ifdef COMPASS
     sensors_event_t mag_event;
     sensors_vec_t   orientation;
 
@@ -515,6 +565,10 @@ int getCurrentHeading() {
         /* 'orientation' should have valid .heading data now */
         return 360 - ((int) orientation.heading);
     }
+#endif
+#ifndef COMPASS
+    return 0;
+#endif
 }
 
 
@@ -536,10 +590,14 @@ void resetMotorPositions() {
 }
 
 void printMotorPositions() {
-    //Serial.print("Motor positions: ");
+    Serial.print("Motor positions: ");
     for (int i = 0; i < ROTARY_COUNT; i++) {
-        //Serial.print(positions[i]);
-        //Serial.print(' ');
+        Serial.print(positions[i]);
+        Serial.print(' ');
     }
-    //Serial.println();
+    Serial.println();
+}
+
+void debugPrint(char* str){
+    comms::send(str,'c',strlen(str));
 }
