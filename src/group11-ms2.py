@@ -75,10 +75,13 @@ def monitor_vision():
             # EOF
             if len(line) == 0:
                 break
-            obj = json.loads(line.strip())
-            statelock.acquire()
-            updateworld(obj)
-            statelock.release()
+            try:
+                obj = json.loads(line.strip())
+                statelock.acquire()
+                updateworld(obj)
+                statelock.release()
+            except:
+                pass
 
 def poll_plan():
     while True:
