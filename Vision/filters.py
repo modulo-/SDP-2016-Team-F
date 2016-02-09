@@ -10,30 +10,35 @@ def filter_dummy(frame, config):
     return frame
 
 
-def filter_overlay(detected_objects, frame, config):
-    frame = frame.copy()
-    q=detected_objects
-    # q = copy.deepcopy(detected_objects)
-    while not q.empty():
-        item = q.get()
-        if item is None:
-            continue
-        print(item)
-        centre = (int(item["x"]-1),int(item["y"]-1))
-        cv2.circle(frame, centre, 6, BGR_COMMON[item['colour']], 3)
+def filter_overlay(world, oldworld, frame, config):
+    if world.ball is not None:
+        ball = world.ball
 
-        if "robot" in item["name"]:
-            cv2.circle(frame, centre, 10, BGR_COMMON[item['identification']], 3)
-            if item['corner'] is not None:
-                cv2.circle(frame, (int(item['corner']["x"]-1),int(item['corner']["y"]-1)), 3, BGR_COMMON['black'], 2)
-            if item['orientation'] is not None:
-                length = 15
-                complex = cmath.rect(length, math.radians(item['orientation']))
-                y = -complex.real
-                x = complex.imag
-                print x, y
-                arrowhead = (int(x)+centre[0], int(y)+centre[1])
-                cv2.arrowedLine(frame, centre, arrowhead, BGR_COMMON['black'], 2, cv2.CV_AA)
+        cv2.circle(frame, (int(ball.x-3),int(ball.y-3)), 6, BGR_COMMON[ball['colour']], 3)
+
+        length = ball.velocity
+        complex = cmath.rect(length, ball.angle)
+        y = -complex.real
+        x = complex.imag
+
+        arrowhead = (int(x+world.ball.x), int(y+world.ball.y))
+        cv2.arrowedLine(frame, ball.centre, arrowhead, BGR_COMMON['red'], 2, cv2.CV_AA)
+
+    for team in ['blue', 'yellow']:
+        for colour in ['pink', 'green']:
+            robot = getattr(world, "robot_{}_{}".format(team, colour))
+            if robot is None:
+                continue
+
+            cv2.circle(frame, (int(robot.x-5),int(robot.y-3)), 10, BGR_COMMON[colour], 3)
+
+            length = 15
+            complex = cmath.rect(length, robot.angle)
+            y = -complex.real
+            x = complex.imag
+
+            arrowhead = (int(x + robot.x), int(y+robot.y))
+            cv2.arrowedLine(frame, robot.centre, arrowhead, BGR_COMMON['black'], 2, cv2.CV_AA)
 
 
 
