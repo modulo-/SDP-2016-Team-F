@@ -6,8 +6,8 @@ from position import Vector
 # Width measures the front and back of an object
 # Length measures along the sides of an object
 
-ROBOT_WIDTH = 30
-ROBOT_LENGTH = 45
+ROBOT_WIDTH = 64
+ROBOT_LENGTH = 64
 ROBOT_HEIGHT = 10
 
 BALL_WIDTH = 5

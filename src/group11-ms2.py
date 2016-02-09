@@ -14,11 +14,33 @@ import json
 import subprocess
 import readline
 import comms
+import group11cmd
 
 def translate_pos(p):
     return p / 2.31
 
-planner = planner.Planner(11)
+class CommsManager:
+    def move(self, distance):
+        group11cmd.run(group11cmd.cmd_strait(
+            group11cmd.parse_dist(distance)))
+    
+    def turn(self, angle):
+        group11cmd.run(group11cmd.cmd_spin(
+            group11cmd.parseangle(angle / pi * 180)))
+    
+    def kick(self, distance):
+        group11cmd.run(group11cmd.cmd_kick(100))
+    
+    def kick_full_power(self):
+        group11cmd.run(group11cmd.cmd_kick(100))
+    
+    def close_grabbers(self):
+        group11cmd.run(group11cmd.cmd_grabber_close())
+    
+    def release_grabbers(self):
+        group11cmd.run(group11cmd.cmd_grabber_open())
+
+planner = planner.Planner(CommsManager())
 tmpdir = mkdtemp()
 visionpipe = path.join(tmpdir, 'visionpipe')
 

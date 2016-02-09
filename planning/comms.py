@@ -2,49 +2,25 @@ from __future__ import division
 import math
 from math import pi
 
-import group11cmd
-
-class CommsManager:
+class CommsManager(object):
 
     def __init__(self, robot):
-        self.robot = robot
+        self.robot_index = robot
 
     def move(self, distance):
-        if self.robot == 11:
-            group11cmd.run(group11cmd.cmd_strait(
-                group11cmd.parse_dist(distance)))
-        print("Moving robot {0} distance {1}".format(self.robot, distance))
-
-    def move_to(self, x, y):
-        # Needs actual positions, and current positions of the robot!
-        #if self.robot == 11:
-        #    group11cmd.run(group11cmd.cmd_mv(x0, y0, angle0, x1, y1, angle1))
-        heading = math.degrees(math.atan2(y, x))
-        distance = math.sqrt(x**2 + y**2)
-        print("Turning robot {0} to head {1} and moving distance {2}".format(self.robot, heading, distance))
+        print("Moving robot {0} distance {1}".format(self.robot_index, distance))
 
     def turn(self, angle):
-        if self.robot == 11:
-            group11cmd.run(group11cmd.cmd_spin(
-                group11cmd.parseangle(angle / pi * 180)))
-        print("Turning robot {0} angle {1}".format(self.robot, angle))
+        print("Turning robot {0} angle {1}".format(self.robot_index, angle))
 
     def kick(self, distance):
-        if self.robot == 11:
-            group11cmd.run(group11cmd.cmd_kick(300))
-        print("Robot {0} kicking distance {1}".format(self.robot, distance))
+        print("Robot {0} kicking distance {1}".format(self.robot_index, distance))
 
     def kick_full_power(self):
-        if self.robot == 11:
-            group11cmd.run(group11cmd.cmd_kick(300))
-        print("Robot {0} kicking full power".format(self.robot))
+        print("Robot {0} kicking full power".format(self.robot_index))
 
     def close_grabbers(self):
-        if self.robot == 11:
-            group11cmd.run(group11cmd.cmd_grabber_close())
-        print("Robot {0} closing grabbers".format(self.robot))
+        print("Robot {0} closing grabbers".format(self.robot_index))
 
     def release_grabbers(self):
-        if self.robot == 11:
-            group11cmd.run(group11cmd.cmd_grabber_open())
-        print("Robot {0} releasing grabbers".format(self.robot))
+        print("Robot {0} releasing grabbers".format(self.robot_index))

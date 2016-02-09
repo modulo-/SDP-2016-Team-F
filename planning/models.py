@@ -1,6 +1,8 @@
 import utils
 import math
 
+# TODO
+ROTATION_THRESHOLD = 0.1
 
 class Goal(object):
     '''
@@ -67,12 +69,15 @@ class Action(object):
 
 class GoToStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: r.get_rotation_to_point(w.ball.x, w.ball.y) == 0]
+                     lambda w, r: r.get_rotation_to_point(w.ball.x, w.ball.y) < ROTATION_THRESHOLD]
 
     def perform(self, comms):
-        comms.move(math.sqrt(
-            (self.robot.x - self.world.ball.x)**2 +
-            (self.robot.y - self.world.ball.y)**2))
+        dx = self.world.ball.x - self.robot.x
+        dy = self.world.ball.y - self.robot.y
+        d = math.sqrt(dx**2 + dy**2)
+        # TODO grabbing area size
+        grabber_size = 50
+        comms.move(d - grabber_size)
 
 
 class GrabBall(Action):

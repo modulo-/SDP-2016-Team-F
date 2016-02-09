@@ -10,8 +10,8 @@ class Planner:
     def set_task(self, task):
         self.current_task = task
 
-    def __init__(self, robot):
-        self.comms = [CommsManager(robot)]
+    def __init__(self, comms=CommsManager(0)):
+        self.comms = comms
         self.previous_action = None
         self.current_task = 'move-grab'
 
@@ -28,7 +28,7 @@ class Planner:
 
     def actuate(self, action):
         '''Perform actions'''
-        action.perform(self.comms[0])
+        action.perform(self.comms)
 
     def plan_and_act(self, world):
         '''
