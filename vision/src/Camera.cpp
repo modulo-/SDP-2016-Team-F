@@ -15,6 +15,11 @@ namespace vision {
         if(!camera.isOpened()) {
             throw std::runtime_error("Failed to open camera");
         }
+
+        camera.set(cv::CAP_PROP_BRIGHTNESS, 0.5);
+        camera.set(cv::CAP_PROP_CONTRAST, 0.5);
+        camera.set(cv::CAP_PROP_SATURATION, 0.5);
+        camera.set(cv::CAP_PROP_HUE, 0.5);
     }
 
     Camera::Camera(const cv::String& filename, const vision::Pitch p) : pitch(p) {
