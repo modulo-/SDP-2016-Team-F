@@ -22,14 +22,15 @@ def filter_overlay(frame, config):
         ball = world.ball
 
         cv2.circle(frame, (int(ball.x),int(ball.y)), 6, BGR_COMMON['red'], 3)
+        
+        if(config.vision.world_previous.ball is not None):
 
-        length = ball.velocity
-        complex = cmath.rect(length, ball.angle)
-        y = -complex.real
-        x = complex.imag
+        	x = world.ball.x - config.vision.world_previous.ball.x
+        	y = world.ball.y - config.vision.world_previous.ball.y
+        	print x,y
 
-        arrowhead = (int(x+world.ball.x), int(y+world.ball.y))
-        cv2.arrowedLine(frame, ball.centre, arrowhead, BGR_COMMON['red'], 2, cv2.CV_AA)
+        	arrowhead = (int(x*10+world.ball.x), int(y*10+world.ball.y))
+        	cv2.arrowedLine(frame, ball.centre, arrowhead, BGR_COMMON['red'], 2, cv2.LINE_AA)
 
     for team in ['blue', 'yellow']:
         for colour in ['pink', 'green']:
@@ -48,7 +49,7 @@ def filter_overlay(frame, config):
 
             if robot.velocity != 0:
                 arrowhead = (int(x + robot.x), int(y+robot.y))
-                cv2.arrowedLine(frame, robot.centre, arrowhead, BGR_COMMON['black'], 2, cv2.CV_AA)
+                cv2.arrowedLine(frame, robot.centre, arrowhead, BGR_COMMON['black'], 2, cv2.LINE_AA)
 
 
 

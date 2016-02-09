@@ -2,8 +2,8 @@ from collections import OrderedDict
 import cv2
 import numpy as np
 
-from Vision import calibrations
-from Vision.calibrations import colour_profiles
+import calibrations
+from calibrations import colour_profiles
 
 
 class Option(object):
@@ -55,7 +55,7 @@ class Option(object):
 class Config:
     pitch_room = Option("pitch_room", text="Pitch room", options=["3.D03", "3.D04"])
     computer = Option("colour", text="Our colour", options=list(calibrations.colour_profiles))
-    colours = colour_profiles['breadnel']
+    colours = colour_profiles['3d04_pc1']
 
     dot_areas = {
         'blue': 0,
