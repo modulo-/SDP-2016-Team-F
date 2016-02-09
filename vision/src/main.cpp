@@ -140,6 +140,18 @@ int main(const int argc, const char* argv[]) {
 
             struct Robot r;
             if(numP < numG) {
+                int pindex = 0;
+                for(size_t i = 0; i < markers.size(); i++) {
+                    if(markers[i].colour == 3) {
+                        pindex = i;
+                    }
+                }
+
+                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
+                    double distX = euclidianDistance(markers[pindex].center, x.center);
+                    double distY = euclidianDistance(markers[pindex].center, y.center);
+                    return (distX < distY);
+                });
                 cv::Point2f farGreen1 = markers[3].center;
                 cv::Point2f farGreen2 = markers[4].center;
                 cv::Point2f mid = (farGreen1 + farGreen2) / 2;
@@ -156,6 +168,18 @@ int main(const int argc, const char* argv[]) {
                 bgFound = true;
 
             } else {
+                int pindex = 0;
+                for(size_t i = 0; i < markers.size(); i++) {
+                    if(markers[i].colour == 4) {
+                        pindex = i;
+                    }
+                }
+
+                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
+                    double distX = euclidianDistance(markers[pindex].center, x.center);
+                    double distY = euclidianDistance(markers[pindex].center, y.center);
+                    return (distX < distY);
+                });
                 cv::Point2f farPink1 = markers[3].center;
                 cv::Point2f farPink2 = markers[4].center;
                 cv::Point2f mid = (farPink1 + farPink2) / 2;
@@ -214,6 +238,19 @@ int main(const int argc, const char* argv[]) {
 
             struct Robot r;
             if(numP < numG) {
+                int pindex = 0;
+                for(size_t i = 0; i < markers.size(); i++) {
+                    if(markers[i].colour == 3) {
+                        pindex = i;
+                    }
+                }
+
+                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
+                    double distX = euclidianDistance(markers[pindex].center, x.center);
+                    double distY = euclidianDistance(markers[pindex].center, y.center);
+                    return (distX < distY);
+                });
+
                 cv::Point2f farGreen1 = markers[3].center;
                 cv::Point2f farGreen2 = markers[4].center;
                 cv::Point2f mid = (farGreen1 + farGreen2) / 2;
@@ -230,6 +267,19 @@ int main(const int argc, const char* argv[]) {
                 ygFound = true;
 
             } else {
+                int pindex = 0;
+                for(size_t i = 0; i < markers.size(); i++) {
+                    if(markers[i].colour == 4) {
+                        pindex = i;
+                    }
+                }
+
+                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
+                    double distX = euclidianDistance(markers[pindex].center, x.center);
+                    double distY = euclidianDistance(markers[pindex].center, y.center);
+                    return (distX < distY);
+                });
+
                 cv::Point2f farPink1 = markers[3].center;
                 cv::Point2f farPink2 = markers[4].center;
                 cv::Point2f mid = (farPink1 + farPink2) / 2;
@@ -290,7 +340,6 @@ int main(const int argc, const char* argv[]) {
         if(bgFound) {
             seenBlueGreen = true;
         } else if(seenBlueGreen) {
-            std::cout << "Anti flicker" << std::endl;
             seenBlueGreen = false;
             cv::circle(frame, lastBGPos, 10,  cv::Scalar(255, 0, 0), 3);
             cv::circle(frame, lastBGPos, 50,  cv::Scalar(0, 255, 0), 3);
@@ -304,7 +353,6 @@ int main(const int argc, const char* argv[]) {
         if(bpFound) {
             seenBluePink = true;
         } else if(seenBluePink) {
-            std::cout << "Anti flicker" << std::endl;
             seenBluePink = false;
             cv::circle(frame, lastBPPos, 10,  cv::Scalar(255, 0, 0), 3);
             cv::circle(frame, lastBPPos, 50,  cv::Scalar(255, 0, 255), 3);
@@ -318,7 +366,6 @@ int main(const int argc, const char* argv[]) {
         if(ygFound) {
             seenYellowGreen = true;
         } else if(seenYellowGreen) {
-            std::cout << "Anti flicker" << std::endl;
             seenYellowGreen = false;
             cv::circle(frame, lastYGPos, 10,  cv::Scalar(0, 255, 255), 3);
             cv::circle(frame, lastYGPos, 50,  cv::Scalar(0, 255, 0), 3);
@@ -332,7 +379,6 @@ int main(const int argc, const char* argv[]) {
         if(ypFound) {
             seenYellowPink = true;
         } else if(seenYellowPink) {
-            std::cout << "Anti flicker" << std::endl;
             seenYellowPink = false;
             cv::circle(frame, lastYPPos, 10,  cv::Scalar(0, 255, 255), 3);
             cv::circle(frame, lastYPPos, 50,  cv::Scalar(255, 0, 255), 3);
