@@ -2,6 +2,9 @@ from collections import OrderedDict
 import cv2
 import numpy as np
 
+from Vision import calibrations
+from Vision.calibrations import colour_profiles
+
 
 class Option(object):
     @property
@@ -51,37 +54,14 @@ class Option(object):
 
 class Config:
     pitch_room = Option("pitch_room", text="Pitch room", options=["3.D03", "3.D04"])
-    colour = Option("colour", text="Our colour", options=["yellow", "blue"])
-    side = Option("side", text="Our side", options=["left", "right"])
-
-    colours = {
-        "red": {
-            "min": np.array([106, 150, 120]),
-            "max": np.array([255, 255, 255])
-        },
-        "yellow": {
-            "min": np.array([15, 54, 225]),
-            "max": np.array([42, 255, 255])
-        },
-        "blue": {
-            'max': np.array([91, 255, 238]),
-            'min': np.array([76, 86, 158])
-        },
-        "green": {
-            'min': np.array([60, 66, 200]),
-            'max': np.array([76, 130, 255])
-        },
-        "pink": {
-            'min': np.array([121, 59, 219]),
-            'max': np.array([170, 255, 255])
-        }
-    }
+    computer = Option("colour", text="Our colour", options=list(calibrations.colour_profiles))
 
     dot_areas = {
         'blue': 10,
         'yellow': 10,
-        'red': 0
+        'red': 20
     }
+    
     filters = OrderedDict()
     filter_stack = []  # OrderedSet()
     OUTPUT_TITLE = 'Filter Output'
@@ -103,9 +83,8 @@ class Config:
         cv2.namedWindow(self.FILTER_PARAMS)
 
     def GUI(self):
-
-        self.createTrackbar(self.colour)
-        self.createTrackbar(self.side)
+        self.createTrackbar(self.computer, callback=lambda x: self.set(self.computer.selected, x,
+              lambda : self.set("colours", colour_profiles[self.computer.selected_option])))
 
         for name, filter in self.filters.iteritems():
             self.createTrackbar(filter["option"])
@@ -126,29 +105,33 @@ class Config:
 
 
         cv2.createTrackbar("delta_angle", self.FILTER_PARAMS, self.delta_angle, 360,
-                           lambda x: setattr(self, "delta_angle", x))
+                           lambda x: self.set("delta_angle", x))
 
         cv2.createTrackbar("open", self.FILTER_PARAMS, 0, 10,
-                           lambda x: setattr(self, "open", x*2-1))
+                           lambda x: self.set("open", x*2-1))
         cv2.createTrackbar("close", self.FILTER_PARAMS, 0, 10,
-                           lambda x: setattr(self, "close", x*2-1))
+                           lambda x: self.set("close", x*2-1))
         cv2.createTrackbar("erode", self.FILTER_PARAMS, 0, 10,
-                           lambda x: setattr(self, "erode", x*2-1))
+                           lambda x: self.set("erode", x*2-1))
         cv2.createTrackbar("dilate", self.FILTER_PARAMS, 0, 10,
-                           lambda x: setattr(self, "dilate", x*2-1))
+                           lambda x: self.set("dilate", x*2-1))
         
     def setCol(self, bound, col, val):
         c = getattr(self, bound)
         c[col]=val
 
-    def set(self, bound, col, val):
+    def set(self, bound, val, callback = None):
         c = getattr(self, bound)
-        c[col]=val
+        c.selected=val
+        if callback is not None:
+            callback()
 
 
-    def createTrackbar(self, option):
-        cv2.createTrackbar(option.text, self.FILTER_SELECTION, option.selected, len(option.options) - 1,
-                           lambda x: self.toggle(option, x))
+    def createTrackbar(self, option, callback = None):
+        if callback is None:
+            callback = lambda x: self.toggle(option, x)
+
+        cv2.createTrackbar(option.text, self.FILTER_SELECTION, option.selected, len(option.options) - 1,callback)
 
     def addFilter(self, name, func, default=0):
         if default not in [0, 1]:
