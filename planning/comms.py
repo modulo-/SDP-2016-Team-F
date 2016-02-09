@@ -1,5 +1,5 @@
 import math
-import rf_comms
+import rf_comms as comms
 
 
 class CommsManager(object):
