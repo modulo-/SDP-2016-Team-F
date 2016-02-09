@@ -4,6 +4,7 @@
 #include <array>
 #include <algorithm>
 #include <fstream>
+#include <sstream>
 
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -55,6 +56,7 @@ int main(const int argc, const char* argv[]) {
 
     vision::Config config("config/config.xml");
     vision::Camera camera(0, config.getPitch(0));
+    //vision::Camera camera("/home/euan/Downloads/pitch.avi", config.getPitch(0));
 
     // Main processing loop
     // Grabs, decodes and stores a frame from capture each iteration
@@ -62,6 +64,21 @@ int main(const int argc, const char* argv[]) {
         cv::UMat frame = camera.getFrame();
 
         std::vector<std::vector<struct ColouredCircle> > circles = findColouredCirclesInFrame(frame, camera.getBackgroundImage());
+
+        for(size_t i=0;i<circles.size();i++) {
+            cv::Scalar colour;
+            switch(i) {
+              default:
+              case 0: colour = cv::Scalar(0,0,255); break;
+              case 1: colour = cv::Scalar(255,0,0); break;
+              case 2: colour = cv::Scalar(0,255,255); break;
+              case 3: colour = cv::Scalar(255,0,255); break;
+              case 4: colour = cv::Scalar(0,255,0); break;
+            }
+            for(size_t j=0;j<circles[i].size();j++) {
+              cv::circle(frame, circles[i][j].center, circles[i][j].radius, colour);
+            }
+        }
 
         // TODO: handle case where there is more than one red circle
         cv::Point2f ball;
@@ -211,18 +228,13 @@ int main(const int argc, const char* argv[]) {
             robots.push_back(r);
         }
 
-        size_t jsonNumObjects = robots.size() + (ballFound ? 1 : 0);
-
-        namedPipe << '{';
+        std::vector<std::string> jsonKeyObjects;
 
         if(ballFound) {
             cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
-            namedPipe << "\"b\":{\"x\":" << ball.x << ",\"y\":" << ball.y << "}";
-            jsonNumObjects--;
-        }
-
-        if(jsonNumObjects > 0) {
-            namedPipe << ',';
+            std::stringstream jsonBall;
+            jsonBall << "\"b\":{\"x\":" << ball.x << ",\"y\":" << ball.y << "}";
+            jsonKeyObjects.push_back(jsonBall.str());
         }
 
         for(size_t i = 0; i < robots.size(); i++) {
@@ -239,20 +251,28 @@ int main(const int argc, const char* argv[]) {
             );
             cv::line(frame, r.pos, r.pos + newPoint, cv::Scalar(0, 255, 0), 2);
 
-            namedPipe << '"';
+            std::stringstream jsonRobot;
+
+            jsonRobot << '"';
             if(r.team == 0) {
-                namedPipe << 'b';
+                jsonRobot << 'b';
             } else {
-                namedPipe << 'y';
+                jsonRobot << 'y';
             }
             if(r.colour == 0) {
-                namedPipe << 'g';
+                jsonRobot << 'g';
             } else {
-                namedPipe << 'p';
+                jsonRobot << 'p';
             }
-            namedPipe << "\":{\"x\":" << r.pos.x << ",\"y\":" << r.pos.y << ",\"f\":" << r.orientation * 180 / M_PI << "}";
-            jsonNumObjects--;
-            if(jsonNumObjects > 0) {
+            jsonRobot << "\":{\"x\":" << r.pos.x << ",\"y\":" << r.pos.y << ",\"f\":" << r.orientation * 180 / M_PI << "}";
+            jsonKeyObjects.push_back(jsonRobot.str());
+        }
+
+        namedPipe << '{';
+
+        for(size_t j=0;j<jsonKeyObjects.size();j++) {
+            namedPipe << jsonKeyObjects[j];
+            if(j != jsonKeyObjects.size()-1) {
                 namedPipe << ',';
             }
         }
@@ -283,14 +303,20 @@ std::vector<std::vector<struct ColouredCircle> > findColouredCirclesInFrame(cv::
     cv::medianBlur(processed, processed, 9); // HEURISTIC: 9 = amount of blur applied before colour convertion
 
     cv::cvtColor(processed, processed, cv::COLOR_BGR2HSV);
-
-    std::array<cv::UMat, 5> masks; // order: ball, ball, blue, yellow, pink, green
+//cv::imshow("P", processed);
+    std::array<cv::UMat, 5> masks; // order: ball, blue, yellow, pink, green
 
     cv::inRange(processed, cv::Scalar(0, 100, 100), cv::Scalar(10, 255, 255), masks[0]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(76, 100, 100), cv::Scalar(96, 255, 255), masks[1]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(24, 100, 100), cv::Scalar(44, 255, 255), masks[2]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(165, 100, 100), cv::Scalar(180, 255, 255), masks[3]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(50, 100, 100), cv::Scalar(70, 255, 255), masks[4]); // HEURISTIC: range of HSV values
+
+    /*cv::imshow("R", masks[0]);
+    cv::imshow("B", masks[1]);
+    cv::imshow("Y", masks[2]);
+    cv::imshow("P", masks[3]);
+    cv::imshow("G", masks[4]);*/
 
     // TODO: potentially can be vectorized
     cv::UMat temp;
