@@ -40,6 +40,8 @@
 #define CMD_TURN 't'
 #define CMD_KICK 'k'
 #define CMD_DATA 'd'
+#define CMD_GRAB 'g'
+#define CMD_RELEASE 'r'
 #define OPTIONS 'o'
 
 #define MAX_DATA_SIZE 255
@@ -133,6 +135,11 @@ namespace comms {
             case CMD_DATA:
                 doData(message);
                 break;
+            case CMD_GRAB:
+                grab(message);
+                break;
+            case CMD_RELEASE:
+                release(message);
         }
         free(data);
     }
@@ -161,6 +168,20 @@ void parseOptions(byte* message){
         default:
             break;
     }
+}
+
+void grab(byte * message) {
+    //close flippers
+    motorForward(MOTOR_GRABBER, 20);
+    delay(800);
+    motorAllStop();
+}
+
+void release(byte * message){
+    //move flippers away
+    motorBackward(MOTOR_GRABBER, 20);
+    delay(800);
+    motorAllStop();
 }
 
 void doMove(byte * message) {
