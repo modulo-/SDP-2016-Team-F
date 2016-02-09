@@ -78,7 +78,6 @@ def init(fname, chan, control, listen=True):
         'ATID' + PANID + '\r',
         'ATCN' + str(chan) + '\r',
         'ATAC\r',
-        'ATWR\r',
         'ATDN\r',
     ]
 
