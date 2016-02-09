@@ -55,11 +55,12 @@ class Option(object):
 class Config:
     pitch_room = Option("pitch_room", text="Pitch room", options=["3.D03", "3.D04"])
     computer = Option("colour", text="Our colour", options=list(calibrations.colour_profiles))
+    colours = colour_profiles['breadnel']
 
     dot_areas = {
-        'blue': 10,
-        'yellow': 10,
-        'red': 20
+        'blue': 0,
+        'yellow': 0,
+        'red': 0
     }
     
     filters = OrderedDict()
@@ -76,15 +77,16 @@ class Config:
     erode =-1
     dilate =-1
 
-    delta_angle = 23
+    delta_angle = 45
 
-    def __init__(self):
+    def __init__(self, vision):
         cv2.namedWindow(self.FILTER_SELECTION)
         cv2.namedWindow(self.FILTER_PARAMS)
+        self.vision = vision
 
     def GUI(self):
         self.createTrackbar(self.computer, callback=lambda x: self.set(self.computer.selected, x,
-              lambda : self.set("colours", colour_profiles[self.computer.selected_option])))
+              lambda : setattr(self, "colours", colour_profiles[self.computer.selected_option])))
 
         for name, filter in self.filters.iteritems():
             self.createTrackbar(filter["option"])
@@ -121,7 +123,7 @@ class Config:
         c[col]=val
 
     def set(self, bound, val, callback = None):
-        c = getattr(self, bound)
+        c = setattr(self, bound)
         c.selected=val
         if callback is not None:
             callback()

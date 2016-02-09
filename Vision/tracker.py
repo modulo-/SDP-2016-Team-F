@@ -44,6 +44,32 @@ class Tracker(object):
             frame_mask = cv2.inRange(frame_hsv,
                                      colour['min'],
                                      colour['max'])
+            
+            #
+            # if self.config.open >= 1:
+            #     kernel = np.ones((2,2),np.uint8)
+            #     frame_mask = cv2.morphologyEx(frame_mask,
+            #                                   cv2.MORPH_OPEN,
+            #                                   kernel,
+            #                                   iterations=self.config.open)
+            #
+            # if self.config.close >= 1:
+            #     kernel = np.ones((2,2),np.uint8)
+            #     frame_mask = cv2.dilate(frame_mask,
+            #                             kernel,
+            #                             iterations=self.config.close)
+            #
+            # if self.config.erode >= 1:
+            #     kernel = np.ones((2,2),np.uint8)
+            #     frame_mask = cv2.erode(frame_mask,
+            #                             kernel,
+            #                             iterations=self.config.erode)
+            #
+            # if self.config.dilate >= 1:
+            #     kernel = np.ones((2,2),np.uint8)
+            #     frame_mask = cv2.dilate(frame_mask,
+            #                             kernel,
+            #                             iterations=self.config.dilate)
 
             # print frame_mask
 
@@ -213,6 +239,7 @@ class DotTracker(Tracker):
 
             # Get center
             (x, y), radius = cv2.minEnclosingCircle(cnt)
+
             queue.put({
                 'name': self.item,
                 'x': x,
@@ -244,7 +271,7 @@ class DotTracker(Tracker):
                 if corner is not None:
                     corner['y'] = corner['y']-croprange
                     corner['x'] = corner['x']-croprange
-                    orientation = math.degrees(math.atan2(-(y-corner['y']), (x-corner['x']))) + self.config.delta_angle
+                    orientation = math.degrees(math.atan2((y-corner['y']), (x-corner['x']))) + self.config.delta_angle
                 else:
                     orientation = None
 

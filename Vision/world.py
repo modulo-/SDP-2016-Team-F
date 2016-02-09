@@ -1,4 +1,5 @@
 import time
+from numpy import pi
 
 
 class Coordinate(object):
@@ -12,7 +13,7 @@ class Coordinate(object):
 
     @property
     def centre(self):
-        return (self._x, self._y)
+        return (int(self._x), int(self._y))
 
     @property
     def x(self):
@@ -43,8 +44,10 @@ class Vector(Coordinate):
 
     def __init__(self, x, y, angle, velocity):
         super(Vector, self).__init__(x, y)
-        if angle == None or velocity == None or angle < 0 or angle >= (2*pi):
+        if angle == None or velocity == None:
             raise ValueError('Can not initialise attributes of Vector to None')
+        elif angle < 0 or angle >= (2*pi):
+            raise ValueError('Angle out of bounds')
         else:
             self._angle = angle
             self._velocity = velocity
@@ -79,10 +82,17 @@ class Vector(Coordinate):
 
 
 class World(object):
-    def __init__(self):
-        self.ball = None
-        self.robot_blue_pink = None
-        self.robot_blue_green = None
-        self.robot_yellow_pink = None
-        self.robot_yellow_green = None
+    def __init__(self, world = None):
         self.time = time.time()
+        if world is None:
+            self.ball = None
+            self.robot_blue_pink = None
+            self.robot_blue_green = None
+            self.robot_yellow_pink = None
+            self.robot_yellow_green = None
+        else:
+            self.ball = world.ball
+            self.robot_blue_pink = world.robot_blue_pink
+            self.robot_blue_green = world.robot_blue_green
+            self.robot_yellow_pink = world.robot_yellow_pink
+            self.robot_yellow_green = world.robot_yellow_green

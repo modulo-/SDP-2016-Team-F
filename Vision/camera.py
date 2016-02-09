@@ -33,7 +33,7 @@ class Camera(object):
         frame = self.fix_radial_distortion(frame)
 
 
-        frame = cv2.GaussianBlur(frame, (11, 11), 0)
+        frame = cv2.GaussianBlur(frame, (7, 7), 0)
         # print type(frame), type(frame[0][0][0])
         # frame = filters.filter_normalize(frame, self.config)
 

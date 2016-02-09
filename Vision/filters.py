@@ -10,11 +10,18 @@ def filter_dummy(frame, config):
     return frame
 
 
-def filter_overlay(world, oldworld, frame, config):
+def filter_overlay(frame, config):
+    world = config.vision.world_latest
+    try:
+        print world.ball.__dict__
+        print config.vision.world_previous.ball.__dict__
+    except AttributeError:
+        pass
+
     if world.ball is not None:
         ball = world.ball
 
-        cv2.circle(frame, (int(ball.x-3),int(ball.y-3)), 6, BGR_COMMON[ball['colour']], 3)
+        cv2.circle(frame, (int(ball.x),int(ball.y)), 6, BGR_COMMON['red'], 3)
 
         length = ball.velocity
         complex = cmath.rect(length, ball.angle)
@@ -26,19 +33,22 @@ def filter_overlay(world, oldworld, frame, config):
 
     for team in ['blue', 'yellow']:
         for colour in ['pink', 'green']:
+
             robot = getattr(world, "robot_{}_{}".format(team, colour))
             if robot is None:
                 continue
 
-            cv2.circle(frame, (int(robot.x-5),int(robot.y-3)), 10, BGR_COMMON[colour], 3)
+            cv2.circle(frame, (int(robot.x),int(robot.y)), 10, BGR_COMMON[colour], 3)
+            cv2.circle(frame, (int(robot.x),int(robot.y)), 6, BGR_COMMON[team], 3)
 
             length = 15
             complex = cmath.rect(length, robot.angle)
             y = -complex.real
             x = complex.imag
 
-            arrowhead = (int(x + robot.x), int(y+robot.y))
-            cv2.arrowedLine(frame, robot.centre, arrowhead, BGR_COMMON['black'], 2, cv2.CV_AA)
+            if robot.velocity != 0:
+                arrowhead = (int(x + robot.x), int(y+robot.y))
+                cv2.arrowedLine(frame, robot.centre, arrowhead, BGR_COMMON['black'], 2, cv2.CV_AA)
 
 
 

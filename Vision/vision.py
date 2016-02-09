@@ -19,7 +19,7 @@ from scipy.spatial import distance as sp_dist
 
 class Vision:
     def __init__(self, video_port=0, pitch=None, planner_callback=None):
-        self.config = Config()
+        self.config = Config(self)
 
         while pitch is None:
             req_room = raw_input("Enter Pitch Room [{opts}]: ".format(opts="/".join(self.config.pitch_room.options)))
@@ -31,13 +31,20 @@ class Vision:
 
         self.cam = Camera(port=video_port, pitch=pitch, config=self.config)
         print("Camera initialised")
+
+        def print_function(x):
+            print x
+
         if planner_callback is None:
-            self.planner_callback = lambda: None
+            self.planner_callback = (lambda x: print_function(x))
         else:
             self.planner_callback = planner_callback
 
         c = Calibrate(self.cam, self.config)
-        self.vision = c.calibrateCam(self.cam, self.config)
+
+        self.world_latest = World()
+        self.world_previous = None
+
         print("Basic camera calibration complete")
         # colours = c.calibrateColor(self.cam)
 
@@ -50,7 +57,7 @@ class Vision:
         # else:
         #     print("Colors calibration skipped")
 
-        self.config.addFilter("overlay", partial(filters.filter_overlay, self.world_latest, self.world_previous),
+        self.config.addFilter("overlay", filters.filter_overlay,
                               default=1)
         self.config.addFilter("grayscale", filters.filter_grayscale)
         self.config.addFilter("normalised", filters.filter_normalize)
@@ -68,8 +75,6 @@ class Vision:
         self.tracker_blue = DotTracker(0, 0, 'yellow', self.config, "robot")
         self.tracker_yellow = DotTracker(0, 0, 'blue', self.config, "robot")
 
-        self.world_latest = World()
-        self.world_previous = None
 
         self.config.GUI()
 
@@ -107,51 +112,65 @@ class Vision:
                 w = World()
             else:
                 self.world_previous = self.world_latest
-                w = self.world_latest
-                w.time = time.time()
+                w = World(self.world_latest)
 
             preprocessed = self.getPreprocessed()
             frame = preprocessed['frame']
 
             q = Queue()
-            while not q.empty():  # make sure no old stuff is in the queue, like when overlay wasn't drawn
-                print q.get()
-
-            h, w, d = frame.shape
 
             # note hte potential to detect in threads and then join back!
+            print("track ball")
             self.tracker_ball.find(frame, q)
+            print("track blue")
             self.tracker_blue.find(frame, q)
+            print("track yellow")
             self.tracker_yellow.find(frame, q)
 
             while not q.empty():
                 item = q.get_nowait()
+                print(item)
                 if item is None:
                     continue
                 x, y = item['x'], item['y']
 
                 if item['name'] == "ball":
                     if self.world_previous is not None and self.world_previous.ball is not None:
-                        angle = math.atan2(self.world_previous.ball.y - y, self.world_previous.ball.x - x)
+                        angle = math.atan2(y-self.world_previous.ball.y, x - self.world_previous.ball.x)
                         distance = sp_dist.euclidean((x, y), (self.world_previous.ball.x, self.world_previous.ball.y))
                         t = w.time - self.world_previous.time
-                        velocity = distance / t
+                        # print time.time(), w.time, self.world_previous.time
+                        velocity = distance / t /10
                     else:
                         angle = 0
                         velocity = 0
+
+                    while angle > 2* math.pi:
+                        angle-=math.pi
+                    while angle < 0:
+                        angle+=math.pi
+
                     w.ball = Vector(x, y, angle, velocity)
                 elif "robot" in item['name']:
-                    if item['colour'] == 'blue':
-                        if item['identification'] == 'green':
-                            w.robot_blue_green = Vector(x, y, math.radians(item['orientation']), 0)
-                        elif item['identification'] == 'pink':
-                            w.robot_blue_pink = Vector(x, y, math.radians(item['orientation']), 0)
-                    if item['colour'] == 'blue':
-                        if item['identification'] == 'green':
-                            w.robot_yellow_green = Vector(x, y, math.radians(item['orientation']), 0)
-                        elif item['identification'] == 'pink':
-                            w.robot_yellow_pink = Vector(x, y, math.radians(item['orientation']), 0)
+                    if item['orientation'] is None:
+                        rad = 0
+                        dis = 0
+                    else:
+                        rad = math.radians(item["orientation"]%360)
+                        dis = 1
 
+                    if item['colour'] == 'blue':
+                        if item['identification'] == 'green':
+                            w.robot_blue_green = Vector(x, y, rad, dis)
+                        elif item['identification'] == 'pink':
+                            w.robot_blue_pink = Vector(x, y, rad, dis)
+                    if item['colour'] == 'yellow':
+                        if item['identification'] == 'green':
+                            w.robot_yellow_green = Vector(x, y, rad, dis)
+                        elif item['identification'] == 'pink':
+                            w.robot_yellow_pink = Vector(x, y, rad, dis)
+            # print(w.__dict__)
+            # quit()
             self.world_latest = w
             self.planner_callback(self.world_latest)
 

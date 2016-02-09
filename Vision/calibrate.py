@@ -42,31 +42,6 @@ class Calibrate(object):
 
         self.color = RED
 
-    def calibrateCam(self, cam, config):
-        frame = cam.get_frame()
-
-        """
-        c = tools.get_colors(0)
-        b = fh.CalibrateGUI(c)
-
-        b.show(frame)
-        """
-
-        scalibration = tools.get_colors(0)
-        # print scalibration
-
-        vision = _Vision(
-            pitch=0,
-            color=config.colour.selected_option,
-            our_side=config.side.selected_option,
-            frame_shape=frame.shape,
-            frame_center=cam.get_adjusted_center(frame),
-            calibration=scalibration)
-
-        # Set up postprocessing for oldvision
-
-        # self.GUI = GUI(calibration=scalibration, pitch=0)
-        return vision
 
     def run(self, camera=False):
         frame = cv2.namedWindow(FRAME_NAME)
