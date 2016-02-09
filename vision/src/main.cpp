@@ -58,6 +58,22 @@ int main(const int argc, const char* argv[]) {
     vision::Camera camera(0, config.getPitch(0));
     //vision::Camera camera("/home/euan/Downloads/pitch (1).avi", config.getPitch(0));
 
+    cv::Point2f lastBallPos;
+    bool seenBall = false;
+
+    bool seenYellowGreen = false;
+    cv::Point2f lastYGPos;
+    double lastYGO;
+    bool seenYellowPink = false;
+    cv::Point2f lastYPPos;
+    double lastYPO;
+    bool seenBlueGreen = false;
+    cv::Point2f lastBGPos;
+    double lastBGO;
+    bool seenBluePink = false;
+    cv::Point2f lastBPPos;
+    double lastBPO;
+
     // Main processing loop
     // Grabs, decodes and stores a frame from capture each iteration
     while(camera.update()) {
@@ -65,25 +81,10 @@ int main(const int argc, const char* argv[]) {
 
         std::vector<std::vector<struct ColouredCircle> > circles = findColouredCirclesInFrame(frame, camera.getBackgroundImage());
 
-        for(size_t i = 0; i < circles.size(); i++) {
-            cv::Scalar colour;
-            switch(i) {
-                default:
-                case 0: colour = cv::Scalar(255, 0, 0); break;
-                case 1: colour = cv::Scalar(0, 0, 255); break;
-                case 2: colour = cv::Scalar(255, 255, 0); break;
-                case 3: colour = cv::Scalar(0, 255, 0); break;
-                case 4: colour = cv::Scalar(255, 0, 255); break;
-            }
-            for(size_t j = 0; j < circles[i].size(); j++) {
-                cv::circle(frame, circles[i][j].center, circles[i][j].radius, colour);
-            }
-        }
-
         cv::Point2f ball;
         double ballSize = 0;
         bool ballFound = false;
-        for(size_t i= 0;i<circles[0].size();i++) {
+        for(size_t i = 0; i < circles[0].size(); i++) {
             ballFound = true;
             if(circles[0][i].radius > ballSize) {
                 ball = circles[0][i].center;
@@ -93,6 +94,11 @@ int main(const int argc, const char* argv[]) {
 
         std::vector<struct ColouredCircle> pinkAndGreen = circles[3];
         pinkAndGreen.insert(pinkAndGreen.end(), circles[4].begin(), circles[4].end());
+
+        bool ygFound = false;
+        bool ypFound = false;
+        bool bgFound = false;
+        bool bpFound = false;
 
         std::vector<struct Robot> robots;
         for(size_t blue = 0; blue < circles[1].size(); blue++) {
@@ -146,6 +152,9 @@ int main(const int argc, const char* argv[]) {
                 r.team = 0;
                 r.colour = 0;
                 r.markers = markers;
+
+                bgFound = true;
+
             } else {
                 cv::Point2f farPink1 = markers[3].center;
                 cv::Point2f farPink2 = markers[4].center;
@@ -159,6 +168,9 @@ int main(const int argc, const char* argv[]) {
                 r.team = 0;
                 r.colour = 1;
                 r.markers = markers;
+
+                bpFound = true;
+
             }
             robots.push_back(r);
         }
@@ -214,6 +226,9 @@ int main(const int argc, const char* argv[]) {
                 r.team = 1;
                 r.colour = 0;
                 r.markers = markers;
+
+                ygFound = true;
+
             } else {
                 cv::Point2f farPink1 = markers[3].center;
                 cv::Point2f farPink2 = markers[4].center;
@@ -227,11 +242,23 @@ int main(const int argc, const char* argv[]) {
                 r.team = 1;
                 r.colour = 1;
                 r.markers = markers;
+
+                ypFound = true;
+
             }
             robots.push_back(r);
         }
 
         std::vector<std::string> jsonKeyObjects;
+
+        if(ballFound) {
+            lastBallPos = ball;
+            seenBall = true;
+        } else if(seenBall) {
+            ball = lastBallPos;
+            seenBall = false;
+            cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
+        }
 
         if(ballFound) {
             cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
@@ -241,13 +268,85 @@ int main(const int argc, const char* argv[]) {
         }
 
         for(size_t i = 0; i < robots.size(); i++) {
+            if(robots[i].team == 0 && robots[i].colour == 0) {
+                bgFound = true;
+                lastBGPos = robots[i].pos;
+                lastBGO = robots[i].orientation;
+            } else if(robots[i].team == 0 && robots[i].colour == 1) {
+                bpFound = true;
+                lastBPPos = robots[i].pos;
+                lastBPO = robots[i].orientation;
+            } else if(robots[i].team == 1 && robots[i].colour == 0) {
+                ygFound = true;
+                lastYGPos = robots[i].pos;
+                lastYGO = robots[i].orientation;
+            } else if(robots[i].team == 1 && robots[i].colour == 1) {
+                ypFound = true;
+                lastYPPos = robots[i].pos;
+                lastYPO = robots[i].orientation;
+            }
+        }
+
+        if(bgFound) {
+            seenBlueGreen = true;
+        } else if(seenBlueGreen) {
+            std::cout << "Anti flicker" << std::endl;
+            seenBlueGreen = false;
+            cv::circle(frame, lastBGPos, 10,  cv::Scalar(255, 0, 0), 3);
+            cv::circle(frame, lastBGPos, 50,  cv::Scalar(0, 255, 0), 3);
+            cv::Point2f newPoint(
+                float(0 * cos(lastBGO) - (-20 * sin(lastBGO))),
+                float(0 * sin(lastBGO) + (-20 * cos(lastBGO)))
+            );
+            cv::line(frame, lastBGPos, lastBGPos + newPoint, cv::Scalar(0, 255, 0), 2);
+        }
+
+        if(bpFound) {
+            seenBluePink = true;
+        } else if(seenBluePink) {
+            std::cout << "Anti flicker" << std::endl;
+            seenBluePink = false;
+            cv::circle(frame, lastBPPos, 10,  cv::Scalar(255, 0, 0), 3);
+            cv::circle(frame, lastBPPos, 50,  cv::Scalar(255, 0, 255), 3);
+            cv::Point2f newPoint(
+                float(0 * cos(lastBPO) - (-20 * sin(lastBPO))),
+                float(0 * sin(lastBPO) + (-20 * cos(lastBPO)))
+            );
+            cv::line(frame, lastBPPos, lastBPPos + newPoint, cv::Scalar(0, 255, 0), 2);
+        }
+
+        if(ygFound) {
+            seenYellowGreen = true;
+        } else if(seenYellowGreen) {
+            std::cout << "Anti flicker" << std::endl;
+            seenYellowGreen = false;
+            cv::circle(frame, lastYGPos, 10,  cv::Scalar(0, 255, 255), 3);
+            cv::circle(frame, lastYGPos, 50,  cv::Scalar(0, 255, 0), 3);
+            cv::Point2f newPoint(
+                float(0 * cos(lastYGO) - (-20 * sin(lastYGO))),
+                float(0 * sin(lastYGO) + (-20 * cos(lastYGO)))
+            );
+            cv::line(frame, lastYGPos, lastYGPos + newPoint, cv::Scalar(0, 255, 0), 2);
+        }
+
+        if(ypFound) {
+            seenYellowPink = true;
+        } else if(seenYellowPink) {
+            std::cout << "Anti flicker" << std::endl;
+            seenYellowPink = false;
+            cv::circle(frame, lastYPPos, 10,  cv::Scalar(0, 255, 255), 3);
+            cv::circle(frame, lastYPPos, 50,  cv::Scalar(255, 0, 255), 3);
+            cv::Point2f newPoint(
+                float(0 * cos(lastYPO) - (-20 * sin(lastYPO))),
+                float(0 * sin(lastYPO) + (-20 * cos(lastYPO)))
+            );
+            cv::line(frame, lastYPPos, lastYPPos + newPoint, cv::Scalar(0, 255, 0), 2);
+        }
+
+        for(size_t i = 0; i < robots.size(); i++) {
             struct Robot r = robots[i];
             cv::circle(frame, r.pos, 10,  (r.team == 0 ? cv::Scalar(255, 0, 0) : cv::Scalar(0, 255, 255)), 3);
             cv::circle(frame, r.pos, 50,  (r.colour == 0 ? cv::Scalar(0, 255, 0) : cv::Scalar(255, 0, 255)), 3);
-            cv::line(frame, r.pos, r.markers[0].center, cv::Scalar(255, 0, 0), 2);
-            cv::line(frame, r.pos, r.markers[1].center, cv::Scalar(255, 0, 0), 2);
-            cv::line(frame, r.pos, r.markers[2].center, cv::Scalar(255, 0, 0), 2);
-            cv::line(frame, r.pos, r.markers[3].center, cv::Scalar(255, 0, 0), 2);
             cv::Point2f newPoint(
                 float(0 * cos(r.orientation) - (-20 * sin(r.orientation))),
                 float(0 * sin(r.orientation) + (-20 * cos(r.orientation)))
@@ -314,7 +413,7 @@ std::vector<std::vector<struct ColouredCircle> > findColouredCirclesInFrame(cv::
     cv::inRange(processed, cv::Scalar(24, 200, 200), cv::Scalar(44, 255, 255), masks[2]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(165, 90, 90), cv::Scalar(180, 255, 255), masks[3]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(50, 200, 200), cv::Scalar(70, 255, 255), masks[4]); // HEURISTIC: range of HSV values
-cv::imshow("G", masks[4]);
+
     std::array<std::vector<std::vector<cv::Point> >, 5> contours; // order: ball, blue, yellow, pink, green
 
     // TODO: potentially can be vectorized
