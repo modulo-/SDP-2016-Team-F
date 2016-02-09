@@ -18,7 +18,7 @@ class Test:
         self.sequence_pos = None
         self.p = Planner(comms=SimulatorComms(self.our_robot, self.wait_and_next_step))
         self.w = World('left', 0)
-        self.w.our_robot._receiving_area = {'width': 10, 'height': 10, 'front_offset': 10}
+        self.w.our_robot._receiving_area = {'width': 50, 'height': 50, 'front_offset': 10}
 
     def run(self, sequence):
         self.sequence = sequence
@@ -51,12 +51,13 @@ class Scene(cocos.layer.ColorLayer):
         start_x = 100
         start_y = 100
         robot = self.add_robot([start_x, start_y])
-        ball = self.add_ball([100, 200])
+        ball = self.add_ball([200, 250])
         t = Test(our_robot=robot, ball=ball)
 
         sequence = [
-            {'our_robot': Vector(start_x, start_y, 0, 0), 'ball': Vector(100, 200, 0, 0)},
-            {'our_robot': Vector(start_x, start_y, pi / 2, 0), 'ball': Vector(100, 200, 0, 0)}]
+            {'our_robot': Vector(start_x, start_y, 0, 0), 'ball': Vector(200, 250, 0, 0)},
+        {'our_robot': Vector(start_x, start_y, 0.982793723247, 0), 'ball': Vector(200, 250, 0, 0)},
+        {'our_robot': Vector(172.26499018873852, 208.3974852831078, 0.982793723247, 0), 'ball': Vector(200, 250, 0, 0)},]
         t.run(sequence)
 
     def add_robot(self, pos):
@@ -87,27 +88,20 @@ class SimulatorComms(CommsManager):
         delay = self.robot.rotate_by(angle)
         self.wait_and_next_step(delay)
 
+class Sprite (cocos.sprite.Sprite):
 
-class Robot(cocos.sprite.Sprite):
-
-    def __init__(self, pos):
-        super(Robot, self).__init__('res/robot.png')
+    def __init__(self, sprite, pos):
+        super(Sprite, self).__init__(sprite)
         self.velocity = (0, 0)
         self.scale = 1
         self.set_position(pos[0], pos[1])
-        self.rotation = 0
-
-        self._movement_speed = 2
-        self._rotation_speed = 1
+        self.rotation = 90
 
     def set_position(self, x, y):
-        self.position = self.get_center_position(x, y)
-
-    def get_center_position(self, x, y):
-        return (x - self.width / 2, y - self.height / 2)
+        self.position = (x, y)
 
     def move_to(self, x, y):
-        self.do(ac.MoveTo(self.get_center_position(x, y), duration=self._movement_speed))
+        self.do(ac.MoveTo((x, y), duration=self._movement_speed))
         return self._movement_speed
 
     def rotate_by(self, radians):
@@ -116,26 +110,19 @@ class Robot(cocos.sprite.Sprite):
         return self._rotation_speed
 
 
-class Ball(cocos.sprite.Sprite):
+class Robot(Sprite):
 
     def __init__(self, pos):
-        super(Ball, self).__init__('res/ball.png')
-        self.velocity = (0, 0)
-        self.scale = 1
-        self.set_position(pos[0], pos[1])
-        self.rotation = 0
+        super(Robot, self).__init__('res/robot.png', pos)
+        self._movement_speed = 2
+        self._rotation_speed = 1
 
+
+class Ball(Sprite):
+
+    def __init__(self, pos):
+        super(Ball, self).__init__('res/ball.png', pos)
         self._movement_speed = 15
-
-    def get_center_position(self, x, y):
-        return (x - self.width / 2, y - self.height / 2)
-
-    def set_position(self, x, y):
-        self.position = self.get_center_position(x, y)
-
-    def move_to(self, x, y):
-        self.do(ac.MoveTo(self.get_center_position(x, y), duration=self._movement_speed))
-        return self._movement_speed
 
 
 class Environment():

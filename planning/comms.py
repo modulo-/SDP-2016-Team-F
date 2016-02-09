@@ -10,9 +10,7 @@ class CommsManager(object):
         print("Moving robot {0} distance {1}".format(self.robot_index, distance))
 
     def move_to(self, x, y):
-        heading = math.atan2(y, x)
-        distance = math.sqrt(x**2 + y**2)
-        print("Turning robot {0} to head {1} and moving distance {2}".format(self.robot_index, heading, distance))
+        print("Moving robot {0} to ({1}, {2})".format(self.robot_index, x, y))
 
     def turn(self, angle):
         print("Turning robot {0} angle {1}".format(self.robot_index, angle))
