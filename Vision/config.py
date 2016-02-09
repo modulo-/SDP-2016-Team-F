@@ -61,11 +61,11 @@ class Config:
         },
         "yellow": {
             "min": np.array([15, 54, 225]),
-            "max": np.array([46, 255, 255])
+            "max": np.array([42, 255, 255])
         },
         "blue": {
-            'max': np.array([143, 255, 230]),
-            'min': np.array([74, 60, 177])
+            'max': np.array([91, 255, 238]),
+            'min': np.array([76, 86, 158])
         },
         "green": {
             'min': np.array([60, 66, 200]),
@@ -96,6 +96,8 @@ class Config:
     erode =-1
     dilate =-1
 
+    delta_angle = 23
+
     def __init__(self):
         cv2.namedWindow(self.FILTER_SELECTION)
         cv2.namedWindow(self.FILTER_PARAMS)
@@ -122,6 +124,9 @@ class Config:
         cv2.createTrackbar("V_high", self.FILTER_PARAMS, 0, 255,
                            lambda x: self.setCol("high", 2, x))
 
+
+        cv2.createTrackbar("delta_angle", self.FILTER_PARAMS, self.delta_angle, 360,
+                           lambda x: setattr(self, "delta_angle", x))
 
         cv2.createTrackbar("open", self.FILTER_PARAMS, 0, 10,
                            lambda x: setattr(self, "open", x*2-1))

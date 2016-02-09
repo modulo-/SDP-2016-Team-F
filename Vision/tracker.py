@@ -473,14 +473,14 @@ class DotTracker(Tracker):
 
                 section = self.crop(frame, (x, y), croprange)
                 identification = self.getID(section)
-                print identification
+
                 assert identification in ['pink', 'green']
                 corner = self.getCorner(section, (x,y), identification)
-                print(corner)
+
                 if corner is not None:
                     corner['y'] = corner['y']-croprange
                     corner['x'] = corner['x']-croprange
-                    orientation = math.degrees(math.atan2(-(y-corner['y']), (x-corner['x']))) + 45
+                    orientation = math.degrees(math.atan2(-(y-corner['y']), (x-corner['x']))) + self.config.delta_angle
                 else:
                     orientation = None
 
