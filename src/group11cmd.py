@@ -129,6 +129,9 @@ def help_cmds():
     print ""
     print "Commands which cannot be used in a chain are 'help' and 'exit'."
 
+def run(cmdbytes):
+    comms.send(''.join(chr(x) for x in cmdbytes), '1')
+
 if __name__ == '__main__':
     logging.root.setLevel(logging.DEBUG)
     if len(sys.argv) < 2:

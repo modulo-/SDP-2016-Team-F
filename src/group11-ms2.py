@@ -6,70 +6,45 @@ from threading import Lock, Thread
 from shutil import rmtree
 from time import sleep
 from sys import argv
+from planning import planner, world
+from planning.position import Vector
 import json
 import subprocess
 import readline
-
-IDLE = 0
-GRAB = 1
-SPIN_GRAB = 2
-KICK = 3
-
-target = IDLE
 
 def translate_pos(p):
     # TODO: calibrate to some sensible ratio.
     return p
 
-class Robot:
-    def __init__(self, x, y, facing):
-        self.x = translate_pos(x)
-        self.y = translate_pos(y)
-        self.facing = facing
-
-class Ball:
-    def __init__(self, x, y):
-        self.x = translate_pos(x)
-        self.y = translate_pos(y)
-
-class State:
-    def __init__(self, robots, ball):
-        self.robots = robots
-        self.ball = ball
-
+planner = planner.Planner(11)
 tmpdir = mkdtemp()
 visionpipe = path.join(tmpdir, 'visionpipe')
 
-state = None
+# TODO: better way to initialize.
+world = world.World('left', 0)
 statelock = Lock()
 
-def update_plan(state):
-    # TODO: magic
-    if target == GRAB:
-        pass
-    elif target == SPIN_GRAB:
-        pass
-    elif target == KICK:
-        pass
+def update_plan():
+    planner.plan_and_act(world)
 
-def genrobot(obj):
-    return Robot(obj['x'], obj['y'], obj['f'])
-
-def genball(obj):
-    return Ball(obj['x'], obj['y'])
-
-def genstate(obj):
-    dict = {}
-    ball = None
-    for k, v in obj.items():
-        if len(k) == 2:
-            dict[k] = genrobot(v)
-        elif k == 'b':
-            ball = genball(v)
-    return State(dict, ball)
+def updateworld(obj):
+    robvec = Vector(0, 0, 0, 0)
+    ballvec = Vector(0, 0, 0, 0)
+    if player in obj:
+        robvec = Vector(
+            translate_pos(obj[player]['x']),
+            translate_pos(obj[player]['y']),
+            obj[player]['f'], 0)
+    if 'b' in obj:
+        ballvec = Vector(
+            translate_pos(obj['b']['x']),
+            translate_pos(obj['b']['y']), 0, 0)
+    world.update_positions({
+        'our_robot': robvec,
+        'ball': ballvec,
+    })
 
 def monitor_vision():
-    global state
     with open(visionpipe, 'r') as pipe:
         while True:
             line = pipe.readline().strip()
@@ -78,32 +53,38 @@ def monitor_vision():
                 break
             obj = json.loads(line.strip())
             statelock.acquire()
-            state = genstate(obj)
+            updateworld(obj)
             statelock.release()
 
 def poll_plan():
     while True:
         statelock.acquire()
-        statecp = state
+        update_plan()
         statelock.release()
-        update_plan(statecp)
         sleep(3)
 
 def shell():
-    global target
     while True:
         try:
             line = raw_input('% ')
             if line == 'exit':
                 break
-            elif line == 'grab':
-                target = GRAB
-            elif line == 'sgrab':
-                target = SPIN_GRAB
-            elif line == 'kick':
-                target = KICK
-            elif line == 'idle':
-                target = IDLE
+            elif line == 'move-grab':
+                planner.set_task('move-grab')
+            elif line == 'turn-move-grab':
+                planner.set_task('turn-move-grab')
+            elif line == 'turn-shoot':
+                planner.set_task('turn-shoot')
+            elif line == 'left':
+                statelock.acquire()
+                world._our_side = 'left'
+                world._their_side = 'right'
+                statelock.release()
+            elif line == 'right':
+                statelock.acquire()
+                world._our_side = 'right'
+                world._their_side = 'left'
+                statelock.release()
         except:
             break
 
