@@ -104,7 +104,7 @@ t.start()
 t2.start()
 t3.start()
 
-subprocess.call(['../vision/vision', visionpipe])
+p = subprocess.Popen(['../vision/vision', visionpipe], cwd='../vision')
 
 t3.join()
 rmtree(tmpdir)
