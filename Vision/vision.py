@@ -14,6 +14,7 @@ from config import Config
 from preprocessing import Preprocessing
 from tracker import DotTracker
 from world import World, Vector
+from scipy.spatial import distance as sp_dist
 
 
 class Vision:
@@ -132,8 +133,7 @@ class Vision:
                 if item['name'] == "ball":
                     if self.world_previous is not None and self.world_previous.ball is not None:
                         angle = math.atan2(self.world_previous.ball.y - y, self.world_previous.ball.x - x)
-                        distance = np.linalg.norm(
-                            np.asarray(x, y) - np.asarray(self.world_previous.ball.x, self.world_previous.ball.y))
+                        distance = sp_dist.euclidean((x, y), (self.world_previous.ball.x, self.world_previous.ball.y))
                         t = w.time - self.world_previous.time
                         velocity = distance / t
                     else:
