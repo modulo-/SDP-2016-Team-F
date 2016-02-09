@@ -1,84 +1,12 @@
-import cv2
-import tools
-from colors import BGR_COMMON
-from collections import namedtuple
-import numpy as np
-from findHSV import CalibrationGUI
-
-
-"""
-Some of these stupid constants are not used
-ANYWHERE LIKE  PROCESSING_DEBUG FFS.
-Must work out what to do with them.
-"""
-
-TEAM_COLORS = set(['yellow', 'blue'])
-SIDES = ['left', 'right']
-PITCHES = [0, 1]
-
-PROCESSING_DEBUG = False
-
-Center = namedtuple('Center', 'x y')
-
-class GUI(object):
-
-    VISION = 'VISION'
-    BG_SUB = 'BG Subtract'
-    NORMALIZE = 'Normalize  '
-    # TODO: 
-    COMMS = 'Communications on/off '
-    RADIAL_DIST = "Undistort on/off"
-
-    def nothing(self, x):
-        pass
-
-    def __init__(self, calibration, pitch):
-        self.zones = None
-        # print calibration
-        self.calibration_gui = CalibrationGUI(calibration)
-        # self.arduino = arduino
-        self.pitch = pitch
-
-        cv2.namedWindow(self.VISION)
-
-        cv2.createTrackbar(self.BG_SUB, self.VISION, 0, 1, self.nothing)
-        cv2.createTrackbar(self.NORMALIZE, self.VISION, 0, 1, self.nothing)
-        # cv2.createTrackbar(self.RADIAL_DIST, self.VISION, 0, 1, self.nothing)
-        # cv2.createTrackbar(
-        #     self.COMMS, self.VISION, self.arduino.comms, 1, lambda x:  self.arduino.setComms(x))
-
-    def to_info(self, args):
-        """
-        Convert a tuple into a vector
-
-        Return a Vector
-        """
-        x, y, angle, velocity = None, None, None, None
-        if args is not None:
-            if 'location' in args:
-                x = args['location'][0] if args['location'] is not None else None
-                y = args['location'][1] if args['location'] is not None else None
-
-            elif 'x' in args and 'y' in args:
-                x = args['x']
-                y = args['y']
-
-            if 'angle' in args:
-                angle = args['angle']
-
-            if 'velocity' in args:
-                velocity = args['velocity']
-
-        return {'x': x, 'y': y, 'angle': angle, 'velocity': velocity}
-
-    def cast_binary(self, x):
-        return x == 1
-
+class Overlay():
+    def __init__(self, ):
+        self.frame = frame
+    @staticmethod
     def draw(self, frame, model_positions, actions, regular_positions, fps,
              aState, dState, a_action, d_action, grabbers, our_color, our_side,
              key=None, preprocess=None):
         """
-        Draw information onto the GUI given positions from the vision and post processing.
+        Draw information onto the GUI given positions from the oldvision and post processing.
 
         NOTE: model_positions contains coordinates with y coordinate reversed!
         """
@@ -108,9 +36,9 @@ class GUI(object):
         if preprocess is not None:
             # print preprocess
             preprocess['normalize'] = self.cast_binary(
-                cv2.getTrackbarPos(self.NORMALIZE, self.VISION))
+                cv2.getTrackbarPos(self.NORMALIZE, self.TITLE))
             preprocess['background_sub'] = self.cast_binary(
-                cv2.getTrackbarPos(self.BG_SUB, self.VISION))
+                cv2.getTrackbarPos(self.BG_SUB, self.TITLE))
 
         if grabbers:
             self.draw_grabbers(frame, grabbers, frame_height)
@@ -123,7 +51,6 @@ class GUI(object):
         if model_positions and regular_positions:
             for key in ['ball', 'our_defender', 'our_attacker', 'their_defender', 'their_attacker']:
                 if model_positions[key] and regular_positions[key]:
-                    print model_positions[key]
                     self.data_text(
                         frame_with_blank, (frame_width, frame_height), our_side, key,
                         model_positions[key].x, model_positions[key].y,
@@ -136,7 +63,7 @@ class GUI(object):
         # Draw center of uncroppped frame (test code)
         # cv2.circle(frame_with_blank, (266,147), 1, BGR_COMMON['black'], 1)
 
-        cv2.imshow(self.VISION, frame_with_blank)
+        cv2.imshow(self.TITLE, frame_with_blank)
 
     def draw_zones(self, frame, width, height):
         # Re-initialize zones in case they have not been initalized

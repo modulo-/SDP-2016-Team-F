@@ -78,7 +78,7 @@ class GUI(object):
              aState, dState, a_action, d_action, grabbers, our_color, our_side,
              key=None, preprocess=None):
         """
-        Draw information onto the GUI given positions from the vision and post processing.
+        Draw information onto the GUI given positions from the oldvision and post processing.
 
         NOTE: model_positions contains coordinates with y coordinate reversed!
         """

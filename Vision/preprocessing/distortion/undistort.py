@@ -6,7 +6,7 @@ import glob
 from copy import copy
 
 import cPickle
-filename = "../../vision/calibrations/undistort.txt"
+filename = "../../oldvision/calibrations/undistort.txt"
 
 # Set the required dimension of all sample checkboard images
 dim = (8, 5)
