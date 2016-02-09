@@ -16,7 +16,7 @@ class Test:
         self.ball = ball
         self.sequence = None
         self.sequence_pos = None
-        self.p = Planner(comms=SimulatorComms(self.our_robot, self.wait_and_next_step))
+        self.p = Planner(comms=SimulatorComms(self.our_robot, self.ball, self.wait_and_next_step))
         self.w = World('left', 0)
         self.w.our_robot._receiving_area = {'width': 50, 'height': 50, 'front_offset': 10}
 
@@ -73,8 +73,9 @@ class Scene(cocos.layer.ColorLayer):
 
 class SimulatorComms(CommsManager):
 
-    def __init__(self, robot, wait_and_next_step):
+    def __init__(self, robot, ball, wait_and_next_step):
         self.robot = robot
+        self.ball = ball
         self.wait_and_next_step = wait_and_next_step
         super(SimulatorComms, self).__init__(0)
 
@@ -90,6 +91,13 @@ class SimulatorComms(CommsManager):
         print("Turning robot {0} angle {1}".format(self.robot_index, angle))
         delay = self.robot.rotate_by(angle)
         self.wait_and_next_step(delay)
+
+    def close_grabbers(self):
+        # TODO Fix assumption that we can grab ball
+        self.ball.grab(self.robot)
+
+    def release_grabbers(self):
+        self.ball.release()
 
 class Sprite (cocos.sprite.Sprite):
 
@@ -126,6 +134,12 @@ class Ball(Sprite):
     def __init__(self, pos):
         super(Ball, self).__init__('res/ball.png', pos)
         self._movement_speed = 15
+
+    def grab(self, robot):
+        self.image_anchor = robot.position
+
+    def release(self):
+        self.image_anchor = self.position
 
 
 class Environment():
