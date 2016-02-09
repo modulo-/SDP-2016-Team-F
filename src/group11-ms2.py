@@ -1,5 +1,6 @@
 #!/usr/bin/python2
 
+from __future__ import division
 from os import mkfifo, path
 from tempfile import mkdtemp
 from threading import Lock, Thread
@@ -8,9 +9,11 @@ from time import sleep
 from sys import argv
 from planning import planner, world
 from planning.position import Vector
+from math import pi
 import json
 import subprocess
 import readline
+import comms
 
 def translate_pos(p):
     # TODO: calibrate to some sensible ratio.
@@ -34,7 +37,7 @@ def updateworld(obj):
         robvec = Vector(
             translate_pos(obj[player]['x']),
             translate_pos(obj[player]['y']),
-            obj[player]['f'], 0)
+            obj[player]['f'] * pi / 180, 0)
     if 'b' in obj:
         ballvec = Vector(
             translate_pos(obj['b']['x']),
@@ -89,6 +92,7 @@ def shell():
             break
 
 player = argv[1]
+comms.init(argv[2], '60', '+++')
 
 mkfifo(visionpipe)
 t = Thread(target=monitor_vision)

@@ -1,4 +1,5 @@
 import utils
+import math
 
 
 class Goal(object):
@@ -69,7 +70,9 @@ class GoToStaticBall(Action):
                      lambda w, r: r.get_rotation_to_point(w.ball.x, w.ball.y) == 0]
 
     def perform(self, comms):
-        comms.move_to(self.world.ball.x, self.world.ball.y)
+        comms.move(math.sqrt(
+            (self.robot.x - self.world.ball.x)**2 +
+            (self.robot.y - self.world.ball.y)**2))
 
 
 class GrabBall(Action):
