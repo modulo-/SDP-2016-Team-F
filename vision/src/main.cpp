@@ -15,15 +15,6 @@
 // Key code of escape key returned by cv::waitKey
 #define ESC_KEY 27
 
-/*
-Primary colour (BGR & HSV):
-    ball: (12, 12, 219), (0, 241, 219)
-    blue marker: (95, 108, 11), (86, 229, 108)
-    yellow marker: (0, 145, 127), (34,255,145)
-    pink marker: (60, 22, 226), (174, 230, 226)
-    green marker: (0, 168, 2), (60,255,168)
-*/
-
 // Prototypes
 void findCircles(std::vector<std::vector<cv::Point> >, std::vector<struct ColouredCircle>&, double, double);
 double euclidianDistance(cv::Point2f, cv::Point2f);
@@ -62,6 +53,21 @@ int main(const int argc, const char* argv[]) {
         cv::UMat frame = camera.getFrame();
 
         std::vector<std::vector<struct ColouredCircle> > circles = findColouredCirclesInFrame(frame, camera.getBackgroundImage());
+
+        for(size_t i=0;i<circles.size();i++) {
+          cv::Scalar colour;
+          switch(i) {
+            default:
+            case 0: colour = cv::Scalar(0,0,255); break;
+            case 1: colour = cv::Scalar(255,0,0); break;
+            case 2: colour = cv::Scalar(0,255,255); break;
+            case 3: colour = cv::Scalar(255,0,255); break;
+            case 4: colour = cv::Scalar(0,255,0); break;
+          }
+          for(size_t j=0;j<circles[i].size();j++) {
+            cv::circle(frame, circles[i][j].center, circles[i][j].radius, colour);
+          }
+      }
 
         // TODO: handle case where there is more than one red circle
         cv::Point2f ball;
@@ -215,6 +221,7 @@ int main(const int argc, const char* argv[]) {
 
         namedPipe << '{';
 
+        // FIXME: when doesn't find ball but finds robots, JSON has invalid starting comma ('{,')
         if(ballFound) {
             cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
             namedPipe << "\"b\":{\"x\":" << ball.x << ",\"y\":" << ball.y << "}";
@@ -282,15 +289,15 @@ std::vector<std::vector<struct ColouredCircle> > findColouredCirclesInFrame(cv::
 
     cv::medianBlur(processed, processed, 9); // HEURISTIC: 9 = amount of blur applied before colour convertion
 
-    cv::cvtColor(processed, processed, cv::COLOR_BGR2HSV);
+    //cv::cvtColor(processed, processed, cv::COLOR_BGR2HSV);
 
-    std::array<cv::UMat, 5> masks; // order: ball, ball, blue, yellow, pink, green
+    std::array<cv::UMat, 5> masks; // order: ball, blue, yellow, pink, green
 
-    cv::inRange(processed, cv::Scalar(0, 100, 100), cv::Scalar(10, 255, 255), masks[0]); // HEURISTIC: range of HSV values
-    cv::inRange(processed, cv::Scalar(76, 100, 100), cv::Scalar(96, 255, 255), masks[1]); // HEURISTIC: range of HSV values
-    cv::inRange(processed, cv::Scalar(24, 100, 100), cv::Scalar(44, 255, 255), masks[2]); // HEURISTIC: range of HSV values
-    cv::inRange(processed, cv::Scalar(165, 100, 100), cv::Scalar(180, 255, 255), masks[3]); // HEURISTIC: range of HSV values
-    cv::inRange(processed, cv::Scalar(50, 100, 100), cv::Scalar(70, 255, 255), masks[4]); // HEURISTIC: range of HSV values
+    cv::inRange(processed, cv::Scalar(26.1-1.25*14, 29.4-1.25*14.4, 122-1.25*45.2), cv::Scalar(26.1+1.25*14, 29.4+1.25*14.4, 122+1.25*45.2), masks[0]); // HEURISTIC: range of HSV values
+    cv::inRange(processed, cv::Scalar(116.3-1.5*23.9, 89.5-1.5*14.8, 17.7-1.5*10.2), cv::Scalar(116.3+1.5*23.9, 89.5+1.5*14.8, 17.7+1.5*10.2), masks[1]); // HEURISTIC: range of HSV values
+    cv::inRange(processed, cv::Scalar(31.6-2*19.6, 132.4-2*6.7, 96-2*12.9), cv::Scalar(31.6+2*19.6, 132.4+2*6.7, 96+2*12.9), masks[2]); // HEURISTIC: range of HSV values
+    cv::inRange(processed, cv::Scalar(70.5-14.5, 29.9-14.4, 140.2-56), cv::Scalar(70.5+14.5, 29.9+14.4, 140.2+56), masks[3]); // HEURISTIC: range of HSV values
+    cv::inRange(processed, cv::Scalar(11.1-11.9, 152.2-32.7, 16.5-15.5), cv::Scalar(11.1+11.9, 152.2+32.7, 16.5+15.5), masks[4]); // HEURISTIC: range of HSV values
 
     // TODO: potentially can be vectorized
     cv::UMat temp;
