@@ -1,4 +1,5 @@
 import cv2
+import filters
 import oldvision.tools as tools
 import numpy as np
 
@@ -8,7 +9,8 @@ class Camera(object):
     Camera access wrapper.
     """
 
-    def __init__(self, pitch, port=0):
+    def __init__(self, pitch, port=0, config=None):
+        self.config = config
         self.capture = cv2.VideoCapture(port)
         calibration = tools.get_croppings(pitch=pitch)
         self.crop_values = tools.find_extremes(calibration['outline'])
@@ -26,8 +28,14 @@ class Camera(object):
         Returns the frame if available, otherwise returns None.
         """
         # status, frame = True, cv2.imread('img/i_all/00000003.jpg')
+
         status, frame = self.capture.read()
         frame = self.fix_radial_distortion(frame)
+
+
+        frame = cv2.GaussianBlur(frame, (11, 11), 0)
+        # print type(frame), type(frame[0][0][0])
+        # frame = filters.filter_normalize(frame, self.config)
 
         if status:
             return frame[

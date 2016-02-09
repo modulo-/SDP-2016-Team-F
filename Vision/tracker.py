@@ -1,13 +1,15 @@
+import Queue
 import cv2
+import math
 import numpy as np
 from collections import namedtuple
 import warnings
 import matplotlib.pyplot as plt
+import filters
 
 # Turn off warnings for PolynomialFit
 warnings.simplefilter('ignore', np.RankWarning)
 warnings.simplefilter('ignore', RuntimeWarning)
-
 
 BoundingBox = namedtuple('BoundingBox', 'x y width height')
 Center = namedtuple('Center', 'x y')
@@ -17,7 +19,7 @@ class Tracker(object):
     @staticmethod
     def oddify(inte):
         if inte == 0:
-            inte +=1
+            inte += 1
         elif inte % 2 == 0:
             inte -= 1
         else:
@@ -38,10 +40,13 @@ class Tracker(object):
             # Convert frame to HSV
             frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
+            # print colour
             # Create a mask
-            frame_mask = cv2.inRange(frame,
+            frame_mask = cv2.inRange(frame_hsv,
                                      colour['min'],
                                      colour['max'])
+
+            # print frame_mask
 
             contours, hierarchy = cv2.findContours(
                 frame_mask,
@@ -52,8 +57,7 @@ class Tracker(object):
             return (contours, hierarchy, frame_mask)
         except:
             # bbbbb
-            raise 
-
+            raise
 
     def get_contour_extremes(self, cnt):
         """
@@ -99,7 +103,7 @@ class Tracker(object):
             if cv2.contourArea(cnt) > 100:
                 cnts.append(cnt)
         return reduce(lambda x, y: np.concatenate((x, y)),
-                                   cnts) if len(cnts) else None
+                      cnts) if len(cnts) else None
 
     def get_largest_contour(self, contours):
         """
@@ -145,7 +149,6 @@ class Tracker(object):
 
 
 class RobotTracker(Tracker):
-
     def __init__(self,
                  color,
                  crop,
@@ -184,9 +187,9 @@ class RobotTracker(Tracker):
         """
         # Adjustments are colors and contrast/blur
         adjustments = self.calibration['plate']
-        
-        contours = self.get_contours(frame.copy(),self.crop, adjustments)[0]
-        
+
+        contours = self.get_contours(frame.copy(), self.crop, adjustments)[0]
+
         return self.get_contour_corners(self.join_contours(contours))
 
     def get_dot(self, frame, x_offset, y_offset):
@@ -228,7 +231,7 @@ class RobotTracker(Tracker):
                                     frame,
                                     mask=mask_frame)
             adjustment = self.calibration['blue']
-            contours = self.get_contours(frame,self.crop, adjustment,'dot')[0]
+            contours = self.get_contours(frame, self.crop, adjustment, 'dot')[0]
             if contours and len(contours) > 0:
                 # Take the largest contour
                 contour = self.get_smallest_contour(contours)
@@ -261,14 +264,14 @@ class RobotTracker(Tracker):
 
         # Trim the image to only consist of one zone
         frame = frame[self.crop[2]:self.crop[3],
-                      self.crop[0]:self.crop[1]]
-                      
+                self.crop[0]:self.crop[1]]
+
         cv2.imshow('frame', frame)
         cv2.destroyAllWindows()
 
         # (1) Find the plates
         plate_corners = self.get_plate(frame)
-        
+
         # print plate_corners
 
         if plate_corners is not None:
@@ -283,15 +286,15 @@ class RobotTracker(Tracker):
                 and plate_bound_box.height > 0):
                 # (2) Trim to create a smaller frame
                 plate_frame = frame.copy()[
-                    plate_bound_box.y:plate_bound_box.y \
-                        + plate_bound_box.height,
-                    plate_bound_box.x:plate_bound_box.x + \
-                        plate_bound_box.width
-                ]
+                              plate_bound_box.y:plate_bound_box.y \
+                                                + plate_bound_box.height,
+                              plate_bound_box.x:plate_bound_box.x + \
+                                                plate_bound_box.width
+                              ]
 
                 # (3) Search for the dot
                 dot = self.get_dot(plate_frame, plate_bound_box.x \
-                                        + self.offset,
+                                   + self.offset,
                                    plate_bound_box.y)
 
                 if dot is not None:
@@ -302,10 +305,10 @@ class RobotTracker(Tracker):
 
                     distances = [
                         (
-                            (dot_temp.x - p[0])**2 + \
-                                (dot_temp.y - p[1])**2,  # distance
-                            p[0],                                   # x coord
-                            p[1]                                    # y coord
+                            (dot_temp.x - p[0]) ** 2 + \
+                            (dot_temp.y - p[1]) ** 2,  # distance
+                            p[0],  # x coord
+                            p[1]  # y coord
                         ) for p in plate_corners]
 
                     distances.sort(key=lambda x: x[0],
@@ -319,7 +322,7 @@ class RobotTracker(Tracker):
                     first = front[0]
                     front_rear_distances = [
                         (
-                            (first[1] - p[0])**2 + (first[2] - p[1])**2,
+                            (first[1] - p[0]) ** 2 + (first[2] - p[1]) ** 2,
                             p[1],
                             p[2]
                         ) for p in rear]
@@ -346,7 +349,7 @@ class RobotTracker(Tracker):
                             (front[1][2] + first[2]) / 2),
                         Center(
                             (front_rear_distances[1][1] + front_rear_distances[0][1]) \
-                                / 2 + self.offset,
+                            / 2 + self.offset,
                             (front_rear_distances[1][2] + front_rear_distances[0][2]) / 2)
                     )
 
@@ -368,7 +371,6 @@ class RobotTracker(Tracker):
                 'front': front
             })
 
-
         queue.put({
             'x': None, 'y': None,
             'name': self.name,
@@ -380,18 +382,18 @@ class RobotTracker(Tracker):
         })
         pass
 
-class BallTracker(Tracker):
+
+class DotTracker(Tracker):
     """
     Track red ball on the pitch.
     """
 
     def __init__(self,
-                 crop,
                  offset,
                  pitch,
                  colour,
                  config,
-                 name='ball'):
+                 item='ball'):
         """
         Initialize tracker.
 
@@ -401,7 +403,6 @@ class BallTracker(Tracker):
                                 crop  crop coordinates
             [int] offset        how much to offset the coordinates
         """
-        self.crop = crop
         # if pitch == 0:
         #     self.color = PITCH0['red']
         # else:
@@ -410,52 +411,123 @@ class BallTracker(Tracker):
 
         self.config = config
         self.colour_name = colour
-        self.colour = [defaultdict(int, self.config.colours[colour])]
+        self.colour = defaultdict(int, self.config.colours[colour])
         self.offset = offset
-        self.name = name
+        self.item = item
 
-    def find(self, frame, queue):
-        for colour in self.colour:
-            """
-            contours, hierarchy, mask = self.preprocess(
-                frame,
-                self.crop,
-                color['min'],
-                color['max'],
-                color['contrast'],
-                color['blur']
-            )
-            """
-            # adjustments = {'min':,'mz'}
-            contours, hierarchy, mask = self.get_contours(frame.copy(),
-                                                          self.crop,
-                                                          colour,
-                                                          'BALL')
+    def find(self, frame, queue, colour_name=None, corner=False):
+        if colour_name is None:
+            colour = self.colour
+        else:
+            colour = self.config.colours[colour_name]
+        """
+        contours, hierarchy, mask = self.preprocess(
+            frame,
+            self.crop,
+            color['min'],
+            color['max'],
+            color['contrast'],
+            color['blur']
+        )
+        """
+        # adjustments = {'min':,'mz'}
+        w, h, d = frame.shape
+        contours, hierarchy, mask = self.get_contours(frame,
+                                                      (0, h, 0, w),
+                                                      colour,
+                                                      'BALL')
+        if len(contours) <= 0:
+            print 'No {} {} found.'.format(self.colour_name, self.item)
+            return
+        if len(contours) < 2 and self.item == 'robot':
+            print 'Only {} {} {} found.'.format(len(contours), self.colour_name, self.item)
 
+        if self.item == 'ball' or corner:
+            cnt = self.get_largest_contour(contours)
+            if cv2.contourArea(cnt) < self.config.dot_areas[self.colour_name]:
+                return
+
+            # Get center
+            (x, y), radius = cv2.minEnclosingCircle(cnt)
+            queue.put({
+                'name': self.item,
+                'x': x,
+                'y': y,
+                'area': cv2.contourArea(cnt),
+                'colour': self.colour_name
+            })
+        else:
             for i in xrange(2):
-                if len(contours) <= 0:
-                    # print 'No {}_{} found.'.format(self.name, i)
-                    pass
-                    # queue.put(None)
+                # Trim contours matrix
+                if len(contours) < 1:
+                    break
+
+                cnt_index = self.get_largest_contour_index(contours)
+                cnt = contours.pop(cnt_index)
+                if cv2.contourArea(cnt) < self.config.dot_areas[self.colour_name]:
+                    break
+
+                # Get center
+                (x, y), radius = cv2.minEnclosingCircle(cnt)
+                croprange = 20
+
+                section = self.crop(frame, (x, y), croprange)
+                identification = self.getID(section)
+                print identification
+                assert identification in ['pink', 'green']
+                corner = self.getCorner(section, (x,y), identification)
+                print(corner)
+                if corner is not None:
+                    corner['y'] = corner['y']-croprange
+                    corner['x'] = corner['x']-croprange
+                    orientation = math.degrees(math.atan2(-(y-corner['y']), (x-corner['x']))) + 45
                 else:
-                    # Trim contours matrix
-                        cnt_index = self.get_largest_contour_index(contours)
-                        cnt = contours.pop(cnt_index)
-                        if cv2.contourArea(cnt) < self.config.dot_areas[self.colour_name]:
-                            break
+                    orientation = None
 
-                        # Get center
-                        (x, y), radius = cv2.minEnclosingCircle(cnt)
-
-                        queue.put({
-                            'name': self.name + '_' + str(i),
-                            'x': x,
-                            'y': y,
-                            'angle': None,
-                            'velocity': None,
-                            'area': cv2.contourArea(cnt),
-                            'colour': self.colour_name
-                        })
+                queue.put({
+                    'name': self.item + '_' + str(i),
+                    'x': x,
+                    'y': y,
+                    'corner': corner,
+                    'orientation': orientation,
+                    'identification': identification,
+                    'area': cv2.contourArea(cnt),
+                    'colour': self.colour_name
+                })
 
         queue.put(None)
-        pass
+
+    def getID(self, section):
+        pinkMask = filters.filter_colour("pink", section, self.config)
+        greenMask = filters.filter_colour("green", section, self.config)
+
+        pinkedness = np.sum(pinkMask)
+        greenness = np.sum(greenMask)
+
+        return "pink" if pinkedness > greenness else "green"
+
+    def getCorner(self, section, (x,y), identification):
+        if (identification == 'pink'):
+            leftcorner = 'green'
+        else:
+            leftcorner = 'pink'
+
+        q = Queue.Queue()
+
+        self.find(section, q, leftcorner, corner=True)
+        try:
+            corner = q.get_nowait()
+        except Queue.Empty:
+            return None
+
+        return {"x":corner['x']+x, "y":corner['y']+y}
+
+    def crop(self, frame, (x,y), croprange):
+        h, w, d = frame.shape
+        left = int(max(0, x - croprange))
+        right = int(min(w, x + croprange))
+        top = int(max(0, y - croprange))
+        bottom = int(min(h, y + croprange))
+
+        section = frame[top:bottom, left:right]
+        return section

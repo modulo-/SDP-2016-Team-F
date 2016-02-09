@@ -56,48 +56,51 @@ class Config:
 
     colours = {
         "red": {
-            "max": np.array([122, 133, 255]),
-            "mean": np.array([108.66666667, 109.25, 230.75]),
-            "min": np.array([79, 89, 151])
+            "min": np.array([106, 150, 120]),
+            "max": np.array([255, 255, 255])
         },
         "yellow": {
-            'max': np.array([186, 255, 255]),
-            'mean': np.array([180.4, 255., 255.]),
-            'min': np.array([175, 255, 255])
+            "min": np.array([15, 54, 225]),
+            "max": np.array([46, 255, 255])
         },
         "blue": {
-            'max': np.array([239, 216, 212]),
-            'mean': np.array([229.71428571, 206., 170.]),
-            'min': np.array([219, 196, 145])
+            'max': np.array([143, 255, 230]),
+            'min': np.array([74, 60, 177])
         },
         "green": {
-            'max': np.array([188, 255, 219]),
-            'mean': np.array([159., 254.75, 201.5]),
-            'min': np.array([139, 251, 191])
+            'min': np.array([60, 66, 200]),
+            'max': np.array([76, 130, 255])
         },
         "pink": {
-            'max': np.array([216, 168, 255]),
-            'mean': np.array([207.13333333, 153.86666667, 255.]),
-            'min': np.array([194, 145, 255])
+            'min': np.array([121, 59, 219]),
+            'max': np.array([170, 255, 255])
         }
     }
 
     dot_areas = {
-        'blue': 2,
-        'yellow': 5,
-        'red': 15
+        'blue': 10,
+        'yellow': 10,
+        'red': 0
     }
     filters = OrderedDict()
     filter_stack = []  # OrderedSet()
     OUTPUT_TITLE = 'Filter Output'
-    FILTER_TITLE = 'Vision Parameters'
+    FILTER_SELECTION = 'Filter Selection'
+    FILTER_PARAMS = 'Vision Parameters'
     COLCAL_TITLE = 'Colour Calibration'
 
+    low = [0,0,0]
+    high = [0,0,0]
+    open =-1
+    close =-1
+    erode =-1
+    dilate =-1
+
     def __init__(self):
-        pass
+        cv2.namedWindow(self.FILTER_SELECTION)
+        cv2.namedWindow(self.FILTER_PARAMS)
 
     def GUI(self):
-        cv2.namedWindow(self.FILTER_TITLE)
 
         self.createTrackbar(self.colour)
         self.createTrackbar(self.side)
@@ -105,8 +108,41 @@ class Config:
         for name, filter in self.filters.iteritems():
             self.createTrackbar(filter["option"])
 
+        cv2.createTrackbar("H_low", self.FILTER_PARAMS, 0, 255,
+                           lambda x: self.setCol("low", 0, x))
+        cv2.createTrackbar("S_low", self.FILTER_PARAMS, 0, 255,
+                           lambda x: self.setCol("low", 1, x))
+        cv2.createTrackbar("V_low", self.FILTER_PARAMS, 0, 255,
+                           lambda x: self.setCol("low", 2, x))
+        
+        cv2.createTrackbar("H_high", self.FILTER_PARAMS, 0, 255,
+                           lambda x: self.setCol("high", 0, x))
+        cv2.createTrackbar("S_high", self.FILTER_PARAMS, 0, 255,
+                           lambda x: self.setCol("high", 1, x))
+        cv2.createTrackbar("V_high", self.FILTER_PARAMS, 0, 255,
+                           lambda x: self.setCol("high", 2, x))
+
+
+        cv2.createTrackbar("open", self.FILTER_PARAMS, 0, 10,
+                           lambda x: setattr(self, "open", x*2-1))
+        cv2.createTrackbar("close", self.FILTER_PARAMS, 0, 10,
+                           lambda x: setattr(self, "close", x*2-1))
+        cv2.createTrackbar("erode", self.FILTER_PARAMS, 0, 10,
+                           lambda x: setattr(self, "erode", x*2-1))
+        cv2.createTrackbar("dilate", self.FILTER_PARAMS, 0, 10,
+                           lambda x: setattr(self, "dilate", x*2-1))
+        
+    def setCol(self, bound, col, val):
+        c = getattr(self, bound)
+        c[col]=val
+
+    def set(self, bound, col, val):
+        c = getattr(self, bound)
+        c[col]=val
+
+
     def createTrackbar(self, option):
-        cv2.createTrackbar(option.text, self.FILTER_TITLE, option.selected, len(option.options) - 1,
+        cv2.createTrackbar(option.text, self.FILTER_SELECTION, option.selected, len(option.options) - 1,
                            lambda x: self.toggle(option, x))
 
     def addFilter(self, name, func, default=0):

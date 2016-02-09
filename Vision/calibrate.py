@@ -180,14 +180,18 @@ class Calibrate(object):
 
         frame = frames[0]
 
+        # frame =  cv2.GaussianBlur(frame, (9, 9), 0)
+
+
         cv2.imshow(self.config.COLCAL_TITLE, frame)
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         for colour in colours:
             c=1
             print("click on {}, to continue press 'q'".format(colour))
 
             cv2.setMouseCallback(self.config.COLCAL_TITLE,
-                                 lambda event, x, y, flags, param:self.p(event, x, y, flags, param, frame, colours[colour]))
+                                 lambda event, x, y, flags, param:self.p(event, x, y, flags, param, hsv, colours[colour]))
             while c!=113: # q
                 if c==27:
                     cv2.destroyWindow(self.config.COLCAL_TITLE)
@@ -195,10 +199,12 @@ class Calibrate(object):
                 c = cv2.waitKey(100) & 0xFF
             else:
                 l = colours[colour]
+                l = self.filterPixels(l,2)
                 if len(l) > 0:
-                    min = np.min( np.asarray(l), axis=0)
-                    max = np.max( np.asarray(l), axis=0)
-                    mean = np.mean( np.asarray(l), axis=0)
+                    min = np.min(np.asarray(l), axis=0)
+                    max = np.max(np.asarray(l), axis=0)
+                    mean = np.mean(np.asarray(l), axis=0)
+                    print(min, max, mean)
                     colours[colour] = {
                         "min":min,
                         "max":max,
@@ -212,5 +218,18 @@ class Calibrate(object):
 
     def p(self, event, x, y, flags, param,frame, lst):
         if event == cv2.EVENT_LBUTTONDOWN:
-            print y,x,frame[y][x]
-            lst.append(frame[y][x])
+            windowSize = 1
+            print (frame[y][x])
+            data = np.asarray(frame[y-windowSize:y+windowSize+1,x-windowSize:x+windowSize+1])
+            height, width, d = data.shape
+            data = data.reshape((width*height, 3))
+            filtered = self.filterPixels(data, 2)
+            # print filtered
+            lst.append(np.mean(filtered, axis=0))
+
+    @staticmethod
+    def filterPixels(data, deviationAllowance):
+        mean = np.mean(data, axis=0)
+        std = np.std(data, axis=0)
+        filtered = data[[all(x) for x in abs(data - mean) < deviationAllowance * std]]
+        return filtered
