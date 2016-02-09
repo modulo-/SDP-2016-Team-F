@@ -17,9 +17,9 @@ namespace comms {
 
 void setup() {
     io::init();
-    // LED, & kicker.
-    pinMode(13, OUTPUT);
-    digitalWrite(13, LOW);
+    // Kicker
+    pinMode(6, OUTPUT);
+    digitalWrite(6, LOW);
     if(!comms::init("60", "~~~")) {
     }
     comms::send("rawr!", 'd', 5);

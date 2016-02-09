@@ -16,8 +16,7 @@ import readline
 import comms
 
 def translate_pos(p):
-    # TODO: calibrate to some sensible ratio.
-    return p
+    return p / 2.31
 
 planner = planner.Planner(11)
 tmpdir = mkdtemp()
@@ -31,17 +30,17 @@ def update_plan():
     planner.plan_and_act(world)
 
 def updateworld(obj):
-    robvec = Vector(0, 0, 0, 0)
-    ballvec = Vector(0, 0, 0, 0)
+    robvec = world.our_robot.vector
+    ballvec = world.ball.vector
     if player in obj:
         robvec = Vector(
             translate_pos(obj[player]['x']),
-            translate_pos(obj[player]['y']),
+            -translate_pos(obj[player]['y']),
             obj[player]['f'] * pi / 180, 0)
     if 'b' in obj:
         ballvec = Vector(
             translate_pos(obj['b']['x']),
-            translate_pos(obj['b']['y']), 0, 0)
+            -translate_pos(obj['b']['y']), 0, 0)
     world.update_positions({
         'our_robot': robvec,
         'ball': ballvec,

@@ -12,7 +12,7 @@
 #define MOTOR_BACK_RIGHT  3
 #define MOTOR_GRABBERS    4
 
-#define PIN_KICKER 8
+#define PIN_KICKER 6
 
 // Defines the forward/backward combinations for a movement command.
 // The least significant 4 bits store this, with 0 being backward and 1 being
