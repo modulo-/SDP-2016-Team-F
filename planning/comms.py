@@ -9,9 +9,6 @@ class CommsManager(object):
     def move(self, distance):
         print("Moving robot {0} distance {1}".format(self.robot_index, distance))
 
-    def move_to(self, x, y):
-        print("Moving robot {0} to ({1}, {2})".format(self.robot_index, x, y))
-
     def turn(self, angle):
         print("Turning robot {0} angle {1}".format(self.robot_index, angle))
 

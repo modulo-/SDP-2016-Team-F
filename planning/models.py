@@ -76,10 +76,8 @@ class GoToStaticBall(Action):
         dy = self.world.ball.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
         # TODO grabbing area size
-        x = 50
-        proportion = (d - x) / d
-        comms.move_to(self.robot.x + dx*proportion, self.robot.y + dy*proportion)
-        print(self.robot.x + dx*proportion, self.robot.y + dy*proportion)
+        grabber_size = 50
+        comms.move(d - grabber_size)
 
 
 class GrabBall(Action):

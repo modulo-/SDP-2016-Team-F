@@ -1,6 +1,6 @@
 import cocos
 import cocos.actions as ac
-from math import pi
+from math import pi, sin, cos, radians, degrees
 from threading import Timer
 
 from position import Vector
@@ -78,9 +78,12 @@ class SimulatorComms(CommsManager):
         self.wait_and_next_step = wait_and_next_step
         super(SimulatorComms, self).__init__(0)
 
-    def move_to(self, x, y):
-        super(SimulatorComms, self).move_to(x, y)
-        delay = self.robot.move_to(x, y)
+    def move(self, d):
+        super(SimulatorComms, self).move(d)
+        dx = d * sin(radians(self.robot.rotation))
+        dy = d * cos(radians(self.robot.rotation))
+        delay = self.robot.move_to(self.robot.position[0] + dx,
+                                   self.robot.position[1] + dy)
         self.wait_and_next_step(delay)
 
     def turn(self, angle):
