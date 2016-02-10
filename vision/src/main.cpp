@@ -94,11 +94,11 @@ int main(const int argc, const char* argv[]) {
         }
 
         cv::Point2f ball;
-        double ballSize = 0.07;
+        double ballSize = 2;
         bool ballFound = false;
         for(size_t i = 0; i < circles[0].size(); i++) {
-            ballFound = true;
             if(circles[0][i].radius > ballSize) {
+                ballFound = true;
                 ball = circles[0][i].center;
                 ballSize = circles[0][i].radius;
             }
@@ -271,23 +271,17 @@ int main(const int argc, const char* argv[]) {
 
         std::vector<std::string> jsonKeyObjects;
 
-        if(ballFound) {
-            seenBall = true;
-        } else if(seenBall) {
+        if(!ballFound) {
             ball = lastBallPos;
-            seenBall = false;
-            cv::arrowedLine(frame, ball, ball, cv::Scalar(255,255,255), 3);
-            cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
-        }
-
-        if(ballFound) {
-            cv::arrowedLine(frame, ball, ball + (ball-lastBallPos)*10, cv::Scalar(255,255,255), 3);
-            cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
-            lastBallPos = ball;
+        } else {
             std::stringstream jsonBall;
             jsonBall << "\"b\":{\"x\":" << ball.x << ",\"y\":" << ball.y << "}";
             jsonKeyObjects.push_back(jsonBall.str());
         }
+
+        cv::arrowedLine(frame, ball, ball + (ball-lastBallPos)*10, cv::Scalar(255,255,255), 3);
+        cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
+        lastBallPos = ball;
 
         for(size_t i = 0; i < robots.size(); i++) {
             if(robots[i].team == 0 && robots[i].colour == 0) {

@@ -9,7 +9,9 @@ from time import sleep
 from sys import argv
 from planning import planner, world
 from planning.position import Vector
+import planning
 from math import pi
+import math
 import json
 import subprocess
 import readline
@@ -19,25 +21,39 @@ import group11cmd
 def translate_pos(p):
     return p / 2.31
 
-class CommsManager:
-    def move(self, distance):
-        group11cmd.run(group11cmd.cmd_strait(
-            group11cmd.parse_dist(distance)))
+class CommsManager(planning.comms.CommsManager):
+    def __init__(self):
+        self.robot_index = 11
+
+    def move(self, robot_pos, target_pos, distance):
+        print("Moving robot {0} from {1} to {2} with distance {3}".format(self.robot_index, robot_pos, target_pos, distance))
+        group11cmd.run(group11cmd.cmd_mv(
+            group11cmd.parse_dist(robot_pos[0]),
+            group11cmd.parse_dist(robot_pos[1]),
+            group11cmd.parse_angle(robot_pos[2] / pi * 180),
+            group11cmd.parse_dist(target_pos[0]),
+            group11cmd.parse_dist(target_pos[1]),
+            group11cmd.parse_angle(target_pos[2] / pi * 180)))
     
     def turn(self, angle):
+        print("Turning robot {0} angle {1} radians ( {2} degrees)".format(self.robot_index, angle, math.degrees(angle)))
         group11cmd.run(group11cmd.cmd_spin(
             group11cmd.parse_angle(angle / pi * 180)))
     
     def kick(self, distance):
+        print("Robot {0} kicking distance {1}".format(self.robot_index, distance))
         group11cmd.run(group11cmd.cmd_kick(100))
     
     def kick_full_power(self):
+        print("Robot {0} kicking full power".format(self.robot_index))
         group11cmd.run(group11cmd.cmd_kick(100))
     
     def close_grabbers(self):
+        print("Robot {0} closing grabbers".format(self.robot_index))
         group11cmd.run(group11cmd.cmd_grabber_close())
     
     def release_grabbers(self):
+        print("Robot {0} releasing grabbers".format(self.robot_index))
         group11cmd.run(group11cmd.cmd_grabber_open())
 
 planner = planner.Planner(CommsManager())
