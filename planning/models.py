@@ -2,7 +2,7 @@ import utils
 import math
 
 # TODO
-ROTATION_THRESHOLD = 0.1
+ROTATION_THRESHOLD = 0.35
 
 
 class Goal(object):
