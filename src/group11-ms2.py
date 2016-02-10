@@ -57,7 +57,7 @@ def update_plan():
     ##        group11cmd.parse_dist(world.ball.x),
     ##        group11cmd.parse_dist(world.ball.y),
     ##        group11cmd.parse_angle(0)))
-    group11cmd.run(group11cmd.cmd_mv(
+    group11cmd.run(group11cmd.cmd_brake(100) + group11cmd.cmd_mv(
             group11cmd.parse_dist(world.our_robot.x),
             group11cmd.parse_dist(world.our_robot.y),
             group11cmd.parse_angle(world.our_robot.angle / pi * 180),
@@ -101,10 +101,10 @@ def monitor_vision():
 
 def poll_plan():
     while True:
+        sleep(1)
         statelock.acquire()
         update_plan()
         statelock.release()
-        sleep(3)
 
 def shell():
     while True:

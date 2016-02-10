@@ -130,7 +130,7 @@ def help_cmds():
     print "Commands which cannot be used in a chain are 'help' and 'exit'."
 
 def run(cmdbytes):
-    print cmdbytes
+    comms.stop_resend('')
     comms.send(''.join(chr(x) for x in cmdbytes), '1')
 
 if __name__ == '__main__':
