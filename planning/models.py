@@ -68,7 +68,7 @@ class Action(object):
         return []
 
 
-class GoToStaticBall(Action):
+class GoToStaticBall_normal(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
                      lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD]
 
@@ -83,6 +83,27 @@ class GoToStaticBall(Action):
         comms.move(robot_pos=(self.robot.x, self.robot.y, self.robot.angle), target_pos=target_pos, distance=(d - grabber_size))
 
 
+class GoToStaticBall(Action):
+    preconditions = [lambda w, r: utils.ball_is_static(w),
+                     lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD]
+
+    def perform(self, comms):
+        dx = self.world.ball.x - self.robot.x
+        dy = self.world.ball.y - self.robot.y
+        d = math.sqrt(dx**2 + dy**2)
+
+        pdx = -dy
+        pdy = dx
+        pd = math.sqrt(pdx**2 + pdy**2)
+        norm_pvec = (float(pdx) / float(pd), float(pdy) / float(pd))
+        print("normalized vector: {0}".format(norm_pvec))
+
+        grabber_distance = 60
+
+        target_pos = (self.world.ball.x + norm_pvec[0] * grabber_distance, self.world.ball.y + norm_pvec[1] * grabber_distance, self.robot.angle)
+        comms.move(robot_pos=(self.robot.x, self.robot.y, self.robot.angle), target_pos=target_pos, distance=d)
+
+
 class GrabBall(Action):
     preconditions = [lambda w, r: r.can_catch_ball(w.ball)]
 
@@ -95,8 +116,8 @@ class TurnToGoal(Action):
 
     def perform(self, comms):
         # TODO find best point to shoot to
-        x = self.world.goal.x + self.world.goal.width / 2
-        y = self.world.goal.y
+        x = self.world.their_goal.x + self.world.their_goal.width / 2
+        y = self.world.their_goal.y
         comms.turn(self.robot.get_rotation_to_point(x, y))
 
 
@@ -109,7 +130,7 @@ class TurnToBall(Action):
 
 class Shoot(Action):
     preconditions = [lambda w, r: r.has_ball(w.ball),
-                     lambda w, r: utils.can_score(w, r, w.their_goal())]
+                     lambda w, r: utils.can_score(w, r, w.their_goal)]
 
     def perform(self, comms):
         comms.kick_full_power()

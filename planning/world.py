@@ -18,6 +18,9 @@ GOAL_WIDTH = 140
 GOAL_LENGTH = 1
 GOAL_HEIGHT = 10
 
+GOAL_LOWER = 40
+GOAL_HIGHER = 60
+
 
 class PitchObject(object):
     '''
@@ -35,6 +38,7 @@ class PitchObject(object):
             self._height = height
             self._angle_offset = angle_offset
             self._vector = Vector(x, y, angle, velocity)
+            self._is_missing = True
 
     @property
     def width(self):
@@ -74,11 +78,18 @@ class PitchObject(object):
 
     @vector.setter
     def vector(self, new_vector):
-        if new_vector is None or not isinstance(new_vector, Vector):
+        if new_vector is None:# or not isinstance(new_vector, Vector):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
             self._vector = Vector(
                 new_vector.x, new_vector.y, new_vector.angle - self._angle_offset, new_vector.velocity)
+            self._is_missing = False
+
+    def is_missing(self):
+        return self._is_missing
+        
+    def set_missing(self):
+        self._is_missing = True
 
     def get_generic_polygon(self, width, length):
         '''
@@ -108,14 +119,9 @@ class PitchObject(object):
 
 class Robot(PitchObject):
 
-    def __init__(self, zone, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
+    def __init__(self, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, height, angle_offset)
-        self._zone = zone
         self._catcher = 'open'
-
-    @property
-    def zone(self):
-        return self._zone
 
     @property
     def catcher_area(self):
@@ -150,7 +156,7 @@ class Robot(PitchObject):
         '''
         Gets if the robot has possession of the ball
         '''
-        return (self._catcher == 'closed') and self.can_catch_ball(ball)
+        return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
 
     def get_rotation_to_point(self, x, y):
         '''
@@ -198,8 +204,8 @@ class Robot(PitchObject):
         return Polygon(robot_poly[0], robot_poly[1], target_poly[0], target_poly[1])
 
     def __repr__(self):
-        return ('zone: %s\nx: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
-                (self._zone, self.x, self.y,
+        return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
+                (self.x, self.y,
                  self.angle, self.velocity, (self.width, self.length, self.height)))
 
 
@@ -211,17 +217,22 @@ class Ball(PitchObject):
 
 class Goal(PitchObject):
 
-    def __init__(self, zone, x, y, angle):
+    def __init__(self, x, y, angle, lower_post, higher_post):
+        self._lower_post = lower_post
+        self._higher_post = higher_post
         super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH, GOAL_HEIGHT)
-        self._zone = zone
 
     @property
-    def zone(self):
-        return self._zone
+    def lower_post(self):
+        return self._lower_post
+
+    @property
+    def higher_post(self):
+        return self._higher_post
 
     def __repr__(self):
-        return ('zone: %s\nx: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
-                (self._zone, self.x, self.y, self.angle, self.velocity, (self.width, self.length, self.height)))
+        return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
+                (self.x, self.y, self.angle, self.velocity, (self.width, self.length, self.height)))
 
 
 class Pitch(object):
@@ -237,8 +248,8 @@ class Pitch(object):
         '''
         Checks whether the position/point planned for the robot is reachable
         '''
-        zone = self._zones[robot.zone]
-        return zone.isInside(x, y)
+        # TODO Add goal boxes
+        return x > 0 and x < self._width and y > 0 and y < self._height
 
     @property
     def width(self):
@@ -248,12 +259,8 @@ class Pitch(object):
     def height(self):
         return self._height
 
-    @property
-    def zones(self):
-        return self._zones
-
     def __repr__(self):
-        return str(self._zones)
+        return str(self_width, self._height)
 
 
 class World(object):
@@ -275,8 +282,8 @@ class World(object):
         self._pitch = Pitch(pitch_num)
         self._our_side = our_side
         self._their_side = 'left' if our_side == 'right' else 'right'
-        self._goals.append(Goal(0, 0, self._pitch.height / 2.0, 0))
-        self._goals.append(Goal(3, self._pitch.width, self._pitch.height / 2.0, pi))
+        self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
+        self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, pi, GOAL_LOWER, GOAL_HIGHER))
 
     @property
     def our_robot(self):
@@ -303,5 +310,11 @@ class World(object):
         This method will update the positions of the pitch objects
         that it gets passed by the vision system
         '''
-        self.our_robot.vector = pos_dict['our_robot']
-        self.ball.vector = pos_dict['ball']
+        if not pos_dict['our_robot']:
+            self.our_robot.set_missing()
+        else:
+            self.our_robot.vector = pos_dict['our_robot']
+        if not pos_dict['ball']:
+            self.ball.set_missing()
+        else:
+            self.ball.vector = pos_dict['ball']
