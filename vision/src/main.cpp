@@ -92,6 +92,10 @@ int main(const int argc, const char* argv[]) {
             }
         }
 
+        if(seenBall && euclidianDistance(ball, lastBallPos) > 50) {
+            ball = lastBallPos;
+        }
+
         std::vector<struct ColouredCircle> pinkAndGreen = circles[3];
         pinkAndGreen.insert(pinkAndGreen.end(), circles[4].begin(), circles[4].end());
 
