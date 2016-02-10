@@ -63,16 +63,16 @@ int main(const int argc, const char* argv[]) {
 
     bool seenYellowGreen = false;
     cv::Point2f lastYGPos;
-    double lastYGO;
+    double lastYGO = 0;
     bool seenYellowPink = false;
     cv::Point2f lastYPPos;
-    double lastYPO;
+    double lastYPO = 0;
     bool seenBlueGreen = false;
     cv::Point2f lastBGPos;
-    double lastBGO;
+    double lastBGO = 0;
     bool seenBluePink = false;
     cv::Point2f lastBPPos;
-    double lastBPO;
+    double lastBPO = 0;
 
     // Main processing loop
     // Grabs, decodes and stores a frame from capture each iteration
@@ -140,22 +140,20 @@ int main(const int argc, const char* argv[]) {
 
             struct Robot r;
             if(numP < numG) {
-                int pindex = 0;
+                size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 3) {
                         pindex = i;
                     }
                 }
 
-                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
-                    double distX = euclidianDistance(markers[pindex].center, x.center);
-                    double distY = euclidianDistance(markers[pindex].center, y.center);
-                    return (distX < distY);
-                });
-                cv::Point2f farGreen1 = markers[3].center;
-                cv::Point2f farGreen2 = markers[4].center;
-                cv::Point2f mid = (farGreen1 + farGreen2) / 2;
-                cv::Point2f mid2Center = mid - r.pos;
+                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos - r.pos;
+                cv::Point2f rot(
+                    float(botLeftOrigin.x * cos(135) - (botLeftOrigin.y * sin(135))),
+                    float(botLeftOrigin.x * sin(135) + (botLeftOrigin.y * cos(135)))
+                );
+
+                cv::Point2f mid2Center = rot + r.pos;
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
@@ -168,22 +166,20 @@ int main(const int argc, const char* argv[]) {
                 bgFound = true;
 
             } else {
-                int pindex = 0;
+                size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 4) {
                         pindex = i;
                     }
                 }
 
-                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
-                    double distX = euclidianDistance(markers[pindex].center, x.center);
-                    double distY = euclidianDistance(markers[pindex].center, y.center);
-                    return (distX < distY);
-                });
-                cv::Point2f farPink1 = markers[3].center;
-                cv::Point2f farPink2 = markers[4].center;
-                cv::Point2f mid = (farPink1 + farPink2) / 2;
-                cv::Point2f mid2Center = mid - r.pos;
+                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos - r.pos;
+                cv::Point2f rot(
+                    float(botLeftOrigin.x * cos(135) - (botLeftOrigin.y * sin(135))),
+                    float(botLeftOrigin.x * sin(135) + (botLeftOrigin.y * cos(135)))
+                );
+
+                cv::Point2f mid2Center = rot + r.pos;
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
@@ -238,23 +234,20 @@ int main(const int argc, const char* argv[]) {
 
             struct Robot r;
             if(numP < numG) {
-                int pindex = 0;
+                size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 3) {
                         pindex = i;
                     }
                 }
 
-                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
-                    double distX = euclidianDistance(markers[pindex].center, x.center);
-                    double distY = euclidianDistance(markers[pindex].center, y.center);
-                    return (distX < distY);
-                });
+                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos - r.pos;
+                cv::Point2f rot(
+                    float(botLeftOrigin.x * cos(135) - (botLeftOrigin.y * sin(135))),
+                    float(botLeftOrigin.x * sin(135) + (botLeftOrigin.y * cos(135)))
+                );
 
-                cv::Point2f farGreen1 = markers[3].center;
-                cv::Point2f farGreen2 = markers[4].center;
-                cv::Point2f mid = (farGreen1 + farGreen2) / 2;
-                cv::Point2f mid2Center = mid - r.pos;
+                cv::Point2f mid2Center = rot + r.pos;
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
@@ -267,23 +260,20 @@ int main(const int argc, const char* argv[]) {
                 ygFound = true;
 
             } else {
-                int pindex = 0;
+                size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 4) {
                         pindex = i;
                     }
                 }
 
-                sort(markers.begin(), markers.end(), [markers, pindex](struct ColouredCircle x, struct ColouredCircle y) {
-                    double distX = euclidianDistance(markers[pindex].center, x.center);
-                    double distY = euclidianDistance(markers[pindex].center, y.center);
-                    return (distX < distY);
-                });
+                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos - r.pos;
+                cv::Point2f rot(
+                    float(botLeftOrigin.x * cos(135) - (botLeftOrigin.y * sin(135))),
+                    float(botLeftOrigin.x * sin(135) + (botLeftOrigin.y * cos(135)))
+                );
 
-                cv::Point2f farPink1 = markers[3].center;
-                cv::Point2f farPink2 = markers[4].center;
-                cv::Point2f mid = (farPink1 + farPink2) / 2;
-                cv::Point2f mid2Center = mid - r.pos;
+                cv::Point2f mid2Center = rot + r.pos;
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
