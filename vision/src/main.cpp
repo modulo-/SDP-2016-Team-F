@@ -176,13 +176,13 @@ int main(const int argc, const char* argv[]) {
                     }
                 }
 
-                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos - r.pos;
+                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos;
                 cv::Point2f rot(
                     float(botLeftOrigin.x * cos(2.35619) - (botLeftOrigin.y * sin(2.35619))),
                     float(botLeftOrigin.x * sin(2.35619) + (botLeftOrigin.y * cos(2.35619)))
                 );
 
-                cv::Point2f mid2Center = rot + r.pos;
+                cv::Point2f mid2Center = rot;
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
@@ -245,13 +245,13 @@ int main(const int argc, const char* argv[]) {
                     }
                 }
 
-                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos - r.pos;
+                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos;
                 cv::Point2f rot(
                     float(botLeftOrigin.x * cos(2.35619) - (botLeftOrigin.y * sin(2.35619))),
                     float(botLeftOrigin.x * sin(2.35619) + (botLeftOrigin.y * cos(2.35619)))
                 );
 
-                cv::Point2f mid2Center = rot + r.pos;
+                cv::Point2f mid2Center = rot;
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
@@ -272,13 +272,13 @@ int main(const int argc, const char* argv[]) {
                     }
                 }
 
-                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos - r.pos;
+                cv::Point2f botLeftOrigin = markers[pindex].center - r.pos;
                 cv::Point2f rot(
                     float(botLeftOrigin.x * cos(2.35619) - (botLeftOrigin.y * sin(2.35619))),
                     float(botLeftOrigin.x * sin(2.35619) + (botLeftOrigin.y * cos(2.35619)))
                 );
 
-                cv::Point2f mid2Center = rot + r.pos;
+                cv::Point2f mid2Center = rot;
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
