@@ -124,7 +124,7 @@ class Robot(PitchObject):
         self._catcher = 'open'
         self._receiving_area = {
             'front_offset': 10,
-            'height': 10,
+            'height': 7,
             'width': 20,
         }
 

@@ -126,6 +126,8 @@ def shell():
                 planner.set_task('turn-move-grab')
             elif line == 'turn-shoot':
                 planner.set_task('turn-shoot')
+            elif line == 'stop':
+                planner.set_task(None)
             elif line == 'left':
                 statelock.acquire()
                 world._our_side = 'left'

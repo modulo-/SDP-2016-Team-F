@@ -13,7 +13,7 @@ class Planner:
     def __init__(self, comms=CommsManager(0)):
         self.comms = comms
         self.previous_action = None
-        self.current_task = 'move-grab'
+        self.current_task = None
         self.grabber_state = 'OPEN'
 
     def get_goal(self, world, robot):
@@ -42,6 +42,8 @@ class Planner:
         robot = world.our_robot
         world.our_robot.catcher = self.grabber_state
         goal = self.get_goal(world, robot)
+        if goal == None:
+            return
         action = goal.generate_action()
         if action != self.previous_action:
             action = action
