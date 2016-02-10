@@ -75,7 +75,7 @@ class PitchObject(object):
 
     @vector.setter
     def vector(self, new_vector):
-        if new_vector is None or not isinstance(new_vector, Vector):
+        if new_vector is None:# or not isinstance(new_vector, Vector):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
             self._vector = Vector(
