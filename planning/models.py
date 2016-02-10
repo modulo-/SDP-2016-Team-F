@@ -69,7 +69,7 @@ class Action(object):
 
 
 class GoToStaticBall(Action):
-    preconditions = [lambda w, r: utils.ball_is_static(w),
+    preconditions = [#lambda w, r: utils.ball_is_static(w),
                      lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD]
 
     def perform(self, comms):
