@@ -2,7 +2,7 @@ import utils
 import math
 
 # TODO
-ROTATION_THRESHOLD = 0.1
+ROTATION_THRESHOLD = 0.35
 
 
 class Goal(object):
@@ -77,7 +77,7 @@ class GoToStaticBall(Action):
         dy = self.world.ball.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
         # TODO grabbing area size
-        grabber_size = 50
+        grabber_size = 10
         proportion = (d - grabber_size) / d
         target_pos = (self.robot.x + dx * proportion, self.robot.y + dy * proportion, self.robot.angle)
         comms.move(robot_pos=(self.robot.x, self.robot.y, self.robot.angle), target_pos=target_pos, distance=(d - grabber_size))
@@ -91,12 +91,14 @@ class GrabBall(Action):
 
 
 class TurnToGoal(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball)]
+    #preconditions = [lambda w, r: r.has_ball(w.ball)]
 
     def perform(self, comms):
         # TODO find best point to shoot to
-        x = self.world.goal.x + self.world.goal.width / 2
-        y = self.world.goal.y
+        #x = self.world.goal.x + self.world.goal.width / 2
+        #y = self.world.goal.y
+        x = 0
+        y = 100
         comms.turn(self.robot.get_rotation_to_point(x, y))
 
 
@@ -108,8 +110,8 @@ class TurnToBall(Action):
 
 
 class Shoot(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball),
-                     lambda w, r: utils.can_score(w, r, w.their_goal())]
+    #preconditions = [lambda w, r: r.has_ball(w.ball),
+    #                 lambda w, r: utils.can_score(w, r, w.their_goal())]
 
     def perform(self, comms):
         comms.kick_full_power()

@@ -30,15 +30,15 @@ class CommsManager(planning.comms.CommsManager):
         group11cmd.run(group11cmd.cmd_mv(
             group11cmd.parse_dist(robot_pos[0]),
             group11cmd.parse_dist(robot_pos[1]),
-            group11cmd.parse_angle(robot_pos[2] / pi * 180),
+            group11cmd.parse_angle((-robot_pos[2] / pi * 180 + 90) % 360),
             group11cmd.parse_dist(target_pos[0]),
             group11cmd.parse_dist(target_pos[1]),
-            group11cmd.parse_angle(target_pos[2] / pi * 180)))
+            group11cmd.parse_angle((-target_pos[2] / pi * 180 + 90) % 360)))
     
     def turn(self, angle):
         print("Turning robot {0} angle {1} radians ( {2} degrees)".format(self.robot_index, angle, math.degrees(angle)))
         group11cmd.run(group11cmd.cmd_spin(
-            group11cmd.parse_angle(angle / pi * 180)))
+            group11cmd.parse_angle(-angle / pi * 180)))
     
     def kick(self, distance):
         print("Robot {0} kicking distance {1}".format(self.robot_index, distance))
@@ -82,7 +82,7 @@ def updateworld(obj):
         robvec = Vector(
             translate_pos(obj[player]['x']),
             200 - translate_pos(obj[player]['y']),
-            (obj[player]['f'] * pi / 180) % (2 * pi), 0)
+            (-(obj[player]['f'] * pi / 180 - pi / 2)) % (2 * pi), 0)
     if 'b' in obj:
         ballvec = Vector(
             translate_pos(obj['b']['x']),
@@ -109,7 +109,7 @@ def monitor_vision():
 
 def poll_plan():
     while True:
-        sleep(3)
+        sleep(6)
         statelock.acquire()
         update_plan()
         statelock.release()
