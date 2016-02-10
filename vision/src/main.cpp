@@ -277,10 +277,12 @@ int main(const int argc, const char* argv[]) {
         } else if(seenBall) {
             ball = lastBallPos;
             seenBall = false;
+            cv::arrowedLine(frame, ball + ball-lastBallPos, ball + (ball-lastBallPos)*10, cv::Scalar(255,255,255), 3);
             cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
         }
 
         if(ballFound) {
+            cv::arrowedLine(frame, ball + ball-lastBallPos, ball + (ball-lastBallPos)*10, cv::Scalar(255,255,255), 3);
             cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
             std::stringstream jsonBall;
             jsonBall << "\"b\":{\"x\":" << ball.x << ",\"y\":" << ball.y << "}";
