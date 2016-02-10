@@ -11,7 +11,7 @@ def ball_is_static(world):
 # Test if robot can score
 # From 2015 Group 12 behaviour/utilities.py
 def can_score(world, our_robot, their_goal, turn=0):
-    # Offset the robot angle if need be
+    """# Offset the robot angle if need be
     robot_angle = our_robot.angle + turn
     goal_zone_poly = world.pitch.zones[their_goal.zone][0]
 
@@ -20,14 +20,14 @@ def can_score(world, our_robot, their_goal, turn=0):
     # Makes goal be sorted from smaller to bigger
     goal_posts = sorted(goal_posts, key=lambda x: x[1])
 
-    goal_x = goal_posts[0][0]
+    goal_x = goal_posts[0][0]"""
 
-    robot = Robot(
-        our_robot.zone, our_robot.x, our_robot.y, robot_angle % (pi * 2), our_robot.velocity)
+    goal_x = their_goal.x
 
-    predicted_y = predict_y_intersection(world, goal_x, robot, full_width=True)
+    predicted_y = predict_y_intersection(world, goal_x, our_robot, full_width=True)
 
-    return goal_posts[0][1] < predicted_y < goal_posts[1][1]
+    #return goal_posts[0][1] < predicted_y < goal_posts[1][1]
+    return their_goal.lower_post < predicted_y < their_goal.higher_post
 
 
 # From 2015 Group 12 behaviour/utilities.py

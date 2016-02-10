@@ -26,11 +26,11 @@ class Vision:
             pitch_no = self.config.pitch_room.getCode(req_room, unifier=lambda str: re.sub(r'\W+', '', str.upper()))
             if pitch_no is not None:
                 pitch = pitch_no
-            else:
-                print("Try again")
+        #    else:
+                #print("Try again")
 
         self.cam = Camera(port=video_port, pitch=pitch, config=self.config)
-        print("Camera initialised")
+        #print("Camera initialised")
 
         def print_function(x):
             print x
@@ -45,7 +45,7 @@ class Vision:
         self.world_latest = World()
         self.world_previous = None
 
-        print("Basic camera calibration complete")
+        #print("Basic camera calibration complete")
         # colours = c.calibrateColor(self.cam)
 
         # if colours is not None:
@@ -67,9 +67,9 @@ class Vision:
         self.config.addFilter("green", partial(filters.filter_colour, "green"))
         self.config.addFilter("pink", partial(filters.filter_colour, "pink"))
         self.config.addFilter("manual colour", partial(filters.filter_colour, None))
-        print("Filters set up")
+        #print("Filters set up")
 
-        print("Initialising trackers")
+        #print("Initialising trackers")
 
         self.tracker_ball = DotTracker(0, 0, 'red', self.config, "ball")
         self.tracker_blue = DotTracker(0, 0, 'yellow', self.config, "robot")
@@ -120,16 +120,16 @@ class Vision:
             q = Queue()
 
             # note hte potential to detect in threads and then join back!
-            print("track ball")
+            #print("track ball")
             self.tracker_ball.find(frame, q)
-            print("track blue")
+            #print("track blue")
             self.tracker_blue.find(frame, q)
-            print("track yellow")
+            #print("track yellow")
             self.tracker_yellow.find(frame, q)
 
             while not q.empty():
                 item = q.get_nowait()
-                print(item)
+                #print(item)
                 if item is None:
                     continue
                 x, y = item['x'], item['y']
@@ -181,8 +181,8 @@ class Vision:
                 if filter["option"].selected:
                     frame = filter["function"](frame)
                     cv2.imshow(name, frame)
-                else:
-                    print("Filter stack does not agree with activated filters")
+                #else:
+                    #print("Filter stack does not agree with activated filters")
 
             cv2.imshow(self.config.OUTPUT_TITLE, frame)
             cv2.setMouseCallback(self.config.OUTPUT_TITLE,

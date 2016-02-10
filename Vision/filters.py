@@ -12,11 +12,11 @@ def filter_dummy(frame, config):
 
 def filter_overlay(frame, config):
     world = config.vision.world_latest
-    try:
-        print world.ball.__dict__
-        print config.vision.world_previous.ball.__dict__
-    except AttributeError:
-        pass
+    #try:
+        #print world.ball.__dict__
+        #print config.vision.world_previous.ball.__dict__
+    #except AttributeError:
+    #    pass
 
     if world.ball is not None:
         ball = world.ball
@@ -27,7 +27,7 @@ def filter_overlay(frame, config):
 
         	x = world.ball.x - config.vision.world_previous.ball.x
         	y = world.ball.y - config.vision.world_previous.ball.y
-        	print x,y
+        	#print x,y
 
         	arrowhead = (int(x*10+world.ball.x), int(y*10+world.ball.y))
         	cv2.arrowedLine(frame, ball.centre, arrowhead, BGR_COMMON['red'], 2, cv2.LINE_AA)

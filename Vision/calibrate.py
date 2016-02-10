@@ -163,7 +163,7 @@ class Calibrate(object):
 
         for colour in colours:
             c=1
-            print("click on {}, to continue press 'q'".format(colour))
+            #print("click on {}, to continue press 'q'".format(colour))
 
             cv2.setMouseCallback(self.config.COLCAL_TITLE,
                                  lambda event, x, y, flags, param:self.p(event, x, y, flags, param, hsv, colours[colour]))
@@ -179,7 +179,7 @@ class Calibrate(object):
                     min = np.min(np.asarray(l), axis=0)
                     max = np.max(np.asarray(l), axis=0)
                     mean = np.mean(np.asarray(l), axis=0)
-                    print(min, max, mean)
+                    #print(min, max, mean)
                     colours[colour] = {
                         "min":min,
                         "max":max,

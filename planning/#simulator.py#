@@ -1,0 +1,65 @@
+import sys
+import pygame
+from pygame.locals import *
+from random import randint
+from world import World
+from planner import Planner
+from comms import CommsManager
+
+class SimulatorMain:
+
+    def __init__(self, width=340,height=525):
+        pygame.init()
+        self.width = width
+        self.height = height
+        self.screen = pygame.display.set_mode((self.width, self.height))
+
+    def loop(self):
+        world = World('left', 0)
+        planner = Planner()
+        while True:
+            # Call planner
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            self.draw(world, self.screen)
+
+    def draw(self, world, surface):
+        for r in world.robots:
+            r.draw(surface)
+        #world.ball.draw()
+        pygame.display.flip()
+
+class Robot (object):
+    def __init__(self):
+        self.moving_to_x = None
+        self.moving_to_y = None
+
+    def move_to(self, x, y):
+        self.moving_to_x = x
+        self.moving_to_y = y
+
+    def update_position(self, x, y):
+        if s
+
+class SimulatorComms (CommsManager):
+    def move(self, distance):
+        pass
+
+class Object (object):
+
+    def __init__(self, left, top, direction, velocity, color):
+        self.rect = pygame.Rect(left, top, self.WIDTH, self.HEIGHT)
+        self.color = color
+        self.direction = direction
+        self.velocity = 0
+
+    def draw(self, surface):
+        pygame.draw.rect(surface, self.color, self.rect)
+
+    def move(self, x, y):
+        self.rect.move_ip(x, y)
+
+if __name__ == "__main__":
+    window = SimulatorMain()
+    window.loop()

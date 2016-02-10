@@ -2,7 +2,8 @@ import utils
 import math
 
 # TODO
-ROTATION_THRESHOLD = 0.1
+ROTATION_THRESHOLD = 0.35
+
 
 class Goal(object):
     '''
@@ -69,7 +70,7 @@ class Action(object):
 
 class GoToStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: r.get_rotation_to_point(w.ball.x, w.ball.y) < ROTATION_THRESHOLD]
+                     lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -92,10 +93,9 @@ class TurnToGoal(Action):
 
     def perform(self, comms):
         # TODO find best point to shoot to
-        x = self.world.goal.x + self.world.goal.width / 2
-        y = self.world.goal.y
+        x = self.world.their_goal.x + self.world.their_goal.width / 2
+        y = self.world.their_goal.y
         comms.turn(self.robot.get_rotation_to_point(x, y))
-
 
 class TurnToBall(Action):
     def perform(self, comms):
@@ -106,7 +106,7 @@ class TurnToBall(Action):
 
 class Shoot(Action):
     preconditions = [lambda w, r: r.has_ball(w.ball),
-                     lambda w, r: utils.can_score(w, r, w.their_goal())]
+                     lambda w, r: utils.can_score(w, r, w.their_goal)]
 
     def perform(self, comms):
         comms.kick_full_power()

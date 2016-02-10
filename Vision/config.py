@@ -56,10 +56,11 @@ class Config:
     pitch_room = Option("pitch_room", text="Pitch room", options=["3.D03", "3.D04"])
     computer = Option("colour", text="Our colour", options=list(calibrations.colour_profiles))
     colours = colour_profiles['3d04_pc1']
+    colours = colour_profiles['breadnel']
 
     dot_areas = {
-        'blue': 0,
-        'yellow': 0,
+        'blue': 10,
+        'yellow': 10,
         'red': 0
     }
     

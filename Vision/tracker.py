@@ -227,10 +227,10 @@ class DotTracker(Tracker):
                                                       colour,
                                                       'BALL')
         if len(contours) <= 0:
-            print 'No {} {} found.'.format(self.colour_name, self.item)
+            #print 'No {} {} found.'.format(self.colour_name, self.item)
             return
-        if len(contours) < 2 and self.item == 'robot':
-            print 'Only {} {} {} found.'.format(len(contours), self.colour_name, self.item)
+        #if len(contours) < 2 and self.item == 'robot':
+            #print 'Only {} {} {} found.'.format(len(contours), self.colour_name, self.item)
 
         if self.item == 'ball' or corner:
             cnt = self.get_largest_contour(contours)
