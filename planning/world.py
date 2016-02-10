@@ -35,6 +35,7 @@ class PitchObject(object):
             self._height = height
             self._angle_offset = angle_offset
             self._vector = Vector(x, y, angle, velocity)
+            self._is_missing = True
 
     @property
     def width(self):
@@ -79,6 +80,13 @@ class PitchObject(object):
         else:
             self._vector = Vector(
                 new_vector.x, new_vector.y, new_vector.angle - self._angle_offset, new_vector.velocity)
+            self._is_missing = False
+
+    def is_missing(self):
+        return self._is_missing
+    	
+    def set_missing(self):
+        self._is_missing = True
 
     def get_generic_polygon(self, width, length):
         '''
@@ -300,5 +308,11 @@ class World(object):
         This method will update the positions of the pitch objects
         that it gets passed by the vision system
         '''
-        self.our_robot.vector = pos_dict['our_robot']
-        self.ball.vector = pos_dict['ball']
+        if not pos_dict['our_robot']:
+            self.our_robot.set_missing()
+        else:
+            self.our_robot.vector = pos_dict['our_robot']
+        if not pos_dict['ball']:
+            self.ball.set_missing()
+       	else:  	
+            self.ball.vector = pos_dict['ball']
