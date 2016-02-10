@@ -18,8 +18,8 @@ GOAL_WIDTH = 140
 GOAL_LENGTH = 1
 GOAL_HEIGHT = 10
 
-GOAL_LOWER = 40
-GOAL_HIGHER = 60
+GOAL_LOWER = 286
+GOAL_HIGHER = 164
 
 class PitchObject(object):
     '''
@@ -81,7 +81,7 @@ class PitchObject(object):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
             self._vector = Vector(
-                new_vector.x, new_vector.y, new_vector.angle - self._angle_offset, new_vector.velocity)
+                new_vector.y, new_vector.x, (new_vector.angle - self._angle_offset - (pi / 2)) % (2 * pi), new_vector.velocity)
             self._is_missing = False
 
     def is_missing(self):
@@ -149,6 +149,10 @@ class Robot(PitchObject):
         '''
         Get if the ball is in the catcher zone but may not have possession
         '''
+        if self.catcher_area.isInside(ball.x, ball.y):
+            print("Can catch ball")
+        else:
+            print("Can't catch ball")
         return self.catcher_area.isInside(ball.x, ball.y)
 
     def has_ball(self, ball):
@@ -171,14 +175,17 @@ class Robot(PitchObject):
         if displacement == 0:
             theta = 0
         else:
-            theta = atan2(delta_y, delta_x) - self.angle  # atan2(sin(self.angle), cos(self.angle))
+            theta = atan2(delta_x, delta_y) - self.angle  # atan2(sin(self.angle), cos(self.angle))
+            print(atan2(delta_x, delta_y))
+            print(theta)
             if theta > pi:
                 theta -= 2 * pi
             elif theta < -pi:
                 theta += 2 * pi
+            print(theta)
         assert -pi <= theta <= pi
-        print ("rotation = {0}".format(-theta))
-        return -theta
+        print ("rotation = {0}".format(theta))
+        return theta
 
     def get_displacement_to_point(self, x, y):
         '''

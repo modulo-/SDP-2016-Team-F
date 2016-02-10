@@ -25,6 +25,8 @@ class GetBall(Goal):
     def generate_action(self):
         actions = [GrabBall(self.world, self.robot),
                    GoToStaticBall(self.world, self.robot),
+                   OpenGrabbers(self.world, self.robot),
+                   GoToOpeningDistanceStaticBall(self.world, self.robot),
                    TurnToBall(self.world, self.robot)]
         for a in actions:
             if a.is_possible():
@@ -70,31 +72,55 @@ class Action(object):
 
 class GoToStaticBall(Action):
     preconditions = [#lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD]
+                     lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD,
+        lambda w, r: r.catcher == 'OPEN']
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
         dy = self.world.ball.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
         # TODO grabbing area size
-        grabber_size = 50
+        grabber_size = 24
         comms.move(d - grabber_size)
 
+class GoToOpeningDistanceStaticBall(Action):
+    preconditions = [#lambda w, r: utils.ball_is_static(w),
+                     lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD]
+        #lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
+
+    def perform(self, comms):
+        dx = self.world.ball.x - self.robot.x
+        dy = self.world.ball.y - self.robot.y
+        d = math.sqrt(dx**2 + dy**2)
+        # TODO grabbing area size
+        grabber_size = 70
+        comms.move(d - grabber_size)
+
+class OpenGrabbers (Action):
+    preconditions = [lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80,
+                     lambda w, r: r.catcher == 'CLOSED']
+
+    def perform(self, comms):
+        comms.release_grabbers()
 
 class GrabBall(Action):
-    preconditions = [lambda w, r: r.can_catch_ball(w.ball)]
+    preconditions = [lambda w, r: r.can_catch_ball(w.ball),
+                     lambda w, r: r.catcher == 'OPEN']
 
     def perform(self, comms):
         comms.close_grabbers()
 
 
 class TurnToGoal(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball)]
+    preconditions = []#lambda w, r: r.has_ball(w.ball)]
 
     def perform(self, comms):
         # TODO find best point to shoot to
-        x = self.world.their_goal.x + self.world.their_goal.width / 2
-        y = self.world.their_goal.y
+        #x = self.world.their_goal.x + self.world.their_goal.width / 2
+        #x = (self.world.their_goal.higher_post -
+        #     self.world.their_goal.lower_post) / 2
+        x = 220
+        y = 0 #self.world.their_goal.y
         comms.turn(self.robot.get_rotation_to_point(x, y))
 
 class TurnToBall(Action):
@@ -105,8 +131,11 @@ class TurnToBall(Action):
 
 
 class Shoot(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball),
-                     lambda w, r: utils.can_score(w, r, w.their_goal)]
+    #preconditions = [lambda w, r: abs(r.get_rotation_to_point((w.their_goal.higher_post - w.their_goal.lower_post) / 2, 0)) < 0.35/(1+r.get_displacement_to_point((w.their_goal.higher_post - w.their_goal.lower_post) / 2, 0))]
+    #preconditions = [lambda w, r: abs(r.get_rotation_to_point((w.their_goal.higher_post - w.their_goal.lower_post) / 2, 0)) < 0.05]
+    #lambda w, r: r.has_ball(w.ball),
+                     #lambda w, r: utils.can_score(w, r, w.their_goal)]
+    preconditions = [lambda w, r: abs(r.get_rotation_to_point(220, 0)) < 0.35]
 
     def perform(self, comms):
         comms.kick_full_power()

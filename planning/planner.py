@@ -1,5 +1,5 @@
 from comms import CommsManager
-from models import GetBall, Score, GrabBall, Shoot
+from models import GetBall, Score, GrabBall, Shoot, OpenGrabbers
 
 
 class Planner:
@@ -14,7 +14,7 @@ class Planner:
         self.comms = comms
         self.previous_action = None
         self.current_task = 'move-grab'
-        self.grabber_state = 'OPEN'
+        self.grabber_state = 'CLOSED'
 
     def get_goal(self, world, robot):
         '''
@@ -31,8 +31,10 @@ class Planner:
         '''Perform actions'''
         action.perform(self.comms)
         if isinstance(action, GrabBall):
+            print("Did grab")
             self.grabber_state = 'CLOSED'
-        elif isinstance(action, Shoot):
+        elif isinstance(action, Shoot) or isinstance(action, OpenGrabbers):
+            print("Did open")
             self.grabber_state = 'OPEN'
 
     def plan_and_act(self, world):
