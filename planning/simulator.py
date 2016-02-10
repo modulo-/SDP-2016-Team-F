@@ -84,15 +84,21 @@ class SimulatorComms(CommsManager):
         self.wait_and_next_step = wait_and_next_step
         super(SimulatorComms, self).__init__(0)
 
-    def move(self, d):
-        super(SimulatorComms, self).move(d)
-        rotation = self.robot.rotation + 90
-        dx = d * sin(radians(rotation))
-        dy = d * cos(radians(rotation))
-        # print("Robot dxdy: {0} {1}".format(dx, dy))
+    def move(self, robot_pos, target_pos, distance):
+        super(SimulatorComms, self).move(robot_pos, target_pos, distance)
+        # 1) Using distance
+        # rotation = self.robot.rotation + 90
+        # dx = distance * sin(radians(rotation))
+        # dy = distance * cos(radians(rotation))
+        # delay = self.robot.move_to(
+        #     self.robot.position[0] + dx,
+        #     self.robot.position[1] + dy)
+        # self.wait_and_next_step(delay)
+
+        # 2) Using target_pos
         delay = self.robot.move_to(
-            self.robot.position[0] + dx,
-            self.robot.position[1] + dy)
+            target_pos[0],
+            target_pos[1])
         self.wait_and_next_step(delay)
 
     def turn(self, angle):
