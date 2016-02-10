@@ -93,10 +93,9 @@ class TurnToGoal(Action):
 
     def perform(self, comms):
         # TODO find best point to shoot to
-        x = self.world.goal.x + self.world.goal.width / 2
-        y = self.world.goal.y
+        x = self.world.their_goal.x + self.world.their_goal.width / 2
+        y = self.world.their_goal.y
         comms.turn(self.robot.get_rotation_to_point(x, y))
-
 
 class TurnToBall(Action):
     def perform(self, comms):
@@ -107,7 +106,7 @@ class TurnToBall(Action):
 
 class Shoot(Action):
     preconditions = [lambda w, r: r.has_ball(w.ball),
-                     lambda w, r: utils.can_score(w, r, w.their_goal())]
+                     lambda w, r: utils.can_score(w, r, w.their_goal)]
 
     def perform(self, comms):
         comms.kick_full_power()
