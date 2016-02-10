@@ -32,6 +32,10 @@ class Test:
             print "Finished"
             return
 
+        if 'task' in self.sequence[self.sequence_pos]:
+            self.p.set_task(self.sequence[self.sequence_pos]['task'])
+            print('Setting task to: {0}'.format(self.sequence[self.sequence_pos]['task']))
+
         self.w.update_positions(self.sequence[self.sequence_pos])
         self.p.plan_and_act(self.w)
 
@@ -62,7 +66,7 @@ class Scene(cocos.layer.ColorLayer):
             {'our_robot': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
             {'our_robot': Vector(start_robot_x, start_robot_y, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
             {'our_robot': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_robot': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}]
+            {'task': 'turn-shoot', 'our_robot': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}]
         t.run(sequence)
 
     def add_robot(self, pos, rotation_radians):
