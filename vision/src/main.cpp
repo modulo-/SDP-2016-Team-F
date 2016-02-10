@@ -140,6 +140,8 @@ int main(const int argc, const char* argv[]) {
 
             struct Robot r;
             if(numP < numG) {
+                r.pos = circles[1][blue].center;
+
                 size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 3) {
@@ -157,7 +159,6 @@ int main(const int argc, const char* argv[]) {
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
-                r.pos = circles[1][blue].center;
                 r.orientation = acos(cosTheta);
                 r.team = 0;
                 r.colour = 0;
@@ -166,6 +167,8 @@ int main(const int argc, const char* argv[]) {
                 bgFound = true;
 
             } else {
+                r.pos = circles[1][blue].center;
+
                 size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 4) {
@@ -183,7 +186,6 @@ int main(const int argc, const char* argv[]) {
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
-                r.pos = circles[1][blue].center;
                 r.orientation = acos(cosTheta);
                 r.team = 0;
                 r.colour = 1;
@@ -234,6 +236,8 @@ int main(const int argc, const char* argv[]) {
 
             struct Robot r;
             if(numP < numG) {
+                r.pos = circles[2][yellow].center;
+
                 size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 3) {
@@ -251,7 +255,6 @@ int main(const int argc, const char* argv[]) {
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
-                r.pos = circles[2][yellow].center;
                 r.orientation = acos(cosTheta);
                 r.team = 1;
                 r.colour = 0;
@@ -260,6 +263,8 @@ int main(const int argc, const char* argv[]) {
                 ygFound = true;
 
             } else {
+                r.pos = circles[2][yellow].center;
+
                 size_t pindex = 0;
                 for(size_t i = 0; i < markers.size(); i++) {
                     if(markers[i].colour == 4) {
@@ -277,7 +282,6 @@ int main(const int argc, const char* argv[]) {
                 cv::Point2f unit(0, 1);
                 double cosTheta = std::abs((mid2Center.dot(unit)) / (sqrt(mid2Center.dot(mid2Center)) * sqrt(unit.dot(unit))));
 
-                r.pos = circles[2][yellow].center;
                 r.orientation = acos(cosTheta);
                 r.team = 1;
                 r.colour = 1;
