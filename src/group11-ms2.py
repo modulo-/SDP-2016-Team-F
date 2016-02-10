@@ -50,7 +50,7 @@ class CommsManager(planning.comms.CommsManager):
     
     def close_grabbers(self):
         print("Robot {0} closing grabbers".format(self.robot_index))
-        group11cmd.run(group11cmd.cmd_grabber_close())
+        group11cmd.run(group11cmd.cmd_grabber_close() + group11cmd.cmd_wait(1000) + group11cmd.cmd_grabber_open())
     
     def release_grabbers(self):
         print("Robot {0} releasing grabbers".format(self.robot_index))

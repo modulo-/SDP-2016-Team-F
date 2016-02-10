@@ -125,7 +125,7 @@ class Robot(PitchObject):
         self._receiving_area = {
             'front_offset': 10,
             'height': 10,
-            'width': 10,
+            'width': 20,
         }
 
     @property
