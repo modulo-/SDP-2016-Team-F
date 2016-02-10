@@ -48,20 +48,24 @@ class Scene(cocos.layer.ColorLayer):
     def __init__(self):
         super(Scene, self).__init__(100, 255, 100, 255)
 
-        start_x = 100
-        start_y = 100
-        robot = self.add_robot([start_x, start_y])
-        ball = self.add_ball([200, 250])
+        start_robot_x = 100
+        start_robot_y = 100
+        start_robot_rotation = 0  # 3.14159
+        start_ball_x = 200
+        start_ball_y = 250
+
+        robot = self.add_robot([start_robot_x, start_robot_y], start_robot_rotation)
+        ball = self.add_ball([start_ball_x, start_ball_y])
         t = Test(our_robot=robot, ball=ball)
 
         sequence = [
-            {'our_robot': Vector(start_x, start_y, 0, 0), 'ball': Vector(200, 250, 0, 0)},
-        {'our_robot': Vector(start_x, start_y, 0.982793723247, 0), 'ball': Vector(200, 250, 0, 0)},
-        {'our_robot': Vector(172.26499018873852, 208.3974852831078, 0.982793723247, 0), 'ball': Vector(200, 250, 0, 0)},]
+            {'our_robot': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_robot': Vector(start_robot_x, start_robot_y, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_robot': Vector(172.26499018873852, 208.3974852831078, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}]
         t.run(sequence)
 
-    def add_robot(self, pos):
-        robot = Robot(pos=pos)
+    def add_robot(self, pos, rotation_radians):
+        robot = Robot(pos=pos, rotation_radians=rotation_radians)
         self.add(robot)
         return robot
 
@@ -83,12 +87,19 @@ class SimulatorComms(CommsManager):
         super(SimulatorComms, self).move(d)
         dx = d * sin(radians(self.robot.rotation))
         dy = d * cos(radians(self.robot.rotation))
-        delay = self.robot.move_to(self.robot.position[0] + dx,
-                                   self.robot.position[1] + dy)
+        delay = self.robot.move_to(
+            self.robot.position[0] + dx,
+            self.robot.position[1] + dy)
         self.wait_and_next_step(delay)
 
     def turn(self, angle):
-        print("Turning robot {0} angle {1}".format(self.robot_index, angle))
+        '''
+        positive angle - counter-clockwise rotation
+        negative angle - clockwise rotation
+        angle 0 means turned right
+        '''
+
+        super(SimulatorComms, self).turn(angle)
         delay = self.robot.rotate_by(angle)
         self.wait_and_next_step(delay)
 
@@ -99,6 +110,7 @@ class SimulatorComms(CommsManager):
     def release_grabbers(self):
         self.ball.release()
 
+
 class Sprite (cocos.sprite.Sprite):
 
     def __init__(self, sprite, pos):
@@ -106,7 +118,7 @@ class Sprite (cocos.sprite.Sprite):
         self.velocity = (0, 0)
         self.scale = 1
         self.set_position(pos[0], pos[1])
-        self.rotation = 90
+        self.rotation = 0
 
     def set_position(self, x, y):
         self.position = (x, y)
@@ -116,17 +128,23 @@ class Sprite (cocos.sprite.Sprite):
         return self._movement_speed
 
     def rotate_by(self, radians):
-        angle = radians * 180 / pi
+        '''
+        positive angle - counter-clockwise rotation
+        negative angle - clockwise rotation
+        angle 0 means turned right
+        '''
+        angle = -(radians * 180 / pi)
         self.do(ac.RotateBy(angle, self._rotation_speed))
         return self._rotation_speed
 
 
 class Robot(Sprite):
 
-    def __init__(self, pos):
+    def __init__(self, pos, rotation_radians):
         super(Robot, self).__init__('res/robot.png', pos)
         self._movement_speed = 2
         self._rotation_speed = 1
+        self.rotation = degrees(rotation_radians)
 
 
 class Ball(Sprite):
