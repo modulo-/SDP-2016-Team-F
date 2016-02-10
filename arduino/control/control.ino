@@ -491,8 +491,8 @@ void kick(int distance) { // distance in cm
             break;
     }
     //close flippers
-    motorForward(MOTOR_GRABBER, 20);
-    delay(800);
+    //motorForward(MOTOR_GRABBER, 20);
+    //delay(800);
     //move flippers away
     motorBackward(MOTOR_GRABBER, 20);
     delay(800);
