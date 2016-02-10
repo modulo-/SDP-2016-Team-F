@@ -50,7 +50,7 @@ class Scene(cocos.layer.ColorLayer):
 
         start_robot_x = 100
         start_robot_y = 100
-        start_robot_rotation = 0  # 3.14159
+        start_robot_rotation = 4.73  # 3.14159
         start_ball_x = 200
         start_ball_y = 250
 
@@ -85,8 +85,11 @@ class SimulatorComms(CommsManager):
 
     def move(self, d):
         super(SimulatorComms, self).move(d)
-        dx = d * sin(radians(self.robot.rotation))
-        dy = d * cos(radians(self.robot.rotation))
+        print("Robot rotation: {0}".format(self.robot.rotation))
+        rotation = self.robot.rotation + 90
+        dx = d * sin(radians(rotation))
+        dy = d * cos(radians(rotation))
+        # print("Robot dxdy: {0} {1}".format(dx, dy))
         delay = self.robot.move_to(
             self.robot.position[0] + dx,
             self.robot.position[1] + dy)
@@ -98,7 +101,7 @@ class SimulatorComms(CommsManager):
         negative angle - clockwise rotation
         angle 0 means turned right
         '''
-
+        print("Robot rotation: {0}".format(self.robot.rotation))
         super(SimulatorComms, self).turn(angle)
         delay = self.robot.rotate_by(angle)
         self.wait_and_next_step(delay)
@@ -144,7 +147,7 @@ class Robot(Sprite):
         super(Robot, self).__init__('res/robot.png', pos)
         self._movement_speed = 2
         self._rotation_speed = 1
-        self.rotation = degrees(rotation_radians)
+        self.rotation = -degrees(rotation_radians)
 
 
 class Ball(Sprite):
