@@ -94,7 +94,7 @@ int main(const int argc, const char* argv[]) {
         }
 
         cv::Point2f ball;
-        double ballSize = 0.1;
+        double ballSize = 0.07;
         bool ballFound = false;
         for(size_t i = 0; i < circles[0].size(); i++) {
             ballFound = true;
@@ -272,18 +272,18 @@ int main(const int argc, const char* argv[]) {
         std::vector<std::string> jsonKeyObjects;
 
         if(ballFound) {
-            lastBallPos = ball;
             seenBall = true;
         } else if(seenBall) {
             ball = lastBallPos;
             seenBall = false;
-            cv::arrowedLine(frame, ball + ball-lastBallPos, ball + (ball-lastBallPos)*10, cv::Scalar(255,255,255), 3);
+            cv::arrowedLine(frame, ball, ball, cv::Scalar(255,255,255), 3);
             cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
         }
 
         if(ballFound) {
-            cv::arrowedLine(frame, ball + ball-lastBallPos, ball + (ball-lastBallPos)*10, cv::Scalar(255,255,255), 3);
+            cv::arrowedLine(frame, ball, ball + (ball-lastBallPos)*10, cv::Scalar(255,255,255), 3);
             cv::circle(frame, ball, 10, cv::Scalar(0, 0, 255), 3);
+            lastBallPos = ball;
             std::stringstream jsonBall;
             jsonBall << "\"b\":{\"x\":" << ball.x << ",\"y\":" << ball.y << "}";
             jsonKeyObjects.push_back(jsonBall.str());
@@ -428,7 +428,7 @@ std::vector<std::vector<struct ColouredCircle> > findColouredCirclesInFrame(cv::
 
     cv::inRange(processed, cv::Scalar(0, 100, 100), cv::Scalar(10, 255, 255), masks[0]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(76, 90, 90), cv::Scalar(146, 255, 255), masks[1]); // HEURISTIC: range of HSV values
-    cv::inRange(processed, cv::Scalar(24, 100, 100), cv::Scalar(44, 255, 255), masks[2]); // HEURISTIC: range of HSV values
+    cv::inRange(processed, cv::Scalar(24, 200, 200), cv::Scalar(44, 255, 255), masks[2]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(165, 90, 90), cv::Scalar(180, 255, 255), masks[3]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(50, 200, 200), cv::Scalar(70, 255, 255), masks[4]); // HEURISTIC: range of HSV values
 

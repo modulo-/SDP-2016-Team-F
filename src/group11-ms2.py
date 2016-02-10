@@ -49,22 +49,14 @@ world = world.World('left', 0)
 statelock = Lock()
 
 def update_plan():
-    print world.our_robot, world.ball
-    ##print repr((
-    ##        group11cmd.parse_dist(world.our_robot.x),
-    ##        group11cmd.parse_dist(world.our_robot.y),
-    ##        group11cmd.parse_angle(world.our_robot.angle / pi * 180),
-    ##        group11cmd.parse_dist(world.ball.x),
-    ##        group11cmd.parse_dist(world.ball.y),
-    ##        group11cmd.parse_angle(0)))
-    group11cmd.run(group11cmd.cmd_brake(100) + group11cmd.cmd_mv(
-            group11cmd.parse_dist(world.our_robot.x),
-            group11cmd.parse_dist(world.our_robot.y),
-            group11cmd.parse_angle(world.our_robot.angle / pi * 180),
-            group11cmd.parse_dist(world.ball.x),
-            group11cmd.parse_dist(world.ball.y),
-            group11cmd.parse_angle(0)))
-    #planner.plan_and_act(world)
+    #group11cmd.run(group11cmd.cmd_brake(100) + group11cmd.cmd_mv(
+    #        group11cmd.parse_dist(world.our_robot.x),
+    #        group11cmd.parse_dist(world.our_robot.y),
+    #        group11cmd.parse_angle(world.our_robot.angle / pi * 180),
+    #        group11cmd.parse_dist(world.ball.x),
+    #        group11cmd.parse_dist(world.ball.y),
+    #        group11cmd.parse_angle(0)))
+    planner.plan_and_act(world)
     pass
 
 def updateworld(obj):
@@ -101,7 +93,7 @@ def monitor_vision():
 
 def poll_plan():
     while True:
-        sleep(1)
+        sleep(3)
         statelock.acquire()
         update_plan()
         statelock.release()
