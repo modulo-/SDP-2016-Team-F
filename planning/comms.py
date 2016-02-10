@@ -45,7 +45,7 @@ class RFCommsManager (CommsManager):
     
     # turn by an angle in degrees
     def turn(self, angle):
-        cmd = b"t"+struct.pack(">h", angle)
+        cmd = b"t"+struct.pack(">h", math.degrees(angle))
         comms.send(cmd, self.robot_id)
         super(RFCommsManager, self).turn(angle)
     
@@ -62,7 +62,11 @@ class RFCommsManager (CommsManager):
         super(RFCommsManager, self).kick_full_power()
 
     def close_grabbers(self):
+        cmd = b"g"
+        comms.send(cmd, self.robot_id)
         super(RFCommsManager, self).close_grabbers()
 
     def release_grabbers(self):
+        cmd = b"r"
+        comms.send(cmd, self.robot_id)
         super(RFCommsManager, self).release_grabbers()
