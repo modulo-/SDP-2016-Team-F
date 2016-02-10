@@ -100,7 +100,10 @@ class GoToStaticBall(Action):
 
         grabber_distance = 60
 
-        target_pos = (self.world.ball.x + norm_pvec[0] * grabber_distance, self.world.ball.y + norm_pvec[1] * grabber_distance, self.robot.angle)
+        target_facing_vector = (-norm_pvec[0], -norm_pvec[1])
+        target_angle = math.atan2(target_facing_vector[1], target_facing_vector[0])
+
+        target_pos = (self.world.ball.x + norm_pvec[0] * grabber_distance, self.world.ball.y + norm_pvec[1] * grabber_distance, target_angle)
         comms.move(robot_pos=(self.robot.x, self.robot.y, self.robot.angle), target_pos=target_pos, distance=d)
 
 
