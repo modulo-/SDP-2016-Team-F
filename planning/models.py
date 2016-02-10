@@ -79,8 +79,8 @@ class GoToStaticBall(Action):
         # TODO grabbing area size
         grabber_size = 50
         proportion = (d - grabber_size) / d
-        target_pos = (self.robot.x + dx * proportion, self.robot.y + dy * proportion)
-        comms.move(robot_pos=(self.world.ball.x, self.world.ball.y), target_pos=target_pos, distance=(d - grabber_size))
+        target_pos = (self.robot.x + dx * proportion, self.robot.y + dy * proportion, self.robot.angle)
+        comms.move(robot_pos=(self.robot.x, self.robot.y, self.robot.angle), target_pos=target_pos, distance=(d - grabber_size))
 
 
 class GrabBall(Action):
