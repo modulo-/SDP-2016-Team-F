@@ -120,7 +120,7 @@ class Robot(PitchObject):
 
     def __init__(self, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, height, angle_offset)
-        self._catcher = 'open'
+        self._catcher = 'OPEN'
 
     @property
     def catcher_area(self):
@@ -161,12 +161,12 @@ class Robot(PitchObject):
         '''
         This method returns an angle by which the robot needs to rotate to achieve alignment.
         It takes either an x, y coordinate of the object that we want to rotate to
-        positive angle - counter-clockwise rotation
-        negative angle - clockwise rotation
+        positive angle - clockwise rotation
+        negative angle - counter-clockwise rotation
         '''
         delta_x = x - self.x
         delta_y = y - self.y
-        # print("get_rotation_to_point {0} {1} {2} {3}".format(x, y, delta_x, delta_y))
+        print("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(x, y, delta_x, delta_y, self.x, self.y, self.angle))
         displacement = hypot(delta_x, delta_y)
         if displacement == 0:
             theta = 0
@@ -177,7 +177,8 @@ class Robot(PitchObject):
             elif theta < -pi:
                 theta += 2 * pi
         assert -pi <= theta <= pi
-        return theta
+        print ("rotation = {0}".format(-theta))
+        return -theta
 
     def get_displacement_to_point(self, x, y):
         '''
