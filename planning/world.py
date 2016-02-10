@@ -164,9 +164,12 @@ class Robot(PitchObject):
         '''
         This method returns an angle by which the robot needs to rotate to achieve alignment.
         It takes either an x, y coordinate of the object that we want to rotate to
+        positive angle - counter-clockwise rotation
+        negative angle - clockwise rotation
         '''
         delta_x = x - self.x
         delta_y = y - self.y
+        # print("get_rotation_to_point {0} {1} {2} {3}".format(x, y, delta_x, delta_y))
         displacement = hypot(delta_x, delta_y)
         if displacement == 0:
             theta = 0
