@@ -7,8 +7,8 @@ class CommsManager(object):
     def __init__(self, robot):
         self.robot_index = robot
 
-    def move(self, distance):
-        print("Moving robot {0} distance {1}".format(self.robot_index, distance))
+    def move(self, robot_pos, target_pos, distance):
+        print("Moving robot {0} from {1} to {2} with distance {3}".format(self.robot_index, robot_pos, target_pos, distance))
 
     def turn(self, angle):
         print("Turning robot {0} angle {1} radians ( {2} degrees)".format(self.robot_index, angle, math.degrees(angle)))
