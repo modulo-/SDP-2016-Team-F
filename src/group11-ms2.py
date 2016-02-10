@@ -26,7 +26,7 @@ class CommsManager:
     
     def turn(self, angle):
         group11cmd.run(group11cmd.cmd_spin(
-            group11cmd.parseangle(angle / pi * 180)))
+            group11cmd.parse_angle(angle / pi * 180)))
     
     def kick(self, distance):
         group11cmd.run(group11cmd.cmd_kick(100))
@@ -49,7 +49,23 @@ world = world.World('left', 0)
 statelock = Lock()
 
 def update_plan():
-    planner.plan_and_act(world)
+    print world.our_robot, world.ball
+    ##print repr((
+    ##        group11cmd.parse_dist(world.our_robot.x),
+    ##        group11cmd.parse_dist(world.our_robot.y),
+    ##        group11cmd.parse_angle(world.our_robot.angle / pi * 180),
+    ##        group11cmd.parse_dist(world.ball.x),
+    ##        group11cmd.parse_dist(world.ball.y),
+    ##        group11cmd.parse_angle(0)))
+    group11cmd.run(group11cmd.cmd_mv(
+            group11cmd.parse_dist(world.our_robot.x),
+            group11cmd.parse_dist(world.our_robot.y),
+            group11cmd.parse_angle(world.our_robot.angle / pi * 180),
+            group11cmd.parse_dist(world.ball.x),
+            group11cmd.parse_dist(world.ball.y),
+            group11cmd.parse_angle(0)))
+    #planner.plan_and_act(world)
+    pass
 
 def updateworld(obj):
     robvec = world.our_robot.vector
@@ -57,12 +73,12 @@ def updateworld(obj):
     if player in obj:
         robvec = Vector(
             translate_pos(obj[player]['x']),
-            -translate_pos(obj[player]['y']),
-            obj[player]['f'] * pi / 180, 0)
+            200 - translate_pos(obj[player]['y']),
+            (obj[player]['f'] * pi / 180) % (2 * pi), 0)
     if 'b' in obj:
         ballvec = Vector(
             translate_pos(obj['b']['x']),
-            -translate_pos(obj['b']['y']), 0, 0)
+            200 - translate_pos(obj['b']['y']), 0, 0)
     world.update_positions({
         'our_robot': robvec,
         'ball': ballvec,
@@ -116,7 +132,7 @@ def shell():
             break
 
 player = argv[1]
-comms.init(argv[2], '60', '+++')
+comms.init(argv[2], '60', '~~~')
 
 mkfifo(visionpipe)
 t = Thread(target=monitor_vision)
