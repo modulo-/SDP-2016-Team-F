@@ -92,19 +92,45 @@ class GoToStaticBall(Action):
         dy = self.world.ball.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
 
-        pdx = -dy
-        pdy = dx
+        first = self.get_target(dx, dy, 0)
+        second = self.get_target(dx, dy, 1)
+
+        # print(first)
+        # print(second)
+
+        pitch_center_x = 150
+        pitch_center_y = 100
+
+        first_d = math.sqrt((pitch_center_x - first[0])**2 + (pitch_center_y - first[1])**2)
+        second_d = math.sqrt((pitch_center_x - second[0])**2 + (pitch_center_y - second[1])**2)
+
+        # print(first_d)
+        # print(second_d)
+
+        target_pos = first
+        if second_d < first_d:
+            target_pos = second
+
+        print(target_pos)
+
+        comms.move(robot_pos=(self.robot.x, self.robot.y, self.robot.angle), target_pos=target_pos, distance=d)
+
+    def get_target(self, dx, dy, option):
+        if option == 0:
+            pdx = -dy
+            pdy = dx
+        else:
+            pdx = dy
+            pdy = -dx
+
         pd = math.sqrt(pdx**2 + pdy**2)
         norm_pvec = (float(pdx) / float(pd), float(pdy) / float(pd))
-        print("normalized vector: {0}".format(norm_pvec))
-
-        grabber_distance = 60
-
+        grabber_distance = 15
         target_facing_vector = (-norm_pvec[0], -norm_pvec[1])
         target_angle = math.atan2(target_facing_vector[1], target_facing_vector[0])
-
         target_pos = (self.world.ball.x + norm_pvec[0] * grabber_distance, self.world.ball.y + norm_pvec[1] * grabber_distance, target_angle)
-        comms.move(robot_pos=(self.robot.x, self.robot.y, self.robot.angle), target_pos=target_pos, distance=d)
+
+        return target_pos
 
 
 class GrabBall(Action):
