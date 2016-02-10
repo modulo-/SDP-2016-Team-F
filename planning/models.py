@@ -4,6 +4,7 @@ import math
 # TODO
 ROTATION_THRESHOLD = 0.1
 
+
 class Goal(object):
     '''
     Base class for goals
@@ -69,7 +70,7 @@ class Action(object):
 
 class GoToStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: r.get_rotation_to_point(w.ball.x, w.ball.y) < ROTATION_THRESHOLD]
+                     lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x

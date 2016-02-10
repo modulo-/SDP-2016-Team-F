@@ -11,7 +11,7 @@ class CommsManager(object):
         print("Moving robot {0} distance {1}".format(self.robot_index, distance))
 
     def turn(self, angle):
-        print("Turning robot {0} angle {1}".format(self.robot_index, angle))
+        print("Turning robot {0} angle {1} radians ( {2} degrees)".format(self.robot_index, angle, math.degrees(angle)))
 
     def kick(self, distance):
         print("Robot {0} kicking distance {1}".format(self.robot_index, distance))
