@@ -61,7 +61,8 @@ class Scene(cocos.layer.ColorLayer):
         sequence = [
             {'our_robot': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
             {'our_robot': Vector(start_robot_x, start_robot_y, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_robot': Vector(172.26499018873852, 208.3974852831078, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}]
+            {'our_robot': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_robot': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}]
         t.run(sequence)
 
     def add_robot(self, pos, rotation_radians):
@@ -85,7 +86,6 @@ class SimulatorComms(CommsManager):
 
     def move(self, d):
         super(SimulatorComms, self).move(d)
-        print("Robot rotation: {0}".format(self.robot.rotation))
         rotation = self.robot.rotation + 90
         dx = d * sin(radians(rotation))
         dy = d * cos(radians(rotation))
@@ -107,11 +107,17 @@ class SimulatorComms(CommsManager):
         self.wait_and_next_step(delay)
 
     def close_grabbers(self):
+        super(SimulatorComms, self).close_grabbers()
         # TODO Fix assumption that we can grab ball
         self.ball.grab(self.robot)
 
+        self.wait_and_next_step(1)
+
     def release_grabbers(self):
+        super(SimulatorComms, self).release_grabbers()
         self.ball.release()
+
+        self.wait_and_next_step(1)
 
 
 class Sprite (cocos.sprite.Sprite):
@@ -128,6 +134,7 @@ class Sprite (cocos.sprite.Sprite):
 
     def move_to(self, x, y):
         self.do(ac.MoveTo((x, y), duration=self._movement_speed))
+        print("Moving from: {0}".format(self.position))
         return self._movement_speed
 
     def rotate_by(self, radians):
@@ -157,10 +164,12 @@ class Ball(Sprite):
         self._movement_speed = 15
 
     def grab(self, robot):
-        self.image_anchor = robot.position
+        self._anchor_x = robot.position[0]
+        self._anchor_y = robot.position[1]
 
     def release(self):
-        self.image_anchor = self.position
+        self._anchor_x = 0
+        self._anchor_y = 0
 
 
 class Environment():
