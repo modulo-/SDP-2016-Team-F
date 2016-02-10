@@ -81,8 +81,20 @@ int main(const int argc, const char* argv[]) {
 
         std::vector<std::vector<struct ColouredCircle> > circles = findColouredCirclesInFrame(frame, camera.getBackgroundImage());
 
+        for(size_t r=0;r<circles[0].size();r++) {
+            for(size_t c=1;c<circles.size();c++) {
+                for(size_t i=0;i<circles[c].size();i++) {
+                    double dist = euclidianDistance(circles[0][r].center, circles[c][i].center);
+                    if(dist < 20) {
+                        circles[0][r].radius = 0;
+                        break;
+                    }
+                }
+            }
+        }
+
         cv::Point2f ball;
-        double ballSize = 0;
+        double ballSize = 0.1;
         bool ballFound = false;
         for(size_t i = 0; i < circles[0].size(); i++) {
             ballFound = true;
@@ -90,10 +102,6 @@ int main(const int argc, const char* argv[]) {
                 ball = circles[0][i].center;
                 ballSize = circles[0][i].radius;
             }
-        }
-
-        if(seenBall && euclidianDistance(ball, lastBallPos) > 50) {
-            ball = lastBallPos;
         }
 
         std::vector<struct ColouredCircle> pinkAndGreen = circles[3];
@@ -418,7 +426,7 @@ std::vector<std::vector<struct ColouredCircle> > findColouredCirclesInFrame(cv::
 
     cv::inRange(processed, cv::Scalar(0, 100, 100), cv::Scalar(10, 255, 255), masks[0]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(76, 90, 90), cv::Scalar(146, 255, 255), masks[1]); // HEURISTIC: range of HSV values
-    cv::inRange(processed, cv::Scalar(24, 200, 200), cv::Scalar(44, 255, 255), masks[2]); // HEURISTIC: range of HSV values
+    cv::inRange(processed, cv::Scalar(24, 100, 100), cv::Scalar(44, 255, 255), masks[2]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(165, 90, 90), cv::Scalar(180, 255, 255), masks[3]); // HEURISTIC: range of HSV values
     cv::inRange(processed, cv::Scalar(50, 200, 200), cv::Scalar(70, 255, 255), masks[4]); // HEURISTIC: range of HSV values
 
