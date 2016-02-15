@@ -8,15 +8,12 @@ from position import Vector
 
 ROBOT_WIDTH = 64
 ROBOT_LENGTH = 64
-ROBOT_HEIGHT = 10
 
 BALL_WIDTH = 5
 BALL_LENGTH = 5
-BALL_HEIGHT = 5
 
 GOAL_WIDTH = 140
 GOAL_LENGTH = 1
-GOAL_HEIGHT = 10
 
 GOAL_LOWER = 286
 GOAL_HIGHER = 164
@@ -28,13 +25,12 @@ class PitchObject(object):
     Length measures along the sides of an object
     '''
 
-    def __init__(self, x, y, angle, velocity, width, length, height, angle_offset=0):
-        if width < 0 or length < 0 or height < 0:
+    def __init__(self, x, y, angle, velocity, width, length, angle_offset=0):
+        if width < 0 or length < 0:
             raise ValueError('Object dimensions must be positive')
         else:
             self._width = width
             self._length = length
-            self._height = height
             self._angle_offset = angle_offset
             self._vector = Vector(x, y, angle, velocity)
             self._is_missing = True
@@ -46,10 +42,6 @@ class PitchObject(object):
     @property
     def length(self):
         return self._length
-
-    @property
-    def height(self):
-        return self._height
 
     @property
     def angle_offset(self):
@@ -113,13 +105,13 @@ class PitchObject(object):
     def __repr__(self):
         return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
                 (self.x, self.y,
-                 self.angle, self.velocity, (self.width, self.length, self.height)))
+                 self.angle, self.velocity, (self.width, self.length)))
 
 
 class Robot(PitchObject):
 
-    def __init__(self, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
-        super(Robot, self).__init__(x, y, angle, velocity, width, length, height, angle_offset)
+    def __init__(self, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
+        super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
         self._catcher = 'OPEN'
 
     @property
@@ -213,13 +205,13 @@ class Robot(PitchObject):
     def __repr__(self):
         return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
                 (self.x, self.y,
-                 self.angle, self.velocity, (self.width, self.length, self.height)))
+                 self.angle, self.velocity, (self.width, self.length)))
 
 
 class Ball(PitchObject):
 
     def __init__(self, x, y, angle, velocity):
-        super(Ball, self).__init__(x, y, angle, velocity, BALL_WIDTH, BALL_LENGTH, BALL_HEIGHT)
+        super(Ball, self).__init__(x, y, angle, velocity, BALL_WIDTH, BALL_LENGTH)
 
 
 class Goal(PitchObject):
@@ -227,7 +219,7 @@ class Goal(PitchObject):
     def __init__(self, x, y, angle, lower_post, higher_post):
         self._lower_post = lower_post
         self._higher_post = higher_post
-        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH, GOAL_HEIGHT)
+        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH)
 
     @property
     def lower_post(self):
@@ -239,7 +231,7 @@ class Goal(PitchObject):
 
     def __repr__(self):
         return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
-                (self.x, self.y, self.angle, self.velocity, (self.width, self.length, self.height)))
+                (self.x, self.y, self.angle, self.velocity, (self.width, self.length)))
 
 
 class Pitch(object):
