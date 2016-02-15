@@ -23,24 +23,17 @@ bool valid(const char *ptr, size_t len);
 // Calculates the 2-character checkum of some text in base64.
 Checksum checksum(const char *ptr, size_t len);
 // Decodes the base64-sequence pointed to by ptr of length len. Stores the
-// result in *dec_ptr, (re-)allocating as necessary. Stores the decoded length
-// in dec_len.
-//
-// Ownership of *dec_ptr is transferred to the caller and must be freed.
-//
-// Example usage:
-//
-// const char *base64 = "<some valid base64>";
-// char *dec = NULL;
-// size_t len;
-// base64::decode(base64, strlen(base64), &dec, &len);
-// // Do shit
-// free(dec);
-void decode(const char *ptr, size_t len, char **dec_ptr, size_t *dec_len);
+// result in the first decLen(len) bytes of dec_ptr. The caller must ensure
+// that this is a safe memory operation.
+void decode(const char *ptr, size_t len, char *dec_ptr);
 // Encodes base64. See encode for the workings.
 //
-// *enc_ptr will be a null terminated string; the null character is NOT counted
-// toward the returned length.
-void encode(const char *ptr, size_t len, char **enc_ptr, size_t *enc_len);
+// The first encLen(len) bytes of enc_ptr will be set to the values. The caller
+// must ensure that this is a safe memory operation.
+void encode(const char *ptr, size_t len, char *enc_ptr);
+// Returns the length of an base64 encoding of data of length len.
+size_t encLen(size_t len);
+// Returns the length of an base64 decoded data for input of length len.
+size_t decLen(size_t len);
 
 }

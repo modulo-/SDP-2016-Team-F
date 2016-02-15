@@ -61,3 +61,11 @@ fabric.properties
 
 # C test binaries
 /arduino/tests/*/*_tests
+
+# Python bytecode
+*.pyc
+
+# TeX junk
+*.aux
+*.dvi
+*.log

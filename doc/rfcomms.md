@@ -16,9 +16,10 @@ A data packet has the following format:
 
 `<target><source><data><checksum>\n`
 
-`<target>` is one of `1`, `2`, or `c`, standing for group 1**1**'s robot, group
-1**2**'s robot and the **c**ontroller respectively. A device which is not the
-target of the packet must ignore it.
+`<target>` is one of `1`, `2`, `c`, `d`, or `e` standing for group 1**1**'s
+robot, group 1**2**'s robot, the **c**ontroller, a **d**ebug message and an
+**e**rror message respectively. A device which is not the target of the packet
+must ignore it. The controller is the target of debug and error messages.
 
 `<source>` follows the same convention and specifies the target the
 acknowledgement packet should have.
