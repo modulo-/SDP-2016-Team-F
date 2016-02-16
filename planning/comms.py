@@ -25,6 +25,78 @@ class CommsManager(object):
     def release_grabbers(self):
         print("Robot {0} releasing grabbers".format(self.robot_index))
 
+class TractorCrabCommsManager(CommsManager):
+    CMD_WAIT          = 0x00
+    CMD_BRAKE         = 0x01
+    CMD_STRAIT        = 0x02
+    CMD_SPIN          = 0x03
+    CMD_KICK          = 0x04
+    CMD_MV            = 0x05
+    CMD_GRABBER_OPEN  = 0x06
+    CMD_GRABBER_CLOSE = 0x07
+    CMD_HOLD_SPIN     = 0x08
+
+    def __init__(self, robot, serial_device):
+        self.robot_id = 1
+        comms.init(serial_device, "60", "~~~", listen=True)
+        CommsManager.__init__(self, robot)
+
+    def _run(self, cmd):
+        comms.stop_resend()
+        comms.send(cmd)
+
+    def _normalize_angle(self, angle):
+        # Expects inputs in radians counter-clockwise.
+        # Returns output in minutes clockwise.
+        angle = int(-angle / pi * 10800)
+        if angle < -10800 or angle > 10800:
+            angle = (angle + 10800) % 21600 - 10800
+        return angle
+
+    def _normalize_dist(self, distance):
+        # Expects inputs in cm. Returns output in mm.
+        dist = int(distance * 10)
+        # Ensure that dist is always in range. Set to 0 else.
+        if dist < -0x8000 or dist > 0x7fff:
+            dist = 0
+        return dist
+
+    def _16_bitify(self, n):
+        return [n & 0xff, (n >> 8) & 0xff]
+
+    def move(self, distance):
+        # NOTE: moves to the right, NOT forward. (We need better support for a different action set).
+        # Expects input in cm.
+        # Accepts negative input.
+        # May fail or out-of-range inputs, this gets silently swallowed.
+        self._run([self.CMD_STRAIT] + self._16_bitify(self._normalize_dist(distance)))
+        CommsManager.move(self, distance)
+    
+    def turn(self, angle):
+        # NOTE: spins counter-clockwise, expects input in radians.
+        # Accepts negative input.
+        # May fail or out-of-range inputs, this gets silently swallowed.
+        self._run([self.CMD_SPIN] + self._16_bitify(self._normalize_angle(angle)))
+        CommsManager.turn(self, angle)
+    
+    def kick(self, distance):
+        # NOTE: currently, functions the same as a full-power kick.
+        self._run([self.CMD_KICK] + self._16_bitify(100))
+        CommsManager.kick(self, distance)
+    
+    def kick_full_power(self):
+        self._run([self.CMD_KICK] + self._16_bitify(100))
+        CommsManager.kick_full_power(self)
+    
+    def close_grabbers(self):
+        self._run([self.CMD_GRABBER_CLOSE])
+        CommsManager.close_grabbers(self)
+    
+    def release_grabbers(self):
+        self._run([self.CMD_GRABBER_OPEN])
+        CommsManager.release_grabbers(self)
+
+
 class RFCommsManager (CommsManager):
 
     def __init__(self, robot, serial_device):
