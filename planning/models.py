@@ -35,6 +35,9 @@ class GetBall(Goal):
 
 
 class Score(Goal):
+    '''
+    Turn and shoot
+    '''
     def generate_action(self):
         actions = [Shoot(self.world, self.robot),
                    TurnToGoal(self.world, self.robot)]
@@ -43,19 +46,38 @@ class Score(Goal):
                 return a
         return None
 
-class Block(Goal):
+class DefendGoal(Goal):
+    '''
+    Move around goal to block attacker
+    '''
     def generate_action(self):
         raise NotImplementedError
 
 class Pass(Goal):
+    '''
+    Pass to attacker
+    '''
     def generate_action(self):
         raise NotImplementedError
 
-class FindSpace(Goal):
+class Tactical(Goal):
+    '''
+    Move to optimum defensive position
+    '''
     def generate_action(self):
         raise NotImplementedError
 
-class Defend(Goal):
+class Position(Goal):
+    '''
+    Move to optimum attacking position
+    '''
+    def generate_action(self):
+        raise NotImplementedError
+
+class Block(Goal):
+    '''
+    Our attacker block attacking opponent
+    '''
     def generate_action(self):
         raise NotImplementedError
 
