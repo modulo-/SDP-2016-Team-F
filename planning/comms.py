@@ -42,13 +42,13 @@ class TractorCrabCommsManager(CommsManager):
         CommsManager.__init__(self, robot)
 
     def _run(self, cmd):
-        comms.stop_resend()
-        comms.send(cmd)
+        comms.stop_resend('1')
+        comms.send(''.join(chr(i) for i in cmd), '1')
 
     def _normalize_angle(self, angle):
         # Expects inputs in radians counter-clockwise.
         # Returns output in minutes clockwise.
-        angle = int(-angle / pi * 10800)
+        angle = int(math.degrees(-angle) * 60)
         if angle < -10800 or angle > 10800:
             angle = (angle + 10800) % 21600 - 10800
         return angle

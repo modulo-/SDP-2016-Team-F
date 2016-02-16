@@ -27,24 +27,25 @@ def new_vision(world):
 def start_vision():
 	vision = Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
 	
-
 if __name__ == '__main__':
-    if argv.len() != 3:
-        print("Usage: ./main.py <group> <rf device path> <task>")
+    if len(argv) != 3:
+        print("Usage: ./main.py <group> <rf device path>")
         print("<group> must be either '11' or '12'.")
         print("<rf device path> should be '/dev/ttyACM0' or similar.")
-        print("<task> should be 'move-grab' or 'turn-shoot'.")
         print("Note that I'm lazy and don't check the input properly.")
         exit(0)
+    task = raw_input("Enter task ('move-grab' or 'turn-shoot'): ")
     thread = Thread(target=start_vision)
     thread.start()
     comms = None
-    if argv[0] == '11':
-        comms = TractorCrabCommsManager(0, argv[1])
-    elif argv[0] == '12':
-        comms = RFCommsManager(0, argv[1])
+    if argv[1] == '11':
+        comms = TractorCrabCommsManager(0, argv[2])
+    elif argv[1] == '12':
+        comms = RFCommsManager(0, argv[2])
+    else:
+        raise Exception('You wish.')
     planner = Planner(comms=comms)
-    planner.set_task(task)
+    planner.set_task(task.strip())
 
     def run_planner():
         print (latest_world.our_robot.angle)
