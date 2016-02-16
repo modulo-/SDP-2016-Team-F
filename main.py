@@ -1,11 +1,12 @@
+#!/usr/bin/python2
 
 from Vision.vision import Vision
 from planning.planner import Planner
-from planning.comms import CommsManager, RFCommsManager
+from planning.comms import CommsManager, RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
+from sys import argv
 
-task = raw_input("Enter task (move-grab or turn-shoot): ")
 
 PITCH_NO = 0
 
@@ -26,17 +27,31 @@ def new_vision(world):
 def start_vision():
 	vision = Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
 	
-thread = Thread(target=start_vision)
-thread.start()
-comms = RFCommsManager(0, "/dev/ttyACM0")
-planner = Planner(comms=comms)
-planner.set_task(task)
+if __name__ == '__main__':
+    if len(argv) != 3:
+        print("Usage: ./main.py <group> <rf device path>")
+        print("<group> must be either '11' or '12'.")
+        print("<rf device path> should be '/dev/ttyACM0' or similar.")
+        print("Note that I'm lazy and don't check the input properly.")
+        exit(0)
+    task = raw_input("Enter task ('move-grab' or 'turn-shoot'): ")
+    thread = Thread(target=start_vision)
+    thread.start()
+    comms = None
+    if argv[1] == '11':
+        comms = TractorCrabCommsManager(0, argv[2])
+    elif argv[1] == '12':
+        comms = RFCommsManager(0, argv[2])
+    else:
+        raise Exception('You wish.')
+    planner = Planner(comms=comms)
+    planner.set_task(task.strip())
 
-def run_planner():
-    print (latest_world.our_robot.angle)
-    planner.plan_and_act(latest_world)
+    def run_planner():
+        print (latest_world.our_robot.angle)
+        planner.plan_and_act(latest_world)
+        timer = Timer(1, run_planner)
+        timer.start()
+        
     timer = Timer(1, run_planner)
     timer.start()
-    
-timer = Timer(1, run_planner)
-timer.start()
