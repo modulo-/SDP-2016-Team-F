@@ -43,6 +43,22 @@ class Score(Goal):
                 return a
         return None
 
+class Block(Goal):
+    def generate_action(self):
+        raise NotImplementedError
+
+class Pass(Goal):
+    def generate_action(self):
+        raise NotImplementedError
+
+class FindSpace(Goal):
+    def generate_action(self):
+        raise NotImplementedError
+
+class Defend(Goal):
+    def generate_action(self):
+        raise NotImplementedError
+
 
 class Action(object):
     '''
@@ -96,7 +112,7 @@ class GoToOpeningDistanceStaticBall(Action):
         grabber_size = 70
         comms.move(d - grabber_size)
 
-class OpenGrabbers (Action):
+class OpenGrabbers(Action):
     preconditions = [lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80,
                      lambda w, r: r.catcher == 'CLOSED']
 
