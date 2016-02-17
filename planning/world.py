@@ -240,6 +240,7 @@ class Pitch(object):
     '''
 
     def __init__(self, pitch_num):
+        # TODO Get real pitch size
         self._width = 100
         self._height = 100
 
@@ -268,9 +269,16 @@ class World(object):
     Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
-    _robots = []
-    _robots.append(Robot(0, 0, 0, 0, 0))
-    _our_robot_index = 0
+    _our_defender = Robot(0, 0, 0, 0, 0)
+    _our_attacker = Robot(0, 0, 0, 0, 0)
+    _their_robots = []
+    _their_robots.append(Robot(0, 0, 0, 0, 0))
+    _their_robots.append(Robot(0, 0, 0, 0, 0))
+    _our_defender_index = 0
+    _our_attacker_index = 1
+    _their_defender_index = 2
+    _their_attacker_index = 3
+
     _goals = []
 
     def __init__(self, our_side, pitch_num):
@@ -285,8 +293,24 @@ class World(object):
         self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, pi, GOAL_LOWER, GOAL_HIGHER))
 
     @property
-    def our_robot(self):
-        return self._robots[self._our_robot_index]
+    def our_defender(self):
+        return self._our_defender
+
+    @property
+    def our_attacker(self):
+        return self._our_attacker
+
+    @property
+    def their_robots(self):
+        return self._their_robots
+
+    @property
+    def their_defenders(self):
+        return [r for r in self._their_robots if in_their_half(r)]
+
+    @property
+    def their_attackers(self):
+        return [r for r in self._their_robots if in_our_half(r)]
 
     @property
     def ball(self):
@@ -304,16 +328,28 @@ class World(object):
     def pitch(self):
         return self._pitch
 
+    def in_our_half(self, robot):
+        halfway = self._pitch.width / 2
+        if self._our_side == 'left':
+            return robot.x < halfway
+        else:
+            return robot.x >= halfway
+
+    def in_their_half(self, robot):
+        return not self.in_our_half(robot)
+
     def update_positions(self, pos_dict):
         '''
         This method will update the positions of the pitch objects
         that it gets passed by the vision system
         '''
-        if not pos_dict['our_robot']:
-            self.our_robot.set_missing()
-        else:
-            self.our_robot.vector = pos_dict['our_robot']
-        if not pos_dict['ball']:
-            self.ball.set_missing()
-       	else:  	
-            self.ball.vector = pos_dict['ball']
+        pitch_objects = [('our_defender', self.our_defender),
+                         ('our_attacker', self.our_attacker),
+                         ('their_robot_0', self.their_robots[0]),
+                         ('their_robot_1', self.their_robots[1]),
+                         ('ball', self.ball)]
+        for (name, obj) in pitch_objects:
+            if not pos_dict[name]:
+                obj.set_missing()
+            else:
+                obj.vector = pos_dict[name]
