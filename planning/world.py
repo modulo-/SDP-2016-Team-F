@@ -151,6 +151,7 @@ class Robot(PitchObject):
         '''
         Gets if the robot has possession of the ball
         '''
+        # TODO Make this work for opponents
         return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
 
     def get_rotation_to_point(self, x, y):
@@ -201,6 +202,12 @@ class Robot(PitchObject):
         robot_poly = self.get_polygon()
         target_poly = target.get_polygon()
         return Polygon(robot_poly[0], robot_poly[1], target_poly[0], target_poly[1])
+
+    def on_goal_arc(self, goal):
+        raise NotImplementedError
+
+    def aligned_on_goal_arc(self, attacker):
+        raise NotImplementedError
 
     def __repr__(self):
         return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
@@ -337,6 +344,15 @@ class World(object):
 
     def in_their_half(self, robot):
         return not self.in_our_half(robot)
+
+    @property
+    def robot_in_possession(self, robot):
+        robots = [self.our_defender,
+                  self.our_attacker] + self.their_robots
+        for r in robots:
+            if r.has_ball(self.ball):
+                return r
+        return None
 
     def update_positions(self, pos_dict):
         '''

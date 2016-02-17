@@ -3,7 +3,7 @@ import math
 
 # TODO
 ROTATION_THRESHOLD = 0.35
-
+FACING_ROTATION_THRESHOLD = 0.35
 
 class Goal(object):
     '''
@@ -150,7 +150,7 @@ class GrabBall(Action):
 
 
 class TurnToGoal(Action):
-    preconditions = []#lambda w, r: r.has_ball(w.ball)]
+    preconditions = [lambda w, r: r.has_ball(w.ball)]
 
     def perform(self, comms):
         # TODO find best point to shoot to
@@ -169,11 +169,57 @@ class TurnToBall(Action):
 
 
 class Shoot(Action):
-    #preconditions = [lambda w, r: abs(r.get_rotation_to_point((w.their_goal.higher_post - w.their_goal.lower_post) / 2, 0)) < 0.35/(1+r.get_displacement_to_point((w.their_goal.higher_post - w.their_goal.lower_post) / 2, 0))]
-    #preconditions = [lambda w, r: abs(r.get_rotation_to_point((w.their_goal.higher_post - w.their_goal.lower_post) / 2, 0)) < 0.05]
-    #lambda w, r: r.has_ball(w.ball),
-                     #lambda w, r: utils.can_score(w, r, w.their_goal)]
-    preconditions = [lambda w, r: abs(r.get_rotation_to_point(220, 0)) < 0.35]
+    preconditions = [lambda w, r: r.has_ball(w.ball),
+                     lambda w, r: utils.can_score(w, r, w.their_goal)]
 
     def perform(self, comms):
         comms.kick_full_power()
+
+class MoveToGoalArc(Action):
+    '''
+    Move to goal defending position, an arc around our goal
+    '''
+    def perform(self, comms):
+        raise NotImplementedError
+
+class MoveOnGoalArc(Action):
+    '''
+    Move around our goal arc to defend goal
+    '''
+    preconditions = [lambda w, r: r.on_goal_arc(w.our_goal)]
+
+    def perform(self, comms):
+        raise NotImplementedError
+
+class TurnToAttacker(Action):
+    '''
+    Turn to face opponent's attacker
+    '''
+    preconditions = [lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession)]
+
+    def perform(self, comms):
+        raise NotImplementedError
+
+class OpenGrabbersForOpponentShot(Action):
+    '''
+    Open grabbers to block oponnent's shot
+    '''
+    def rotation_precondition(w, r):
+        possessing = w.robot_in_posession
+        rotation = r.get_rotation_to_point(posessing.x, posessing.y)
+        return abs(rotation) < FACING_ROTATION_THRESHOLD
+
+    preconditions = [lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession),
+                     rotation_precondition]
+
+    def perform(self, comms):
+        raise NotImplementedError
+
+class TurnToScoreZone(Action):
+    '''
+    Turn with ball to prepare pass to attacker's score zone
+    '''
+    preconditions = [lambda w, r: r.has_ball(w.ball)]
+
+    def perform(self, comms):
+        raise NotImplementedError
