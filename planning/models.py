@@ -4,6 +4,10 @@ import math
 # TODO
 ROTATION_THRESHOLD = 0.35
 FACING_ROTATION_THRESHOLD = 0.35
+DISTANCE_THRESHOLD = 5
+
+def are_equivalent_positions(a, b):
+    return math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2) < DISTANCE_THRESHOLD
 
 class Goal(object):
     '''
@@ -16,7 +20,6 @@ class Goal(object):
     # Return the next action necesary to achieve the goal
     def generate_action(self):
         raise NotImplementedError
-
 
 class GetBall(Goal):
     '''
@@ -220,6 +223,34 @@ class TurnToScoreZone(Action):
     Turn with ball to prepare pass to attacker's score zone
     '''
     preconditions = [lambda w, r: r.has_ball(w.ball)]
+
+    def perform(self, comms):
+        raise NotImplementedError
+
+class KickToScoreZone(Action):
+    '''
+    Pass ball to our attacker's score zone
+    '''
+    preconditions = [lambda w, r: (r.get_rotation_to_point(w.score_zone.x, w.score_zone.y) <
+                              FACING_ROTATION_THRESHOLD),
+                     lambda w, r: r.has_ball(w.ball)]
+
+    def perform(self, comms):
+        raise NotImplementedError
+
+class MoveToTacticalDefencePosition(Action):
+    '''
+    Move defender to tactical position
+    '''
+
+    def perform(self, comms):
+        raise NotImplementedError
+
+class TurnToTacticalDefenceAngle(Action):
+    '''
+    Turn defender to tactical angle
+    '''
+    preconditions = [lambda w, r: are_equivalent_positions(r, r.tactical_position)]
 
     def perform(self, comms):
         raise NotImplementedError
