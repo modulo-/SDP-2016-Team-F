@@ -214,6 +214,14 @@ class Robot(PitchObject):
                 (self.x, self.y,
                  self.angle, self.velocity, (self.width, self.length)))
 
+class Defender(Robot):
+    @property
+    def tactical_position(self):
+        return self._tactical_position
+
+    @tactical_position.setter
+    def tactical_position(self, value):
+        self._tactical_position = value
 
 class Ball(PitchObject):
 
@@ -276,7 +284,7 @@ class World(object):
     Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
-    _our_defender = Robot(0, 0, 0, 0, 0)
+    _our_defender = Defender(0, 0, 0, 0, 0)
     _our_attacker = Robot(0, 0, 0, 0, 0)
     _their_robots = []
     _their_robots.append(Robot(0, 0, 0, 0, 0))
@@ -353,6 +361,14 @@ class World(object):
             if r.has_ball(self.ball):
                 return r
         return None
+
+    @property
+    def score_zone(self):
+        return self._score_zone
+
+    @score_zone.setter
+    def score_zone(self, value):
+        self._score_zone = value
 
     def update_positions(self, pos_dict):
         '''
