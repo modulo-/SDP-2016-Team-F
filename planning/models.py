@@ -191,7 +191,7 @@ class MoveOnGoalArc(Action):
     def perform(self, comms):
         raise NotImplementedError
 
-class TurnToAttacker(Action):
+class TurnToOpposingAttacker(Action):
     '''
     Turn to face opponent's attacker
     '''
