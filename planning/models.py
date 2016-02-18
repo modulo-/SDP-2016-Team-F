@@ -19,56 +19,62 @@ class Goal(object):
 
     # Return the next action necesary to achieve the goal
     def generate_action(self):
-        raise NotImplementedError
+        for a in self.actions:
+            if a.is_possible():
+                return a
+        return None
 
 class GetBall(Goal):
     '''
     Go to and grab ball
     '''
-    def generate_action(self):
-        actions = [GrabBall(self.world, self.robot),
-                   GoToStaticBall(self.world, self.robot),
-                   OpenGrabbers(self.world, self.robot),
-                   GoToOpeningDistanceStaticBall(self.world, self.robot),
-                   TurnToBall(self.world, self.robot)]
-        for a in actions:
-            if a.is_possible():
-                return a
-        return None
 
+    def __init__(self, world, robot):
+        self.actions = [GrabBall(world, robot),
+                        GoToStaticBall(world, robot),
+                        OpenGrabbers(world, robot),
+                        GoToOpeningDistanceStaticBall(world, robot),
+                        TurnToBall(world, robot)]
+        super(GetBall, self).__init__(world, robot)
 
 class Score(Goal):
     '''
     Turn and shoot
     '''
-    def generate_action(self):
-        actions = [Shoot(self.world, self.robot),
-                   TurnToGoal(self.world, self.robot)]
-        for a in actions:
-            if a.is_possible():
-                return a
-        return None
+
+    def __init__(self, world, robot):
+        self.actions = [Shoot(world, robot),
+                        TurnToGoal(world, robot)]
+        super(Score, self).__init__(world, robot)
 
 class DefendGoal(Goal):
     '''
     Move around goal to block attacker
     '''
-    def generate_action(self):
-        raise NotImplementedError
+    def __init__(self, world, robot):
+        self.actions = [OpenGrabbersForOpponentShot(world, robot),
+                        TurnToOpposingAttacker(world, robot),
+                        MoveOnGoalArc(world, robot),
+                        MoveToGoalArc(world, robot)]
+        super(DefendGoal, self).__init__(world, robot)
 
 class Pass(Goal):
     '''
     Pass to attacker
     '''
-    def generate_action(self):
-        raise NotImplementedError
+    def __init__(self, world, robot):
+        self.actions = [KickToScoreZone(world, robot),
+                        TurnToScoreZone(world, robot)]
+        super(Goal, self).__init__(world, robot)
 
 class Tactical(Goal):
     '''
     Move to optimum defensive position
     '''
-    def generate_action(self):
-        raise NotImplementedError
+    def __init__(self, world, robot):
+        self.actions = [TurnToTacticalDefenceAngle(world, robot),
+                        MoveToTacticalDefencePosition(world, robot)]
+        super(Tactical, self).__init__(world, robot)
 
 class Position(Goal):
     '''
