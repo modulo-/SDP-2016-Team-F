@@ -223,6 +223,15 @@ class Defender(Robot):
     def tactical_position(self, value):
         self._tactical_position = value
 
+class Attacker(Robot):
+    @property
+    def score_zone(self):
+        return self._score_zone
+
+    @score_zone.setter
+    def score_zone(self, value):
+        self._score_zone = value
+
 class Ball(PitchObject):
 
     def __init__(self, x, y, angle, velocity):
@@ -361,14 +370,6 @@ class World(object):
             if r.has_ball(self.ball):
                 return r
         return None
-
-    @property
-    def score_zone(self):
-        return self._score_zone
-
-    @score_zone.setter
-    def score_zone(self, value):
-        self._score_zone = value
 
     def update_positions(self, pos_dict):
         '''

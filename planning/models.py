@@ -237,7 +237,8 @@ class KickToScoreZone(Action):
     '''
     Pass ball to our attacker's score zone
     '''
-    preconditions = [lambda w, r: (r.get_rotation_to_point(w.score_zone.x, w.score_zone.y) <
+    preconditions = [lambda w, r: (r.get_rotation_to_point(w.our_attacker.score_zone.x,
+                                                      w.our_attcker.score_zone.y) <
                               FACING_ROTATION_THRESHOLD),
                      lambda w, r: r.has_ball(w.ball)]
 
