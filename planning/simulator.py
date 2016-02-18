@@ -192,4 +192,4 @@ class Environment():
 
 
 if __name__ == "__main__":
-    Environment(width=400, height=600)
+    Environment(width=450, height=650)
