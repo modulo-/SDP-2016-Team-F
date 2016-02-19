@@ -1,5 +1,5 @@
 from Polygon.cPolygon import Polygon
-from math import hypot, pi, atan2
+from math import sin, hypot, pi, atan2
 # from vision import tools
 from position import Vector
 from logging import info, debug
@@ -18,6 +18,7 @@ GOAL_LENGTH = 1
 
 GOAL_LOWER = 286
 GOAL_HIGHER = 164
+
 
 class PitchObject(object):
     '''
@@ -70,7 +71,7 @@ class PitchObject(object):
 
     @vector.setter
     def vector(self, new_vector):
-        if new_vector is None:# or not isinstance(new_vector, Vector):
+        if new_vector is None:  # or not isinstance(new_vector, Vector):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
             self._vector = Vector(
@@ -79,7 +80,7 @@ class PitchObject(object):
 
     def is_missing(self):
         return self._is_missing
-    	
+
     def set_missing(self):
         self._is_missing = True
 
@@ -170,16 +171,23 @@ class Robot(PitchObject):
             theta = 0
         else:
             theta = atan2(delta_x, delta_y) - self.angle  # atan2(sin(self.angle), cos(self.angle))
-            debug(atan2(delta_x, delta_y))
-            debug(theta)
             if theta > pi:
                 theta -= 2 * pi
             elif theta < -pi:
                 theta += 2 * pi
             debug(theta)
         assert -pi <= theta <= pi
-        debug("rotation = {0}".format(theta))
-        return theta
+        debug("rotation to the ball = {0}".format(theta))
+
+        opposite = 30
+        alpha = sin(opposite / displacement)
+        print ("alpha angle = {0}".format(alpha))
+        if theta > 0:
+            debug("rotation to the catch point = {0}".format(theta - alpha))
+            return theta - alpha
+        else:
+            debug("rotation to the catch point = {0}".format(theta + alpha))
+            return theta + alpha
 
     def get_displacement_to_point(self, x, y):
         '''
@@ -215,6 +223,7 @@ class Robot(PitchObject):
                 (self.x, self.y,
                  self.angle, self.velocity, (self.width, self.length)))
 
+
 class Defender(Robot):
     @property
     def tactical_position(self):
@@ -224,6 +233,7 @@ class Defender(Robot):
     def tactical_position(self, value):
         self._tactical_position = value
 
+
 class Attacker(Robot):
     @property
     def score_zone(self):
@@ -232,6 +242,7 @@ class Attacker(Robot):
     @score_zone.setter
     def score_zone(self, value):
         self._score_zone = value
+
 
 class Ball(PitchObject):
 
@@ -285,7 +296,7 @@ class Pitch(object):
         return self._height
 
     def __repr__(self):
-        return str(self_width, self._height)
+        return str(self._width, self._height)
 
 
 class World(object):
@@ -331,11 +342,11 @@ class World(object):
 
     @property
     def their_defenders(self):
-        return [r for r in self._their_robots if in_their_half(r)]
+        return [r for r in self._their_robots if self.in_their_half(r)]
 
     @property
     def their_attackers(self):
-        return [r for r in self._their_robots if in_our_half(r)]
+        return [r for r in self._their_robots if self.in_our_half(r)]
 
     @property
     def ball(self):
@@ -383,7 +394,7 @@ class World(object):
                          ('their_robot_1', self.their_robots[1]),
                          ('ball', self.ball)]
         for (name, obj) in pitch_objects:
-            if not name in pos_dict or pos_dict[name] == None:
+            if name not in pos_dict or pos_dict[name] is None:
                 obj.set_missing()
             else:
                 obj.vector = pos_dict[name]

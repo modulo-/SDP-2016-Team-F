@@ -118,9 +118,9 @@ class Action(object):
 
 
 class GoToStaticBall(Action):
-    preconditions = [#lambda w, r: utils.ball_is_static(w),
+    preconditions = [lambda w, r: utils.ball_is_static(w),
                      lambda w, r: abs(r.get_rotation_to_point(w.ball.x, w.ball.y)) < ROTATION_THRESHOLD,
-        lambda w, r: r.catcher == 'OPEN']
+                     lambda w, r: r.catcher == 'OPEN']
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -237,8 +237,7 @@ class KickToScoreZone(Action):
     '''
     Pass ball to our attacker's score zone
     '''
-    preconditions = [lambda w, r: (r.get_rotation_to_point(w.our_attacker.score_zone.x,
-                                                      w.our_attcker.score_zone.y) <
+    preconditions = [lambda w, r: (r.get_rotation_to_point(w.score_zone.x, w.score_zone.y) <
                               FACING_ROTATION_THRESHOLD),
                      lambda w, r: r.has_ball(w.ball)]
 
