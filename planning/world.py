@@ -180,7 +180,10 @@ class Robot(PitchObject):
         debug("rotation to the ball = {0}".format(theta))
 
         opposite = 30
-        alpha = sin(opposite / displacement)
+        if displacement == 0:
+            alpha = 0
+        else:
+            alpha = sin(opposite / displacement)
         print ("alpha angle = {0}".format(alpha))
         if theta > 0:
             debug("rotation to the catch point = {0}".format(theta - alpha))
