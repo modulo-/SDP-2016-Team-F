@@ -2,6 +2,7 @@ from Polygon.cPolygon import Polygon
 from math import hypot, pi, atan2
 # from vision import tools
 from position import Vector
+from logging import info, debug
 
 # Width measures the front and back of an object
 # Length measures along the sides of an object
@@ -142,9 +143,9 @@ class Robot(PitchObject):
         Get if the ball is in the catcher zone but may not have possession
         '''
         if self.catcher_area.isInside(ball.x, ball.y):
-            print("Can catch ball")
+            info("Can catch ball")
         else:
-            print("Can't catch ball")
+            info("Can't catch ball")
         return self.catcher_area.isInside(ball.x, ball.y)
 
     def has_ball(self, ball):
@@ -163,21 +164,21 @@ class Robot(PitchObject):
         '''
         delta_x = x - self.x
         delta_y = y - self.y
-        print("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(x, y, delta_x, delta_y, self.x, self.y, self.angle))
+        debug("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(x, y, delta_x, delta_y, self.x, self.y, self.angle))
         displacement = hypot(delta_x, delta_y)
         if displacement == 0:
             theta = 0
         else:
             theta = atan2(delta_x, delta_y) - self.angle  # atan2(sin(self.angle), cos(self.angle))
-            print(atan2(delta_x, delta_y))
-            print(theta)
+            debug(atan2(delta_x, delta_y))
+            debug(theta)
             if theta > pi:
                 theta -= 2 * pi
             elif theta < -pi:
                 theta += 2 * pi
-            print(theta)
+            debug(theta)
         assert -pi <= theta <= pi
-        print ("rotation = {0}".format(theta))
+        debug("rotation = {0}".format(theta))
         return theta
 
     def get_displacement_to_point(self, x, y):

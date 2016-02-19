@@ -6,6 +6,8 @@ from planning.comms import CommsManager, RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
 from sys import argv
+import readline
+import logging
 
 
 PITCH_NO = 0
@@ -22,19 +24,26 @@ def new_vision(world):
         }
     )
     if latest_world.our_defender.is_missing():
-        print ("Robot is missing!")
+        warning("Robot is missing!")
     
 def start_vision():
 	vision = Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
 	
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG, format=
+        "\r%(asctime)s - %(levelname)s - %(message)s")
+    logging.root.setLevel(logging.DEBUG)
     if len(argv) != 3:
         print("Usage: ./main.py <group> <rf device path>")
         print("<group> must be either '11' or '12'.")
         print("<rf device path> should be '/dev/ttyACM0' or similar.")
         print("Note that I'm lazy and don't check the input properly.")
+        print("")
+        print("Enter a task into the shell to run it. Currently supported:")
+        print(" - 'move-grab'")
+        print(" - 'turn-shoot'")
+        print("Enter 'exit' to exit.")
         exit(0)
-    task = raw_input("Enter task ('move-grab' or 'turn-shoot'): ")
     thread = Thread(target=start_vision)
     thread.start()
     comms = None
@@ -45,13 +54,21 @@ if __name__ == '__main__':
     else:
         raise Exception('You wish.')
     planner = Planner(comms=comms)
-    planner.set_task(task.strip())
 
     def run_planner():
-        print (latest_world.our_defender.angle)
+        debug(latest_world.our_defender.angle)
         planner.plan_and_act(latest_world)
         timer = Timer(1, run_planner)
         timer.start()
         
     timer = Timer(1, run_planner)
     timer.start()
+    while True:
+        task = None
+        try:
+            task = raw_input("").strip()
+        except EOFError:
+            exit(0)
+        if task == 'exit':
+            exit(0)
+        planner.set_task(task)

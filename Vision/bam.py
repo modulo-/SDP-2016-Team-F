@@ -6,6 +6,7 @@ from oldvision.GUI import GUI
 import oldvision.tools as tools
 from postprocessing.postprocessing import Postprocessing
 from preprocessing.preprocessing import Preprocessing
+from logging import debug
 
 
 # C = cal.Configure(0)
@@ -56,8 +57,8 @@ height, width, channels = frame.shape
 
 frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-print frame_hsv
-print frame
+debug(frame_hsv)
+debug(frame)
 
 cv2.imshow('frame', frame)
 cv2.waitKey()

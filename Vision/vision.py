@@ -3,6 +3,7 @@ import re
 import time
 from Queue import Queue
 from functools import partial
+from logging import info
 
 import cv2
 import numpy as np
@@ -33,7 +34,7 @@ class Vision:
         #print("Camera initialised")
 
         def print_function(x):
-            print x
+            info(x)
 
         if planner_callback is None:
             self.planner_callback = (lambda x: print_function(x))

@@ -4,6 +4,7 @@ import numpy as np
 
 import calibrations
 from calibrations import colour_profiles
+from logging import info
 
 
 class Option(object):
@@ -170,4 +171,4 @@ class Config:
                     self.filter_stack.remove(option.name)
                 except ValueError:
                     pass
-            print "Filter stack", self.filter_stack
+            info("Filter stack", self.filter_stack)

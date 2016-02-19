@@ -4,7 +4,7 @@ import thread
 from threading import Timer, Lock, Condition
 import b64
 import serial
-from logging import info, debug
+from logging import info, debug, error
 
 ENCKEY = '3327BDBAAF48C59410FB5C4115777F26'
 PANID = '6810'
@@ -21,7 +21,7 @@ packetcond = Condition()
 def monitor_comms():
     while True:
         line = commserial.readline().strip()
-        print line
+        debug(line)
         if len(line) < 4:
             continue
         if (not line.startswith(DEVICEID)
@@ -83,13 +83,13 @@ def init(fname, chan, control, listen=True):
     ]
 
     for cmd in cmds:
-        print cmd
+        debug(cmd)
         commlock.acquire()
         commserial.write(cmd)
         commlock.release()
-        print "sent",
+        debug("sent")
         waitok()
-        print "done"
+        debug("done")
     if listen:
         thread.start_new_thread(monitor_comms, ())
 
