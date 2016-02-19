@@ -61,12 +61,16 @@ class Scene(cocos.layer.ColorLayer):
         ball = self.add_ball([start_ball_x, start_ball_y])
         t = Test(our_defender=robot, ball=ball)
 
+        # sequence = [
+        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        #     {'our_defender': Vector(start_robot_x, start_robot_y, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        #     {'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        #     {'task': 'turn-shoot', 'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        #     {'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.0, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}
+        # ]
         sequence = [
             {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(start_robot_x, start_robot_y, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'task': 'turn-shoot', 'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.0, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 2.01076687477, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
         ]
         t.run(sequence)
 

@@ -1,5 +1,5 @@
 from Polygon.cPolygon import Polygon
-from math import hypot, pi, atan2
+from math import sin, hypot, pi, atan2
 # from vision import tools
 from position import Vector
 
@@ -169,16 +169,23 @@ class Robot(PitchObject):
             theta = 0
         else:
             theta = atan2(delta_x, delta_y) - self.angle  # atan2(sin(self.angle), cos(self.angle))
-            print(atan2(delta_x, delta_y))
-            print(theta)
             if theta > pi:
                 theta -= 2 * pi
             elif theta < -pi:
                 theta += 2 * pi
             print(theta)
         assert -pi <= theta <= pi
-        print ("rotation = {0}".format(theta))
-        return theta
+        print ("rotation to the ball = {0}".format(theta))
+
+        opposite = 30
+        alpha = sin(opposite / displacement)
+        print ("alpha angle = {0}".format(alpha))
+        if theta > 0:
+            print ("rotation to the catch point = {0}".format(theta - alpha))
+            return theta - alpha
+        else:
+            print ("rotation to the catch point = {0}".format(theta + alpha))
+            return theta + alpha
 
     def get_displacement_to_point(self, x, y):
         '''
