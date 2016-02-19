@@ -8,6 +8,7 @@ from threading import Timer, Thread
 from sys import argv
 import readline
 import logging
+from logging import debug, warning
 
 
 PITCH_NO = 0
@@ -30,9 +31,8 @@ def start_vision():
 	vision = Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
 	
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG, format=
+    logging.basicConfig(level=logging.WARNING, format=
         "\r%(asctime)s - %(levelname)s - %(message)s")
-    logging.root.setLevel(logging.DEBUG)
     if len(argv) != 3:
         print("Usage: ./main.py <group> <rf device path>")
         print("<group> must be either '11' or '12'.")
@@ -42,9 +42,16 @@ if __name__ == '__main__':
         print("Enter a task into the shell to run it. Currently supported:")
         print(" - 'move-grab'")
         print(" - 'turn-shoot'")
+        print("The following control commands are also available:")
+        print(" - 'exit' to exit")
+        print(" - 'debug' to set the logging level to debug")
+        print(" - 'info' to set the logging level to info")
+        print(" - 'warn' to set the logging level to warnings (default)")
+        print(" - 'error' to set the logging level to errors")
         print("Enter 'exit' to exit.")
         exit(0)
     thread = Thread(target=start_vision)
+    thread.daemon = True
     thread.start()
     comms = None
     if argv[1] == '11':
@@ -59,9 +66,11 @@ if __name__ == '__main__':
         debug(latest_world.our_defender.angle)
         planner.plan_and_act(latest_world)
         timer = Timer(1, run_planner)
+        timer.daemon = True
         timer.start()
         
     timer = Timer(1, run_planner)
+    timer.daemon = True
     timer.start()
     while True:
         task = None
@@ -71,4 +80,13 @@ if __name__ == '__main__':
             exit(0)
         if task == 'exit':
             exit(0)
-        planner.set_task(task)
+        elif task == 'debug':
+            logging.root.setLevel(logging.DEBUG)
+        elif task == 'info':
+            logging.root.setLevel(logging.INFO)
+        elif task == 'warn':
+            logging.root.setLevel(logging.WARNING)
+        elif task == 'error':
+            logging.root.setLevel(logging.ERROR)
+        else:
+            planner.set_task(task)

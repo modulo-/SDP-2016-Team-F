@@ -383,7 +383,7 @@ class World(object):
                          ('their_robot_1', self.their_robots[1]),
                          ('ball', self.ball)]
         for (name, obj) in pitch_objects:
-            if not name in pos_dict:
+            if not name in pos_dict or pos_dict[name] == None:
                 obj.set_missing()
             else:
                 obj.vector = pos_dict[name]
