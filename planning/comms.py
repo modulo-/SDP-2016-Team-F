@@ -2,6 +2,7 @@ import math
 import rf_comms as comms
 import struct
 
+
 class CommsManager(object):
 
     def __init__(self, robot):
@@ -24,6 +25,7 @@ class CommsManager(object):
 
     def release_grabbers(self):
         print("Robot {0} releasing grabbers".format(self.robot_index))
+
 
 class TractorCrabCommsManager(CommsManager):
     CMD_WAIT          = 0x00
@@ -71,27 +73,27 @@ class TractorCrabCommsManager(CommsManager):
         # May fail or out-of-range inputs, this gets silently swallowed.
         self._run([self.CMD_STRAIT] + self._16_bitify(self._normalize_dist(distance)))
         CommsManager.move(self, distance)
-    
+
     def turn(self, angle):
         # NOTE: spins counter-clockwise, expects input in radians.
         # Accepts negative input.
         # May fail or out-of-range inputs, this gets silently swallowed.
         self._run([self.CMD_SPIN] + self._16_bitify(self._normalize_angle(angle)))
         CommsManager.turn(self, angle)
-    
+
     def kick(self, distance):
         # NOTE: currently, functions the same as a full-power kick.
         self._run([self.CMD_KICK] + self._16_bitify(100))
         CommsManager.kick(self, distance)
-    
+
     def kick_full_power(self):
         self._run([self.CMD_KICK] + self._16_bitify(100))
         CommsManager.kick_full_power(self)
-    
+
     def close_grabbers(self):
         self._run([self.CMD_GRABBER_CLOSE])
         CommsManager.close_grabbers(self)
-    
+
     def release_grabbers(self):
         self._run([self.CMD_GRABBER_OPEN])
         CommsManager.release_grabbers(self)
@@ -112,25 +114,25 @@ class RFCommsManager (CommsManager):
     # move a distance in mm
     def move(self, distance):
         mm_distance = distance / 0.1958
-        cmd = b"m"+struct.pack(">h", mm_distance)
+        cmd = b"m" + struct.pack(">h", mm_distance)
         comms.send(cmd, self.robot_id)
         super(RFCommsManager, self).move(mm_distance)
-    
+
     # turn by an angle in degrees
     def turn(self, angle):
-        cmd = b"t"+struct.pack(">h", math.degrees(angle))
+        cmd = b"t" + struct.pack(">h", math.degrees(angle))
         comms.send(cmd, self.robot_id)
         super(RFCommsManager, self).turn(angle)
-    
+
     # kick a distance in cm
     def kick(self, distance):
-        cmd = b"k"+struct.pack(">h", distance)
+        cmd = b"k" + struct.pack(">h", distance)
         comms.send(cmd, self.robot_id)
         super(RFCommsManager, self).kick(distance)
 
     def kick_full_power(self):
-        distance=300
-        cmd = b"k"+struct.pack(">h", distance)
+        distance = 300
+        cmd = b"k" + struct.pack(">h", distance)
         comms.send(cmd, self.robot_id)
         super(RFCommsManager, self).kick_full_power()
 

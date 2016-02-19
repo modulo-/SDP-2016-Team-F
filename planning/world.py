@@ -1,6 +1,6 @@
+import math
+
 from Polygon.cPolygon import Polygon
-from math import sin, hypot, pi, atan2
-# from vision import tools
 from position import Vector
 
 # Width measures the front and back of an object
@@ -17,6 +17,7 @@ GOAL_LENGTH = 1
 
 GOAL_LOWER = 286
 GOAL_HIGHER = 164
+
 
 class PitchObject(object):
     '''
@@ -69,16 +70,16 @@ class PitchObject(object):
 
     @vector.setter
     def vector(self, new_vector):
-        if new_vector is None:# or not isinstance(new_vector, Vector):
+        if new_vector is None:  # or not isinstance(new_vector, Vector):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
             self._vector = Vector(
-                new_vector.y, new_vector.x, (new_vector.angle - self._angle_offset - (pi / 2)) % (2 * pi), new_vector.velocity)
+                new_vector.y, new_vector.x, (new_vector.angle - self._angle_offset - (math.pi / 2)) % (2 * math.pi), new_vector.velocity)
             self._is_missing = False
 
     def is_missing(self):
         return self._is_missing
-    	
+
     def set_missing(self):
         self._is_missing = True
 
@@ -154,49 +155,13 @@ class Robot(PitchObject):
         # TODO Make this work for opponents
         return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
 
-    def get_rotation_to_point(self, x, y):
-        '''
-        This method returns an angle by which the robot needs to rotate to achieve alignment.
-        It takes either an x, y coordinate of the object that we want to rotate to
-        positive angle - clockwise rotation
-        negative angle - counter-clockwise rotation
-        '''
-        delta_x = x - self.x
-        delta_y = y - self.y
-        print("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(x, y, delta_x, delta_y, self.x, self.y, self.angle))
-        displacement = hypot(delta_x, delta_y)
-        if displacement == 0:
-            theta = 0
-        else:
-            theta = atan2(delta_x, delta_y) - self.angle  # atan2(sin(self.angle), cos(self.angle))
-            if theta > pi:
-                theta -= 2 * pi
-            elif theta < -pi:
-                theta += 2 * pi
-            print(theta)
-        assert -pi <= theta <= pi
-        print ("rotation to the ball = {0}".format(theta))
-
-        opposite = 30
-        if displacement == 0:
-            alpha = 0
-        else:
-            alpha = sin(opposite / displacement)
-        print ("alpha angle = {0}".format(alpha))
-        if theta > 0:
-            print ("rotation to the catch point = {0}".format(theta - alpha))
-            return theta - alpha
-        else:
-            print ("rotation to the catch point = {0}".format(theta + alpha))
-            return theta + alpha
-
     def get_displacement_to_point(self, x, y):
         '''
         This method returns the displacement between the robot and the (x, y) coordinate.
         '''
         delta_x = x - self.x
         delta_y = y - self.y
-        displacement = hypot(delta_x, delta_y)
+        displacement = math.hypot(delta_x, delta_y)
         return displacement
 
     def get_direction_to_point(self, x, y):
@@ -224,6 +189,7 @@ class Robot(PitchObject):
                 (self.x, self.y,
                  self.angle, self.velocity, (self.width, self.length)))
 
+
 class Defender(Robot):
     @property
     def tactical_position(self):
@@ -233,6 +199,7 @@ class Defender(Robot):
     def tactical_position(self, value):
         self._tactical_position = value
 
+
 class Attacker(Robot):
     @property
     def score_zone(self):
@@ -241,6 +208,7 @@ class Attacker(Robot):
     @score_zone.setter
     def score_zone(self, value):
         self._score_zone = value
+
 
 class Ball(PitchObject):
 
@@ -294,7 +262,7 @@ class Pitch(object):
         return self._height
 
     def __repr__(self):
-        return str(self_width, self._height)
+        return str(self._width, self._height)
 
 
 class World(object):
@@ -324,7 +292,7 @@ class World(object):
         self._our_side = our_side
         self._their_side = 'left' if our_side == 'right' else 'right'
         self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
-        self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, pi, GOAL_LOWER, GOAL_HIGHER))
+        self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
 
     @property
     def our_defender(self):
@@ -340,11 +308,11 @@ class World(object):
 
     @property
     def their_defenders(self):
-        return [r for r in self._their_robots if in_their_half(r)]
+        return [r for r in self._their_robots if self.in_their_half(r)]
 
     @property
     def their_attackers(self):
-        return [r for r in self._their_robots if in_our_half(r)]
+        return [r for r in self._their_robots if self.in_our_half(r)]
 
     @property
     def ball(self):
@@ -392,7 +360,7 @@ class World(object):
                          ('their_robot_1', self.their_robots[1]),
                          ('ball', self.ball)]
         for (name, obj) in pitch_objects:
-            if not name in pos_dict:
+            if name not in pos_dict:
                 obj.set_missing()
             else:
                 obj.vector = pos_dict[name]

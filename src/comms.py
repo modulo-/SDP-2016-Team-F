@@ -1,4 +1,3 @@
-import os
 import random
 import thread
 from threading import Timer, Lock, Condition
@@ -18,15 +17,16 @@ callbacks = []
 packetlist = []
 packetcond = Condition()
 
+
 def monitor_comms():
     while True:
         line = commserial.readline().strip()
         print line
         if len(line) < 4:
             continue
-        if (not line.startswith(DEVICEID)
-                and not line.startswith('d')
-                and not line.startswith('e')):
+        if (not line.startswith(DEVICEID) and not
+                line.startswith('d') and not
+                line.startswith('e')):
             continue
         if line[1] == '$' and len(line) == 4:
             # ACK
@@ -37,7 +37,7 @@ def monitor_comms():
                     debug('Package ACK: %s', line)
                     index = i
                     break
-            if index != None:
+            if index is not None:
                 packetlist.pop(index)
             if packetlist == []:
                 packetcond.notify()
@@ -60,10 +60,12 @@ def monitor_comms():
             for callback in callbacks:
                 thread.start_new_thread(callback, (data, ))
 
+
 def waitok():
     buf = (None, None)
     while buf != ('O', 'K'):
         buf = (buf[1], commserial.read())
+
 
 def init(fname, chan, control, listen=True):
     global commserial
@@ -93,8 +95,10 @@ def init(fname, chan, control, listen=True):
     if listen:
         thread.start_new_thread(monitor_comms, ())
 
+
 def registercb(cb):
     callbacks.append(cb)
+
 
 def check_recieved(packet):
     # TODO: Maybe limit number of retries? Or maybe that isn't desirable?
@@ -104,8 +108,9 @@ def check_recieved(packet):
         commserial.write(packet)
         commserial.flush()
         commlock.release()
-        Timer(getStandoff(), lambda: check_recieved(packet)).start()
+        Timer(get_standoff(), lambda: check_recieved(packet)).start()
     packetcond.release()
+
 
 def send(data, target):
     packet = str(target) + DEVICEID + b64.encode(data)
@@ -119,7 +124,8 @@ def send(data, target):
     commserial.write(packet)
     commserial.flush()
     commlock.release()
-    Timer(getStandoff(), lambda: check_recieved(packet)).start()
+    Timer(get_standoff(), lambda: check_recieved(packet)).start()
+
 
 # Prevents any packets from being resent.
 #
@@ -133,8 +139,10 @@ def stop_resend(target):
     global packetlist
     packetlist = [x for x in packetlist if not x.startswith(str(target))]
 
-def getStandoff():
-    return random.random()*0.9+0.1
+
+def get_standoff():
+    return random.random() * 0.9 + 0.1
+
 
 def wait():
     packetcond.acquire()

@@ -1,6 +1,6 @@
 import cocos
 import cocos.actions as ac
-from math import pi, sin, cos, radians, degrees
+import math
 from threading import Timer
 
 from position import Vector
@@ -96,8 +96,8 @@ class SimulatorComms(CommsManager):
     def move(self, d):
         super(SimulatorComms, self).move(d)
         rotation = self.robot.rotation + 90
-        dx = d * sin(radians(rotation))
-        dy = d * cos(radians(rotation))
+        dx = d * math.sin(math.radians(rotation))
+        dy = d * math.cos(math.radians(rotation))
         # print("Robot dxdy: {0} {1}".format(dx, dy))
         delay = self.robot.move_to(
             self.robot.position[0] + dx,
@@ -152,7 +152,7 @@ class Sprite (cocos.sprite.Sprite):
         negative angle - clockwise rotation
         angle 0 means turned right
         '''
-        angle = -(radians * 180 / pi)
+        angle = -(radians * 180 / math.pi)
         self.do(ac.RotateBy(angle, self._rotation_speed))
         return self._rotation_speed
 
@@ -163,7 +163,7 @@ class Robot(Sprite):
         super(Robot, self).__init__('res/robot.png', pos)
         self._movement_speed = 2
         self._rotation_speed = 1
-        self.rotation = -degrees(rotation_radians)
+        self.rotation = -math.degrees(rotation_radians)
 
 
 class Ball(Sprite):
