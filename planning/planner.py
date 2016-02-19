@@ -1,3 +1,4 @@
+
 from comms import CommsManager
 from models import GetBall, Score, GrabBall, Shoot, OpenGrabbers
 
@@ -18,7 +19,7 @@ class Planner:
 
     def get_goal(self, world, robot):
         '''
-        State machine for the milestone 2
+        Selects a goal for robot
         '''
         if self.current_task == 'move-grab':
             return GetBall(world, robot)
@@ -41,8 +42,8 @@ class Planner:
         '''
         Make plans for each robot and perform them
         '''
-        world.our_robot.catcher = self.grabber_state
-        robot = world.our_robot
+        world.our_defender.catcher = self.grabber_state
+        robot = world.our_defender
         goal = self.get_goal(world, robot)
         action = goal.generate_action()
         if action != self.previous_action:
