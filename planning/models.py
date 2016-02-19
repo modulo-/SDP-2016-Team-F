@@ -127,7 +127,7 @@ class GoToStaticBall(Action):
         dy = self.world.ball.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
         # TODO grabbing area size
-        grabber_size = 24
+        grabber_size = 30
         comms.move(d - grabber_size)
 
 class GoToOpeningDistanceStaticBall(Action):
