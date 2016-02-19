@@ -1,13 +1,16 @@
 import base64
 
+
 def encode(data):
     return base64.b64encode(data).rstrip('=')
+
 
 def checksum(data):
     chk = [0, 0]
     for (i, chr) in enumerate(data):
         chk[i % 2] ^= value(chr)
     return ''.join(char(x) for x in chk)
+
 
 def decode(data):
     if len(data) % 4 == 2:
@@ -16,15 +19,18 @@ def decode(data):
         data += '='
     return base64.b64decode(data)
 
+
 def validchar(chr):
-    return ((chr >= 'A' and chr <= 'Z')
-        or (chr >= 'a' and chr <= 'z')
-        or (chr >= '0' and chr <= '9')
-        or chr == '+'
-        or chr == '/')
+    return ((chr >= 'A' and chr <= 'Z') or
+            (chr >= 'a' and chr <= 'z') or
+            (chr >= '0' and chr <= '9') or
+            (chr == '+') or
+            (chr == '/'))
+
 
 def valid(data):
     return all(map(validchar, data))
+
 
 def value(chr):
     if chr >= 'A' and chr <= 'Z':
@@ -38,6 +44,7 @@ def value(chr):
     if chr == '/':
         return 63
     raise ValueError("Invalid b64 character!")
+
 
 def char(val):
     if val < 26:

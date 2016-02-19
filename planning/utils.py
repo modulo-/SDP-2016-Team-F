@@ -1,5 +1,41 @@
-from world import Robot
-from math import pi, tan
+import math
+
+
+def get_rotation_to_point(robot_vec, ball_vec):
+    '''
+    This method returns an angle by which the robot needs to rotate to achieve alignment.
+    It takes either an x, y coordinate of the object that we want to rotate to
+    positive angle - clockwise rotation
+    negative angle - counter-clockwise rotation
+    '''
+    delta_x = ball_vec.x - robot_vec.x
+    delta_y = ball_vec.y - robot_vec.y
+    print("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(ball_vec.x, ball_vec.y, delta_x, delta_y, robot_vec.x, robot_vec.y, robot_vec.angle))
+    displacement = math.hypot(delta_x, delta_y)
+    if displacement == 0:
+        theta = 0
+    else:
+        theta = math.atan2(delta_x, delta_y) - robot_vec.angle  # atan2(sin(self.angle), cos(self.angle))
+        if theta > math.pi:
+            theta -= 2 * math.pi
+        elif theta < -math.pi:
+            theta += 2 * math.pi
+        print(theta)
+    assert -math.pi <= theta <= math.pi
+    print ("rotation to the ball = {0}".format(theta))
+
+    opposite = 30
+    if displacement == 0:
+        alpha = 0
+    else:
+        alpha = math.sin(opposite / displacement)
+    print ("alpha angle = {0}".format(alpha))
+    if theta > 0:
+        print ("rotation to the catch point = {0}".format(theta - alpha))
+        return theta - alpha
+    else:
+        print ("rotation to the catch point = {0}".format(theta + alpha))
+        return theta + alpha
 
 
 def ball_is_static(world):
@@ -26,7 +62,7 @@ def can_score(world, our_robot, their_goal, turn=0):
 
     predicted_y = predict_y_intersection(world, goal_x, our_robot, full_width=True)
 
-    #return goal_posts[0][1] < predicted_y < goal_posts[1][1]
+    # return goal_posts[0][1] < predicted_y < goal_posts[1][1]
     return their_goal.lower_post < predicted_y < their_goal.higher_post
 
 
@@ -43,14 +79,14 @@ def predict_y_intersection(world, predict_for_x, robot, full_width=False, bounce
         top_y = world._pitch.height - 60 if full_width else world.our_goal.y + (world.our_goal.width / 2) - 30
         bottom_y = 60 if full_width else world.our_goal.y - (world.our_goal.width / 2) + 30
         angle = robot.angle
-        if (robot.x < predict_for_x and not (pi / 2 < angle < 3 * pi / 2)) or (robot.x > predict_for_x and (3 * pi / 2 > angle > pi / 2)):
+        if (robot.x < predict_for_x and not (math.pi / 2 < angle < 3 * math.pi / 2)) or (robot.x > predict_for_x and (3 * math.pi / 2 > angle > math.pi / 2)):
             if bounce:
-                if not (0 <= (y + tan(angle) * (predict_for_x - x)) <= world._pitch.height):
-                    bounce_pos = 'top' if (y + tan(angle) * (predict_for_x - x)) > world._pitch.height else 'bottom'
-                    x += (world._pitch.height - y) / tan(angle) if bounce_pos == 'top' else (0 - y) / tan(angle)
+                if not (0 <= (y + math.tan(angle) * (predict_for_x - x)) <= world._pitch.height):
+                    bounce_pos = 'top' if (y + math.tan(angle) * (predict_for_x - x)) > world._pitch.height else 'bottom'
+                    x += (world._pitch.height - y) / math.tan(angle) if bounce_pos == 'top' else (0 - y) / math.tan(angle)
                     y = world._pitch.height if bounce_pos == 'top' else 0
-                    angle = (-angle) % (2 * pi)
-            predicted_y = (y + tan(angle) * (predict_for_x - x))
+                    angle = (-angle) % (2 * math.pi)
+            predicted_y = (y + math.tan(angle) * (predict_for_x - x))
 
             # Correcting the y coordinate to the closest y coordinate on the goal line:
             if predicted_y > top_y:

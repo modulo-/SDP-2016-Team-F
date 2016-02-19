@@ -1,17 +1,18 @@
 import sys
 import pygame
 from pygame.locals import *
-from random import randint
+
 
 class World:
     def __init__(self, vision_world):
         self.robots = []
         self.robots.append(Robot(50, 50, pygame.Color(200, 200, 200, 0)))
-        self.ball = 
+        self.ball = None
+
 
 class SimulatorMain:
 
-    def __init__(self, width=340,height=525):
+    def __init__(self, width=340, height=525):
         pygame.init()
         self.width = width
         self.height = height
@@ -29,8 +30,9 @@ class SimulatorMain:
     def draw(self, world, surface):
         for r in world.robots:
             r.draw(surface)
-        #world.ball.draw()
+        # world.ball.draw()
         pygame.display.flip()
+
 
 class Object (object):
 
@@ -45,6 +47,7 @@ class Object (object):
 
     def move(self, x, y):
         self.rect.move_ip(x, y)
+
 
 class Robot (Object):
     WIDTH = 20
@@ -66,6 +69,7 @@ class Robot (Object):
 
     def move_to(self, x, y):
         self.direction = math.degrees(math.atan2(y, x))
+
 
 class Ball (Object):
     WIDTH = 10

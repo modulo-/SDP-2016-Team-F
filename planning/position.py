@@ -1,4 +1,4 @@
-from math import pi
+import math
 
 
 class Coordinate(object):
@@ -40,7 +40,7 @@ class Vector(Coordinate):
 
     def __init__(self, x, y, angle, velocity):
         super(Vector, self).__init__(x, y)
-        if angle is None or velocity is None or angle < 0 or angle >= (2 * pi):
+        if angle is None or velocity is None or angle < 0 or angle >= (2 * math.pi):
             raise ValueError('Can not initialise attributes of Vector to None')
         else:
             self._angle = angle
@@ -56,7 +56,7 @@ class Vector(Coordinate):
 
     @angle.setter
     def angle(self, new_angle):
-        if new_angle is None or new_angle < 0 or new_angle >= (2 * pi):
+        if new_angle is None or new_angle < 0 or new_angle >= (2 * math.pi):
             raise ValueError('Angle can not be None, also must be between 0 and 2pi')
         self._angle = new_angle
 
