@@ -30,7 +30,7 @@ class Score(Goal):
         super(Score, self).__init__(world, robot)
 
 
-class AtkPosition(Goal):
+class AttackPosition(Goal):
     '''
     Move to optimum attacking position
     '''
@@ -38,7 +38,7 @@ class AtkPosition(Goal):
         raise NotImplementedError
 
 
-class AtkBlock(Goal):
+class AttackBlock(Goal):
     '''
     Our attacker block attacking opponent
     '''
