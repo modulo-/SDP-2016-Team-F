@@ -1,4 +1,5 @@
 import math
+from logging import info
 
 # TODO
 ROTATION_THRESHOLD = 0.2
@@ -20,6 +21,7 @@ class Goal(object):
 
     # Return the next action necesary to achieve the goal
     def generate_action(self):
+        info("Generating action for goal: {0}".format(self.__doc__.strip()))
         for a in self.actions:
             if a.is_possible():
                 return a
@@ -38,9 +40,12 @@ class Action(object):
 
     # Test the action's preconditions
     def is_possible(self):
-        for condition in self.preconditions:
+        info("Testing action : {0}".format(self.__doc__.strip()))
+        for (condition, name) in self.preconditions:
             if not condition(self.world, self.robot):
+                info("Precondition is false: {0}".format(name))
                 return False
+        info("Action possible: {0}".format(self.__doc__.strip()))
         return True
 
     # Do comms to perform action

@@ -47,9 +47,9 @@ class AttackBlock(Goal):
 
 
 class GoToStaticBall(Action):
-    preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD,
-                     lambda w, r: r.catcher == 'OPEN']
+    preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
+                     (lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD, "Attacker is facing ball"),
+                     (lambda w, r: r.catcher == 'OPEN', "Attacker's grabbers are open")]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -62,8 +62,8 @@ class GoToStaticBall(Action):
 
 
 class GoToOpeningDistanceStaticBall(Action):
-    preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD]
+    preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
+                     (lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD, "Attacker is facing ball")]
     # lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
 
     def perform(self, comms):
@@ -76,15 +76,15 @@ class GoToOpeningDistanceStaticBall(Action):
 
 
 class OpenGrabbers(Action):
-    preconditions = [lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80,
-                     lambda w, r: r.catcher == 'CLOSED']
+    preconditions = [(lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80, "Ball is in attacker's grabber range"),
+                     (lambda w, r: r.catcher == 'CLOSED', "Attacker's grabbers are closed")]
 
     def perform(self, comms):
         comms.release_grabbers()
 
 
 class GrabBall(Action):
-    preconditions = [lambda w, r: r.can_catch_ball(w.ball),
+    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Attacker can catch ball"),
                      lambda w, r: r.catcher == 'OPEN']
 
     def perform(self, comms):
@@ -92,7 +92,7 @@ class GrabBall(Action):
 
 
 class TurnToGoal(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball)]
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
 
     def perform(self, comms):
         # TODO find best point to shoot to
@@ -112,8 +112,8 @@ class TurnToBall(Action):
 
 
 class Shoot(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball),
-                     lambda w, r: utils.can_score(w, r, w.their_goal)]
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has ball"),
+                     (lambda w, r: utils.can_score(w, r, w.their_goal), "Robot can score")]
 
     def perform(self, comms):
         comms.kick_full_power()

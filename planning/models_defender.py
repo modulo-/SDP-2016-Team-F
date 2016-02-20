@@ -51,8 +51,11 @@ class Tactical(Goal):
 
 
 class GoToStaticBall(Action):
-    preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)) < ROTATION_THRESHOLD]
+    '''
+    Move defender to the ball when static
+    '''
+    preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
+                     (lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)) < ROTATION_THRESHOLD, "Defender is facing ball")]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -74,14 +77,20 @@ class GoToStaticBall(Action):
 
 
 class GrabBall(Action):
-    preconditions = [lambda w, r: r.can_catch_ball(w.ball),
-                     lambda w, r: r.catcher == 'OPEN']
+    '''
+    Grab ball
+    '''
+    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Defender can catch ball"),
+                     (lambda w, r: r.catcher == 'OPEN', "Defender's grabbers are open")]
 
     def perform(self, comms):
         comms.close_grabbers()
 
 
 class TurnToCatchPoint(Action):
+    '''
+    Turn to point for catching ball
+    '''
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
@@ -89,8 +98,11 @@ class TurnToCatchPoint(Action):
 
 
 class Shoot(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball),
-                     lambda w, r: utils.can_score(w, r, w.their_goal)]
+    '''
+    Defender shoots?
+    '''
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Defender has ball"),
+                     (lambda w, r: utils.can_score(w, r, w.their_goal), "Defender can score")]
 
     def perform(self, comms):
         comms.kick_full_power()
@@ -108,7 +120,7 @@ class MoveOnGoalArc(Action):
     '''
     Move around our goal arc to defend goal
     '''
-    preconditions = [lambda w, r: r.on_goal_arc(w.our_goal)]
+    preconditions = [(lambda w, r: r.on_goal_arc(w.our_goal), "Defender is on goal arc")]
 
     def perform(self, comms):
         raise NotImplementedError
@@ -118,7 +130,7 @@ class TurnToOpposingAttacker(Action):
     '''
     Turn to face opponent's attacker
     '''
-    preconditions = [lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession)]
+    preconditions = [(lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession), "Defender is aligned with robot in possession on goal arc")]
 
     def perform(self, comms):
         raise NotImplementedError
@@ -133,8 +145,8 @@ class OpenGrabbersForOpponentShot(Action):
         rotation = utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(possessing.x, possessing.y, 0, 0), r.catch_distance)
         return abs(rotation) < FACING_ROTATION_THRESHOLD
 
-    preconditions = [lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession),
-                     rotation_precondition]
+    preconditions = [(lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession), "Defender is aligned with robot in possession on goal arc"),
+                     (rotation_precondition, "Defender is facing robot in possession on goal arc")]
 
     def perform(self, comms):
         raise NotImplementedError
@@ -144,7 +156,7 @@ class TurnToScoreZone(Action):
     '''
     Turn with ball to prepare pass to attacker's score zone
     '''
-    preconditions = [lambda w, r: r.has_ball(w.ball)]
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Defender is facing attacker's score zone")]
 
     def perform(self, comms):
         raise NotImplementedError
@@ -154,8 +166,9 @@ class KickToScoreZone(Action):
     '''
     Pass ball to our attacker's score zone
     '''
-    preconditions = [lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.score_zone.x, w.score_zone.y, 0, 0), r.catch_distance)) < FACING_ROTATION_THRESHOLD,
-                     lambda w, r: r.has_ball(w.ball)]
+    preconditions = [(lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.score_zone.x, w.score_zone.y, 0, 0), r.catch_distance)) < FACING_ROTATION_THRESHOLD,
+                      "Defender is facing attacker's score zone"),
+                     (lambda w, r: r.has_ball(w.ball), "Defender has ball")]
 
     def perform(self, comms):
         raise NotImplementedError
@@ -174,7 +187,7 @@ class TurnToTacticalDefenceAngle(Action):
     '''
     Turn defender to tactical angle
     '''
-    preconditions = [lambda w, r: are_equivalent_positions(r, r.tactical_position)]
+    preconditions = [(lambda w, r: are_equivalent_positions(r, r.tactical_position), "Defender is in tactical position")]
 
     def perform(self, comms):
         raise NotImplementedError
