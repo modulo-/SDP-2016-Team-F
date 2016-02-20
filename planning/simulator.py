@@ -10,6 +10,7 @@ from comms import CommsManager
 
 import logging
 
+
 def rotation_adjustment(angle):
     angle -= math.radians(270)
 
@@ -81,7 +82,7 @@ class Scene(cocos.layer.ColorLayer):
         # 1) For starting rotation "math.radians(270)"
         sequence = [
             {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation + 1.92014072481 - (math.pi * 2), 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation + 1.92014072481, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
         ]
 
         # 2) For starting rotation "math.radians(180)"
@@ -208,7 +209,7 @@ class Ball(Sprite):
 class Environment():
     def __init__(self, width, height):
 
-        logging.basicConfig(level=logging.INFO, format="\r%(asctime)s - %(levelname)s - %(message)s")
+        logging.basicConfig(level=logging.INFO, format="\033[95m\r%(asctime)s - %(levelname)s - %(message)s\033[0m")
 
         # director init takes the same arguments as pyglet.window
         cocos.director.director.init(width=width, height=height, resizable=False)
@@ -222,4 +223,4 @@ class Environment():
 
 
 if __name__ == "__main__":
-    Environment(width=450, height=650)
+    Environment(width=600, height=400)

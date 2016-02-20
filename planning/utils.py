@@ -1,4 +1,5 @@
 import math
+import logging
 
 
 def get_rotation_to_point(vec1, vec2):
@@ -10,16 +11,16 @@ def get_rotation_to_point(vec1, vec2):
     '''
     delta_x = vec2.x - vec1.x
     delta_y = vec2.y - vec1.y
+
     displacement = math.hypot(delta_x, delta_y)
     if displacement == 0:
         theta = 0
     else:
-        theta = math.atan2(delta_x, delta_y) - vec1.angle  # atan2(sin(self.angle), cos(self.angle))
+        theta = math.atan2(delta_y, delta_x) - vec1.angle  # atan2(sin(self.angle), cos(self.angle))
         if theta > math.pi:
             theta -= 2 * math.pi
         elif theta < -math.pi:
             theta += 2 * math.pi
-        print(theta)
     assert -math.pi <= theta <= math.pi
 
     return theta
@@ -44,15 +45,23 @@ def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
     '''
     delta_x = ball_vec.x - robot_vec.x
     delta_y = ball_vec.y - robot_vec.y
+
+    logging.debug("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(ball_vec.x, ball_vec.y, delta_x, delta_y, robot_vec.x, robot_vec.y, robot_vec.angle))
+
     theta = get_rotation_to_point(robot_vec, ball_vec)
+    logging.debug("rotation to the ball = {0} in degrees {1}".format(theta, math.degrees(theta)))
+
     displacement = math.hypot(delta_x, delta_y)
     if displacement == 0:
         alpha = 0
     else:
-        alpha = math.sin(catch_distance / displacement)
+        alpha = math.asin(catch_distance / displacement)
+    logging.debug("alpha angle = {0} in degrees {1}".format(alpha, math.degrees(alpha)))
     if theta > 0:
+        logging.debug("rotation to the catch point = {0} in degrees {1}".format(theta - alpha, math.degrees(theta - alpha)))
         return theta - alpha
     else:
+        logging.debug("rotation to the catch point = {0} in degrees {1}".format(theta + alpha, math.degrees(theta + alpha)))
         return theta + alpha
 
 
