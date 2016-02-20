@@ -117,3 +117,28 @@ class Shoot(Action):
 
     def perform(self, comms):
         comms.kick_full_power()
+
+
+class GoToScoreZone(Action):
+    def perform(self, comms):
+        raise NotImplementedError
+
+
+class TurnToDefender(Action):
+    precondtions = [(lambda w, r: r.are_equivalent_positions(r.vector, r.score_zone), "Attacker in score zone")]
+
+    def perform(self, comms):
+        raise NotImplementedError
+
+
+class GoToBlockingPosition(Action):
+    def perform(self, comms):
+        raise NotImplementedError
+
+
+class TurnToBlockingAngle(Action):
+    precondtions = [(lambda w, r: r.is_pass_blocking_position(w),
+                     "Attacker in pass blocking position")]
+
+    def perform(self, comms):
+        raise NotImplementedError

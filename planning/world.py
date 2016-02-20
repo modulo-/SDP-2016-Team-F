@@ -190,6 +190,9 @@ class Robot(PitchObject):
     def aligned_on_goal_arc(self, attacker):
         raise NotImplementedError
 
+    def is_pass_blocking_position(self, world):
+        raise NotImplementedError
+
     def __repr__(self):
         return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
                 (self.x, self.y,
@@ -214,7 +217,6 @@ class Attacker(Robot):
     @score_zone.setter
     def score_zone(self, value):
         self._score_zone = value
-
 
 class Ball(PitchObject):
 
