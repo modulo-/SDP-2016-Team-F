@@ -37,21 +37,8 @@ class GetBall(Goal):
     def __init__(self, world, robot):
         self.actions = [GrabBall(world, robot),
                         GoToStaticBall(world, robot),
-                        OpenGrabbers(world, robot),
-                        GoToOpeningDistanceStaticBall(world, robot),
-                        TurnToBall(world, robot)]
+                        TurnToCatchPoint(world, robot)]
         super(GetBall, self).__init__(world, robot)
-
-
-class Score(Goal):
-    '''
-    Turn and shoot
-    '''
-
-    def __init__(self, world, robot):
-        self.actions = [Shoot(world, robot),
-                        TurnToGoal(world, robot)]
-        super(Score, self).__init__(world, robot)
 
 
 class DefendGoal(Goal):
@@ -86,22 +73,6 @@ class Tactical(Goal):
         super(Tactical, self).__init__(world, robot)
 
 
-class Position(Goal):
-    '''
-    Move to optimum attacking position
-    '''
-    def generate_action(self):
-        raise NotImplementedError
-
-
-class Block(Goal):
-    '''
-    Our attacker block attacking opponent
-    '''
-    def generate_action(self):
-        raise NotImplementedError
-
-
 class Action(object):
     '''
     Base class for actions
@@ -130,8 +101,7 @@ class Action(object):
 
 class GoToStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.get_rotation_to_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0))) < ROTATION_THRESHOLD,
-                     lambda w, r: r.catcher == 'OPEN']
+                     lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0))) < ROTATION_THRESHOLD]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -143,28 +113,6 @@ class GoToStaticBall(Action):
         comms.move(d - grabber_size)
 
 
-class GoToOpeningDistanceStaticBall(Action):
-    preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.get_rotation_to_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0))) < ROTATION_THRESHOLD]
-    # lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
-
-    def perform(self, comms):
-        dx = self.world.ball.x - self.robot.x
-        dy = self.world.ball.y - self.robot.y
-        d = math.sqrt(dx**2 + dy**2)
-        # TODO grabbing area size
-        grabber_size = 70
-        comms.move(d - grabber_size)
-
-
-class OpenGrabbers(Action):
-    preconditions = [lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80,
-                     lambda w, r: r.catcher == 'CLOSED']
-
-    def perform(self, comms):
-        comms.release_grabbers()
-
-
 class GrabBall(Action):
     preconditions = [lambda w, r: r.can_catch_ball(w.ball),
                      lambda w, r: r.catcher == 'OPEN']
@@ -173,24 +121,11 @@ class GrabBall(Action):
         comms.close_grabbers()
 
 
-class TurnToGoal(Action):
-    preconditions = [lambda w, r: r.has_ball(w.ball)]
-
-    def perform(self, comms):
-        # TODO find best point to shoot to
-        # x = self.world.their_goal.x + self.world.their_goal.width / 2
-        # x = (self.world.their_goal.higher_post -
-        #     self.world.their_goal.lower_post) / 2
-        x = 220
-        y = 0  # self.world.their_goal.y
-        comms.turn(self.robot.get_rotation_to_point(x, y))
-
-
-class TurnToBall(Action):
+class TurnToCatchPoint(Action):
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
-        comms.turn(utils.get_rotation_to_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0)))
+        comms.turn(utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0)))
 
 
 class Shoot(Action):
@@ -235,7 +170,7 @@ class OpenGrabbersForOpponentShot(Action):
     '''
     def rotation_precondition(self, w, r):
         possessing = w.robot_in_posession
-        rotation = r.get_rotation_to_point(possessing.x, possessing.y)
+        rotation = utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(possessing.x, possessing.y, 0, 0))
         return abs(rotation) < FACING_ROTATION_THRESHOLD
 
     preconditions = [lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession),
@@ -259,8 +194,7 @@ class KickToScoreZone(Action):
     '''
     Pass ball to our attacker's score zone
     '''
-    preconditions = [lambda w, r: (r.get_rotation_to_point(w.score_zone.x, w.score_zone.y) <
-                     FACING_ROTATION_THRESHOLD),
+    preconditions = [lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.score_zone.x, w.score_zone.y, 0, 0))) < FACING_ROTATION_THRESHOLD,
                      lambda w, r: r.has_ball(w.ball)]
 
     def perform(self, comms):

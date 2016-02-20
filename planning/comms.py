@@ -4,7 +4,6 @@ import struct
 from logging import info
 
 
-
 class CommsManager(object):
 
     def __init__(self, robot):
@@ -27,7 +26,6 @@ class CommsManager(object):
 
     def release_grabbers(self):
         info("Robot {0} releasing grabbers".format(self.robot_index))
-
 
 
 class TractorCrabCommsManager(CommsManager):
@@ -110,7 +108,6 @@ class RFCommsManager (CommsManager):
         # hex
         rf_channel = "67"
         guard_chars = "~~~"
-        chunk_size = 30
         comms.init(serial_device, rf_channel, guard_chars, listen=True)
         super(RFCommsManager, self).__init__(robot)
 

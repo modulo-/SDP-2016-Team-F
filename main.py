@@ -2,11 +2,10 @@
 
 from Vision.vision import Vision
 from planning.planner import Planner
-from planning.comms import CommsManager, RFCommsManager, TractorCrabCommsManager
+from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
 from sys import argv
-import readline
 import logging
 from logging import debug, warning
 
@@ -26,13 +25,13 @@ def new_vision(world):
     )
     if latest_world.our_defender.is_missing():
         warning("Robot is missing!")
-    
+
+
 def start_vision():
-	vision = Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
-	
+    Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.WARNING, format=
-        "\r%(asctime)s - %(levelname)s - %(message)s")
+    logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     if len(argv) != 3:
         print("Usage: ./main.py <group> <rf device path>")
         print("<group> must be either '11' or '12'.")
@@ -60,7 +59,7 @@ if __name__ == '__main__':
         comms = RFCommsManager(0, argv[2])
     else:
         raise Exception('You wish.')
-    planner = Planner(comms=comms)
+    planner = Planner(robot_type=argv[1], comms=comms)
 
     def run_planner():
         debug(latest_world.our_defender.angle)
@@ -68,7 +67,7 @@ if __name__ == '__main__':
         timer = Timer(1, run_planner)
         timer.daemon = True
         timer.start()
-        
+
     timer = Timer(1, run_planner)
     timer.daemon = True
     timer.start()

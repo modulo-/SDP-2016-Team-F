@@ -16,7 +16,7 @@ class Test:
         self.ball = ball
         self.sequence = None
         self.sequence_pos = None
-        self.p = Planner(comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
+        self.p = Planner(planner_type="11", comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
         self.w = World('left', 0)
         self.w.our_defender._receiving_area = {'width': 50, 'height': 50, 'front_offset': 10}
 
@@ -27,7 +27,7 @@ class Test:
         self.step()
 
     def step(self):
-        print("Step: " + str(self.sequence_pos))
+        print("\nStep: " + str(self.sequence_pos))
         if self.sequence_pos >= len(self.sequence):
             print "Finished"
             return
