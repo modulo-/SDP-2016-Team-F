@@ -1,16 +1,15 @@
 import math
 
 
-def attacker_get_rotation_to_point(robot_vec, ball_vec):
+def get_rotation_to_point(vec1, vec2):
     '''
-    This method returns an angle by which the attacking robot needs to rotate to achieve alignment.
+    This method returns an angle by which vec1 needs to rotate to achieve alignment with vec2.
     It takes either an x, y coordinate of the object that we want to rotate to.
     positive angle - clockwise rotation
     negative angle - counter-clockwise rotation
     '''
     delta_x = ball_vec.x - robot_vec.x
     delta_y = ball_vec.y - robot_vec.y
-    print("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(ball_vec.x, ball_vec.y, delta_x, delta_y, robot_vec.x, robot_vec.y, robot_vec.angle))
     displacement = math.hypot(delta_x, delta_y)
     if displacement == 0:
         theta = 0
@@ -22,48 +21,36 @@ def attacker_get_rotation_to_point(robot_vec, ball_vec):
             theta += 2 * math.pi
         print(theta)
     assert -math.pi <= theta <= math.pi
-    print ("rotation to the ball = {0}".format(theta))
 
     return theta
 
 
-def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
+def attacker_get_rotation_to_point(robot_vec, ball_vec):
+    '''
+    This method returns an angle by which the attacking robot needs to rotate to achieve alignment.
+    It takes either an x, y coordinate of the object that we want to rotate to.
+    positive angle - clockwise rotation
+    negative angle - counter-clockwise rotation
+    '''
+    return get_rotation_to_point(robot_vec, ball_vec)
+
+
+def defender_get_rotation_to_catch_point(robot_vec, ball_vec):
     '''
     This method returns an angle by which the defending robot needs to rotate to face the catching point.
     It takes either an x, y coordinate of the ball that we want to approach to and computes the catching point.
     positive angle - clockwise rotation
     negative angle - counter-clockwise rotation
     '''
-    delta_x = ball_vec.x - robot_vec.x
-    delta_y = ball_vec.y - robot_vec.y
-
-    print("get_rotation_to_point from ({4} {5}) facing {6} to ({0} {1}) deltas ({2} {3})".format(ball_vec.x, ball_vec.y, delta_x, delta_y, robot_vec.x, robot_vec.y, robot_vec.angle))
-    displacement = math.hypot(delta_x, delta_y)
-    if displacement == 0:
-        theta = 0
-    else:
-        theta = math.atan2(delta_y, delta_x) - robot_vec.angle  # atan2(sin(self.angle), cos(self.angle))
-        if theta > math.pi:
-            theta -= 2 * math.pi
-        elif theta < -math.pi:
-            theta += 2 * math.pi
-        print(theta)
-    assert -math.pi <= theta <= math.pi
-    print ("rotation to the ball = {0} in degrees {1}".format(theta, math.degrees(theta)))
-
-    opposite = catch_distance
+    theta = get_rotation_to_point(robot_vec, ball_vec)
+    opposite = 30
     if displacement == 0:
         alpha = 0
     else:
-        print(opposite, displacement)
-        print(opposite / displacement)
-        alpha = math.asin(opposite / float(displacement))
-    print ("alpha angle = {0} in degrees {1}".format(alpha, math.degrees(alpha)))
+        alpha = math.sin(opposite / displacement)
     if theta > 0:
-        print ("rotation to the catch point = {0} in degrees {1}".format(theta - alpha, math.degrees(theta - alpha)))
         return theta - alpha
     else:
-        print ("rotation to the catch point = {0} in degrees {1}".format(theta + alpha, math.degrees(theta + alpha)))
         return theta + alpha
 
 
