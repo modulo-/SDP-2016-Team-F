@@ -9,6 +9,17 @@ from planner import DefencePlanner
 from comms import CommsManager
 
 
+def rotation_adjustment(angle):
+    angle -= math.radians(270)
+
+    if angle < 0:
+        return angle + math.pi * 2
+    elif angle > math.pi * 2:
+        return angle - math.pi * 2
+    else:
+        return angle
+
+
 class Test:
 
     def __init__(self, our_defender, ball):
@@ -35,7 +46,12 @@ class Test:
         if 'task' in self.sequence[self.sequence_pos].keys():
             self.p.set_task(self.sequence[self.sequence_pos]['task'])
             print ("Changing task to " + self.sequence[self.sequence_pos]['task'])
-        self.w.update_positions(self.sequence[self.sequence_pos])
+
+        # adjusting
+        adjusted_sequence = self.sequence[self.sequence_pos]
+        adjusted_sequence['our_defender'].angle = rotation_adjustment(adjusted_sequence['our_defender'].angle)
+
+        self.w.update_positions(adjusted_sequence)
         self.p.plan_and_act(self.w)
 
         self.sequence_pos += 1
@@ -53,25 +69,26 @@ class Scene(cocos.layer.ColorLayer):
 
         start_robot_x = 100
         start_robot_y = 100
-        start_robot_rotation = 4.73  # 3.14159
+        start_robot_rotation = math.radians(270)
         start_ball_x = 200
-        start_ball_y = 250
+        start_ball_y = 170
 
         robot = self.add_robot([start_robot_x, start_robot_y], start_robot_rotation)
         ball = self.add_ball([start_ball_x, start_ball_y])
         t = Test(our_defender=robot, ball=ball)
 
-        # sequence = [
-        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        #     {'our_defender': Vector(start_robot_x, start_robot_y, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        #     {'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        #     {'task': 'turn-shoot', 'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.982793723247, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        #     {'our_defender': Vector(174.3956213067677, 206.90641670977678, 0.0, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)}
-        # ]
+        # 1) For starting rotation "math.radians(270)"
         sequence = [
             {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 2.01076687477, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation + 1.92014072481 - (math.pi * 2), 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
         ]
+
+        # 2) For starting rotation "math.radians(180)"
+        # sequence = [
+        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 1.57079632679, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        # ]
+
         t.run(sequence)
 
     def add_robot(self, pos, rotation_radians):
@@ -95,6 +112,8 @@ class SimulatorComms(CommsManager):
 
     def move(self, d):
         super(SimulatorComms, self).move(d)
+        print("Robot move distance: {0}".format(d))
+
         rotation = self.robot.rotation + 90
         dx = d * math.sin(math.radians(rotation))
         dy = d * math.cos(math.radians(rotation))
@@ -111,8 +130,8 @@ class SimulatorComms(CommsManager):
         angle 0 means turned right
         '''
         print("Robot rotation: {0}".format(self.robot.rotation))
-        super(SimulatorComms, self).turn(-angle)
-        delay = self.robot.rotate_by(-angle)
+        super(SimulatorComms, self).turn(angle)
+        delay = self.robot.rotate_by(angle)
         self.wait_and_next_step(delay)
 
     def close_grabbers(self):
@@ -152,7 +171,7 @@ class Sprite (cocos.sprite.Sprite):
         negative angle - clockwise rotation
         angle 0 means turned right
         '''
-        angle = -(radians * 180 / math.pi)
+        angle = math.degrees(radians)
         self.do(ac.RotateBy(angle, self._rotation_speed))
         return self._rotation_speed
 
@@ -162,8 +181,13 @@ class Robot(Sprite):
     def __init__(self, pos, rotation_radians):
         super(Robot, self).__init__('res/robot.png', pos)
         self._movement_speed = 2
-        self._rotation_speed = 1
-        self.rotation = -math.degrees(rotation_radians)
+        self._rotation_speed = 2
+
+        # initial rotation adjustment
+        rotation_radians -= math.pi / 2
+        if rotation_radians < 0:
+            rotation_radians += math.pi * 2
+        self.rotation = math.degrees(rotation_radians)
 
 
 class Ball(Sprite):
@@ -173,8 +197,7 @@ class Ball(Sprite):
         self._movement_speed = 15
 
     def grab(self, robot):
-        self._anchor_x = robot.position[0]
-        self._anchor_y = robot.position[1]
+        pass
 
     def release(self):
         self._anchor_x = 0
