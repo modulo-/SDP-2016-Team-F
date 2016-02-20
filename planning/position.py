@@ -1,4 +1,5 @@
 import math
+import logging
 
 
 class Coordinate(object):
@@ -39,12 +40,14 @@ class Coordinate(object):
 class Vector(Coordinate):
 
     def __init__(self, x, y, angle, velocity):
+        self._angle = 0
+        self._velocity = 0
         super(Vector, self).__init__(x, y)
-        if angle is None or velocity is None or angle < 0 or angle >= (2 * math.pi):
+        if angle is None or velocity is None:
             raise ValueError('Can not initialise attributes of Vector to None')
         else:
-            self._angle = angle
-            self._velocity = velocity
+            self.velocity = velocity
+            self.angle = angle
 
     @property
     def angle(self):
@@ -56,9 +59,20 @@ class Vector(Coordinate):
 
     @angle.setter
     def angle(self, new_angle):
-        if new_angle is None or new_angle < 0 or new_angle >= (2 * math.pi):
-            raise ValueError('Angle can not be None, also must be between 0 and 2pi')
-        self._angle = new_angle
+        if new_angle is None:
+            raise ValueError('Can not initialise attributes of Vector to None')
+        elif new_angle < 0 or new_angle >= (2 * math.pi):
+            new_angle_converted = new_angle
+            while (new_angle_converted < 0):
+                new_angle_converted += 2 * math.pi
+
+            while (new_angle_converted >= 2 * math.pi):
+                new_angle_converted -= 2 * math.pi
+
+            logging.info('The angle was converted from ' + str(new_angle) + ' to ' + str(new_angle_converted))
+            self._angle = new_angle_converted
+        else:
+            self._angle = new_angle
 
     @velocity.setter
     def velocity(self, new_velocity):
