@@ -8,13 +8,13 @@ def get_rotation_to_point(vec1, vec2):
     positive angle - clockwise rotation
     negative angle - counter-clockwise rotation
     '''
-    delta_x = ball_vec.x - robot_vec.x
-    delta_y = ball_vec.y - robot_vec.y
+    delta_x = vec2.x - vec1.x
+    delta_y = vec2.y - vec1.y
     displacement = math.hypot(delta_x, delta_y)
     if displacement == 0:
         theta = 0
     else:
-        theta = math.atan2(delta_x, delta_y) - robot_vec.angle  # atan2(sin(self.angle), cos(self.angle))
+        theta = math.atan2(delta_x, delta_y) - vec1.angle  # atan2(sin(self.angle), cos(self.angle))
         if theta > math.pi:
             theta -= 2 * math.pi
         elif theta < -math.pi:
@@ -42,7 +42,10 @@ def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
     positive angle - clockwise rotation
     negative angle - counter-clockwise rotation
     '''
+    delta_x = ball_vec.x - robot_vec.x
+    delta_y = ball_vec.y - robot_vec.y
     theta = get_rotation_to_point(robot_vec, ball_vec)
+    displacement = math.hypot(delta_x, delta_y)
     if displacement == 0:
         alpha = 0
     else:
