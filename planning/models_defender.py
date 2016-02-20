@@ -58,14 +58,12 @@ class GoToStaticBall(Action):
         dx = self.world.ball.x - self.robot.x
         dy = self.world.ball.y - self.robot.y
         displacement = math.hypot(dx, dy)
-        print(displacement)
 
         if displacement == 0:
             alpha = 0
         else:
             alpha = math.degrees(math.asin(self.robot.catch_distance / float(displacement)))
         beta = 90 - alpha
-        print(alpha, beta)
 
         if math.sin(math.radians(alpha)) == 0:
             distance_to_move = 15  # something is obviously wrong so we have to move a bit
