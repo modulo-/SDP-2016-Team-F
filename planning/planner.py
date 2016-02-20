@@ -5,16 +5,12 @@ import models_defender as defender
 from logging import info
 
 
-class Planner:
+class Planner (object):
     '''
     Takes the world and creates a plan and actuates it.
     '''
 
-    def __init__(self, planner_type, comms=CommsManager(0)):
-        if planner_type is None:
-            raise Exception("Planner type has to be defined! (use 11 or 12)")
-
-        self.planner_type = planner_type
+    def __init__(self, comms=CommsManager(0)):
         self.comms = comms
         self.previous_action = None
         self.current_task = 'move-grab'
@@ -27,19 +23,7 @@ class Planner:
         '''
         Selects a goal for robot
         '''
-
-        if self.planner_type == "11":
-            if self.current_task == 'move-grab':
-                return defender.GetBall(world, robot)
-        elif self.planner_type == "12":
-            if self.current_task == 'move-grab':
-                return attacker.GetBall(world, robot)
-            elif self.current_task == 'turn-move-grab':
-                return attacker.GetBall(world, robot)
-            elif self.current_task == 'turn-shoot':
-                return attacker.Score(world, robot)
-        else:
-            raise Exception("Wrong planner type (use 11 or 12)")
+        raise NotImplementedError
 
     def actuate(self, action):
         '''Perform actions'''
@@ -65,3 +49,33 @@ class Planner:
             action = action
         self.previous_action = action
         self.actuate(action)
+
+
+class AttackPlanner(Planner):
+    '''
+    Planner for attacking robot
+    '''
+
+    def get_goal(self, world, robot):
+        '''
+        Selects a goal for robot
+        '''
+        if self.current_task == 'move-grab':
+            return attacker.GetBall(world, robot)
+        elif self.current_task == 'turn-move-grab':
+            return attacker.GetBall(world, robot)
+        elif self.current_task == 'turn-shoot':
+            return attacker.Score(world, robot)
+
+
+class DefencePlanner(Planner):
+    '''
+    Planner for defending robot
+    '''
+
+    def get_goal(self, world, robot):
+        '''
+        Selects a goal for robot
+        '''
+        if self.current_task == 'move-grab':
+            return defender.GetBall(world, robot)

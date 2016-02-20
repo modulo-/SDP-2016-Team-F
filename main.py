@@ -1,7 +1,7 @@
 #!/usr/bin/python2
 
 from Vision.vision import Vision
-from planning.planner import Planner
+from planning.planner import AttackPlanner, DefencePlanner
 from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
@@ -53,13 +53,15 @@ if __name__ == '__main__':
     thread.daemon = True
     thread.start()
     comms = None
+    planner = None
     if argv[1] == '11':
         comms = TractorCrabCommsManager(0, argv[2])
+        planner = AttackPlanner(comms=comms)
     elif argv[1] == '12':
         comms = RFCommsManager(0, argv[2])
+        planner = DefencePlanner(comms=comms)
     else:
         raise Exception('You wish.')
-    planner = Planner(robot_type=argv[1], comms=comms)
 
     def run_planner():
         debug(latest_world.our_defender.angle)
