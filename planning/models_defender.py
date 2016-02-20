@@ -51,7 +51,7 @@ class Tactical(Goal):
 
 class GoToStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0))) < ROTATION_THRESHOLD]
+                     lambda w, r: abs(utils.defender_get_rotation_to_catch_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -120,7 +120,7 @@ class OpenGrabbersForOpponentShot(Action):
     '''
     def rotation_precondition(self, w, r):
         possessing = w.robot_in_posession
-        rotation = utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(possessing.x, possessing.y, 0, 0))
+        rotation = utils.defender_get_rotation_to_catch_point(r.vector, possessing.vector)
         return abs(rotation) < FACING_ROTATION_THRESHOLD
 
     preconditions = [lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession),
@@ -144,7 +144,7 @@ class KickToScoreZone(Action):
     '''
     Pass ball to our attacker's score zone
     '''
-    preconditions = [lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.score_zone.x, w.score_zone.y, 0, 0))) < FACING_ROTATION_THRESHOLD,
+    preconditions = [lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(r.vector, Vector(w.score_zone.x, w.score_zone.y, 0, 0))) < FACING_ROTATION_THRESHOLD,
                      lambda w, r: r.has_ball(w.ball)]
 
     def perform(self, comms):

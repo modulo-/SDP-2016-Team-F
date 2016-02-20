@@ -48,7 +48,7 @@ class AttackBlock(Goal):
 
 class GoToStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.attacker_get_rotation_to_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0))) < ROTATION_THRESHOLD,
+                     lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD,
                      lambda w, r: r.catcher == 'OPEN']
 
     def perform(self, comms):
@@ -63,7 +63,7 @@ class GoToStaticBall(Action):
 
 class GoToOpeningDistanceStaticBall(Action):
     preconditions = [lambda w, r: utils.ball_is_static(w),
-                     lambda w, r: abs(utils.attacker_get_rotation_to_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0))) < ROTATION_THRESHOLD]
+                     lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD]
     # lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
 
     def perform(self, comms):
@@ -101,14 +101,14 @@ class TurnToGoal(Action):
         #     self.world.their_goal.lower_post) / 2
         x = 220
         y = 0  # self.world.their_goal.y
-        comms.turn(self.robot.attacker_get_rotation_to_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0)))
+        comms.turn(self.robot.attacker_get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
 
 
 class TurnToBall(Action):
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
-        comms.turn(utils.attacker_get_rotation_to_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0)))
+        comms.turn(utils.attacker_get_rotation_to_point(Vector(self.robot.vetor, Vector(x, y, 0, 0))))
 
 
 class Shoot(Action):
