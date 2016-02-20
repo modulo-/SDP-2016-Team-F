@@ -5,7 +5,7 @@ from threading import Timer
 
 from position import Vector
 from world import World
-from planner import Planner
+from planner import DefencePlanner
 from comms import CommsManager
 
 
@@ -16,7 +16,7 @@ class Test:
         self.ball = ball
         self.sequence = None
         self.sequence_pos = None
-        self.p = Planner(planner_type="11", comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
+        self.p = DefencePlanner(comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
         self.w = World('left', 0)
         self.w.our_defender._receiving_area = {'width': 50, 'height': 50, 'front_offset': 10}
 
