@@ -8,6 +8,7 @@ from world import World
 from planner import DefencePlanner
 from comms import CommsManager
 
+import logging
 
 def rotation_adjustment(angle):
     angle -= math.radians(270)
@@ -206,6 +207,8 @@ class Ball(Sprite):
 
 class Environment():
     def __init__(self, width, height):
+
+        logging.basicConfig(level=logging.INFO, format="\r%(asctime)s - %(levelname)s - %(message)s")
 
         # director init takes the same arguments as pyglet.window
         cocos.director.director.init(width=width, height=height, resizable=False)
