@@ -85,7 +85,7 @@ class OpenGrabbers(Action):
 
 class GrabBall(Action):
     preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Attacker can catch ball"),
-                     lambda w, r: r.catcher == 'OPEN']
+                     (lambda w, r: r.catcher == 'OPEN', "Catchers open")]
 
     def perform(self, comms):
         comms.close_grabbers()
