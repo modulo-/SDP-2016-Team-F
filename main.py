@@ -8,15 +8,18 @@ from threading import Timer, Thread
 from sys import argv
 import logging
 from logging import debug, warning
-
+from planning.predictor import Predictor
 
 PITCH_NO = 0
 
+predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
 
 
 def new_vision(world):
+    predictor.update(world)
+    world = predictor.predict()
     latest_world.update_positions(
         {
             "our_defender": world.robot_blue_green,
@@ -37,18 +40,19 @@ if __name__ == '__main__':
         print("<group> must be either '11' or '12'.")
         print("<rf device path> should be '/dev/ttyACM0' or similar.")
         print("Note that I'm lazy and don't check the input properly.")
-        print("")
-        print("Enter a task into the shell to run it. Currently supported:")
-        print(" - 'move-grab'")
-        print(" - 'turn-shoot'")
-        print("The following control commands are also available:")
-        print(" - 'exit' to exit")
-        print(" - 'debug' to set the logging level to debug")
-        print(" - 'info' to set the logging level to info")
-        print(" - 'warn' to set the logging level to warnings (default)")
-        print(" - 'error' to set the logging level to errors")
-        print("Enter 'exit' to exit.")
         exit(0)
+    print("Welcome to the crab shell.")
+    print("")
+    print("Enter a task into the shell to run it. Currently supported:")
+    print(" - 'move-grab'")
+    print(" - 'turn-shoot'")
+    print("The following control commands are also available:")
+    print(" - 'exit' to exit")
+    print(" - 'debug' to set the logging level to debug")
+    print(" - 'info' to set the logging level to info")
+    print(" - 'warn' to set the logging level to warnings (default)")
+    print(" - 'error' to set the logging level to errors")
+    print("Enter 'exit' to exit.")
     thread = Thread(target=start_vision)
     thread.daemon = True
     thread.start()
