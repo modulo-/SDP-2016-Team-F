@@ -85,7 +85,7 @@ class OpenGrabbers(Action):
 
 class GrabBall(Action):
     preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Attacker can catch ball"),
-                     lambda w, r: r.catcher == 'OPEN']
+                     (lambda w, r: r.catcher == 'OPEN', "Catchers open")]
 
     def perform(self, comms):
         comms.close_grabbers()
@@ -108,7 +108,7 @@ class TurnToBall(Action):
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
-        comms.turn(utils.attacker_get_rotation_to_point(Vector(self.robot.vetor, Vector(x, y, 0, 0))))
+        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
 
 
 class Shoot(Action):
