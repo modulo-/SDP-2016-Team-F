@@ -1,5 +1,6 @@
 from collections import namedtuple
 from logging import debug
+from Vision.world import Vector
 
 Positions = namedtuple('Positions', 'robot_blue_pink robot_blue_green ' +
         'robot_yellow_pink robot_yellow_green ball')
@@ -21,7 +22,14 @@ class Predictor:
             world.ball,
         ))
 
-    def predict(self):
+    def _predict(self, hist):
         # TODO
-        debug("Predition: " + self._position_history[-1])
-        return self._position_history[-1]
+        return hist[-1]
+
+    def predict(self):
+        ret = []
+        for i in range(5):
+            ret.append(self._predict([h[i] for h in self._position_history]))
+        ret = Positions(*ret)
+        debug("Predition: " + str(ret))
+        return ret
