@@ -10,7 +10,7 @@ PANID = '6810'
 
 DEVICEID = 'c'
 
-class CommHandler:
+class SerialHandle:
     def init(self, fname, chan, control, listen=True):
         self._lock = Lock()
         self._callbacks = []
