@@ -8,6 +8,7 @@ from threading import Timer, Thread
 from sys import argv
 import logging
 from logging import debug, warning
+from getopt import getopt
 
 
 PITCH_NO = 0
@@ -33,9 +34,10 @@ def start_vision():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     if len(argv) == 0:
-        print("Usage: ./main.py [-1PATH] [-2PATH] OPTIONS")
+        print("Usage: ./main.py [-1PATH] [-2PATH] OPTIONS TEAM-COLOR")
         print("")
         print("Where -1 and -2 refer to group 11 and 12's RF devices.")
+        print("TEAM-COLOR must be either 'blue' (or 'b') or 'yellow' (or 'y').")
         print("")
         print("Options:")
         print("")
@@ -57,20 +59,20 @@ if __name__ == '__main__':
     print("Enter 'exit' to exit.")
     attacker = None
     defender = None
-    optlist, argv = getopt(sys.argv, '1:2:',
+    optlist, args = getopt(argv[1:], '1:2:',
         ['info', 'warn', 'error', 'debug'])
     for (opt, arg) in optlist:
-        if opt == '1':
+        if opt == '-1':
             defender = TractorCrabCommsManager(0, arg)
-        elif opt == '2':
+        elif opt == '-2':
             attacker = RFCommsManager(1, arg)
-        elif opt == 'debug':
+        elif opt == '--debug':
             logging.root.setLevel(logging.DEBUG)
-        elif opt == 'info':
+        elif opt == '--info':
             logging.root.setLevel(logging.INFO)
-        elif opt == 'warn':
+        elif opt == '--warn':
             logging.root.setLevel(logging.WARNING)
-        elif opt == 'error':
+        elif opt == '--error':
             logging.root.setLevel(logging.ERROR)
     thread = Thread(target=start_vision)
     thread.daemon = True
@@ -81,17 +83,17 @@ if __name__ == '__main__':
         attack_planner = AttackPlanner(comms=attacker)
     if defender:
         defence_planner = DefencePlanner(comms=defender)
-    planner = None
+    print attack_planner, defence_planner
     def run_planners():
         if attack_planner:
             attack_planner.plan_and_act(latest_world)
         if defence_planner:
             defence_planner.plan_and_act(latest_world)
-        timer = Timer(1, run_planner)
+        timer = Timer(1, run_planners)
         timer.daemon = True
         timer.start()
 
-    timer = Timer(1, run_planner)
+    timer = Timer(1, run_planners)
     timer.daemon = True
     timer.start()
     while True:
