@@ -17,6 +17,10 @@ namespace comms {
 
 void setup() {
     io::init();
+    // 5V Digital out, used to signal the kicker.
+    pinMode(8, OUTPUT);
+    digitalWrite(8, LOW);
+    // LED, mostly for debugging stuff.
     pinMode(13, OUTPUT);
     digitalWrite(13, LOW);
     if(!comms::init("60", "~~~")) {

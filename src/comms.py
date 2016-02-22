@@ -53,9 +53,9 @@ def monitor_comms():
         commlock.release()
         data = b64.decode(line[2:-2])
         if line.startswith('d'):
-            info('Debug message recieved: %s', data)
+            info('Debug message recieved: %r', data)
         elif line.startswith('e'):
-            error('Error message recieved: %s', data)
+            error('Error message recieved: %r', data)
         else:
             for callback in callbacks:
                 thread.start_new_thread(callback, (data, ))
@@ -85,13 +85,12 @@ def init(fname, chan, control, listen=True):
     ]
 
     for cmd in cmds:
-        debug(cmd)
+        debug('Sending control signal: %r', cmd)
         commlock.acquire()
         commserial.write(cmd)
         commlock.release()
-        debug("sent")
         waitok()
-        debug("done")
+        debug('Done.')
     if listen:
         thread.start_new_thread(monitor_comms, ())
 

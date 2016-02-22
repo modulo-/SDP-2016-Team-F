@@ -27,7 +27,7 @@ namespace io {
 
     uint64_t rotDist() {
         // Determined through totally scientific trial-and-error.
-        return (sumMotors() * 1440) / 101;
+        return (sumMotors() * 17280) / 1111;
     }
 
     uint64_t dist() {

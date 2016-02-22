@@ -7,12 +7,15 @@ import logging
 from logging import debug, error
 import readline
 
-CMD_WAIT   = 0x00
-CMD_BRAKE  = 0x01
-CMD_STRAIT = 0x02
-CMD_SPIN   = 0x03
-CMD_KICK   = 0x04
-CMD_MV     = 0x05
+CMD_WAIT          = 0x00
+CMD_BRAKE         = 0x01
+CMD_STRAIT        = 0x02
+CMD_SPIN          = 0x03
+CMD_KICK          = 0x04
+CMD_MV            = 0x05
+CMD_GRABBER_OPEN  = 0x06;
+CMD_GRABBER_CLOSE = 0x07;
+CMD_HOLD_SPIN     = 0x08;
 
 class TractorCrabException(Exception):
     def __init__(self, s):
@@ -32,12 +35,18 @@ cmd_brake = i16fn(CMD_BRAKE)
 cmd_strait = i16fn(CMD_STRAIT)
 cmd_spin = i16fn(CMD_SPIN)
 cmd_kick = i16fn(CMD_KICK)
+cmd_grabber_open = lambda: [CMD_GRABBER_OPEN]
+cmd_grabber_close = lambda: [CMD_GRABBER_CLOSE]
+cmd_hold_spin = i16fn(CMD_HOLD_SPIN)
 
-def cmd_mv(x, y, angle):
+def cmd_mv(x0, y0, angle0, x1, y1, angle1):
     return [CMD_MV,
-        x & 0xff, (x >> 8) & 0xff,
-        y & 0xff, (y >> 8) & 0xff,
-        angle & 0xff, (angle >> 8) & 0xff]
+        x0 & 0xff, (x0 >> 8) & 0xff,
+        y0 & 0xff, (y0 >> 8) & 0xff,
+        angle0 & 0xff, (angle0 >> 8) & 0xff,
+        x1 & 0xff, (x1 >> 8) & 0xff,
+        y1 & 0xff, (y1 >> 8) & 0xff,
+        angle1 & 0xff, (angle1 >> 8) & 0xff]
 
 def parse_t(s):
     t = int(s)
@@ -72,11 +81,22 @@ commands = {
         'Spins on the spot the specified angle (positive: clockwise)',
         [('angle', parse_angle)]),
     'kick': Command(cmd_kick,
-        'Kicks the ball the specified distance',
-        [('dist', parse_dist)]),
+        'Kicks the ball the specified time',
+        [('time', parse_t)]),
     'mv': Command(cmd_mv,
         'Moves to a x and y offset, facing a specified angle',
-        [('x', parse_dist), ('y', parse_dist), ('angle', parse_angle)]),
+        [('x0', parse_dist), ('y0', parse_dist), ('angle0', parse_angle),
+         ('x1', parse_dist), ('y1', parse_dist), ('angle1', parse_angle)]),
+    'grabber_open': Command(cmd_grabber_open,
+        'Opens the grabbers',
+        []),
+    'grabber_close': Command(cmd_grabber_close,
+        'Closes the grabbers',
+        []),
+    'hold_spin': Command(cmd_hold_spin,
+        'Spins on the spot the specified angle (positive: clockwise), ' +
+        'holding the ball in place.',
+        [('angle', parse_angle)]),
 }
 
 def help_cmd(cmd):
