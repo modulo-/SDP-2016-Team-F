@@ -28,7 +28,7 @@ static bool tryCmd(const char *prefix, const char *cmd) {
     }
     return !Serial.find("OK");
 }
-
+    
 bool init(const char *chan, const char *control) {
     Serial.setTimeout(5000);
     if(tryCmd(control, NULL))
@@ -102,7 +102,7 @@ void poll() {
     }
 }
 
-void send(void *data, char target, size_t len) {
+void send(const void *data, char target, size_t len) {
     // Note that as of right now, the arduino will IGNORE acknowledgement
     // packets.
     char *encoded = NULL;
@@ -112,6 +112,10 @@ void send(void *data, char target, size_t len) {
     Serial.print(DEVICEID);
     Serial.print(encoded);
     base64::Checksum chksum = base64::checksum(encoded, enclen);
+    chksum.sum[0] = base64::chr(
+        base64::val(chksum.sum[0]) ^ base64::val(target));
+    chksum.sum[1] = base64::chr(
+        base64::val(chksum.sum[1]) ^ base64::val(DEVICEID));
     Serial.print(chksum.sum[0]);
     Serial.print(chksum.sum[1]);
     Serial.println("");
