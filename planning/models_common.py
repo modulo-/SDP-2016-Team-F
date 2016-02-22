@@ -21,7 +21,7 @@ class Goal(object):
 
     # Return the next action necesary to achieve the goal
     def generate_action(self):
-        info("Generating action for goal: {0}".format(self.__doc__.strip()))
+        info("Generating action for goal: {0}".format(self.__class__.__name__))
         for a in self.actions:
             if a.is_possible():
                 return a
@@ -40,12 +40,12 @@ class Action(object):
 
     # Test the action's preconditions
     def is_possible(self):
-        info("Testing action : {0}".format(self.__doc__.strip()))
+        info("Testing action : {0}".format(self.__class__.__name__))
         for (condition, name) in self.preconditions:
             if not condition(self.world, self.robot):
                 info("Precondition is false: {0}".format(name))
                 return False
-        info("Action possible: {0}".format(self.__doc__.strip()))
+        info("Action possible: {0}".format(self.__class__.__name__))
         return True
 
     # Do comms to perform action
