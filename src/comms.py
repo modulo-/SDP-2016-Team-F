@@ -11,7 +11,7 @@ PANID = '6810'
 DEVICEID = 'c'
 
 class SerialHandle:
-    def init(self, fname, chan, control, listen=True):
+    def __init__(self, fname, chan, control, listen=True):
         self._lock = Lock()
         self._callbacks = []
         self._packetlist = []
