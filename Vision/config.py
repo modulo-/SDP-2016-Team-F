@@ -87,7 +87,7 @@ class Config:
         self.vision = vision
 
     def GUI(self):
-        self.createTrackbar(self.computer, callback=lambda x: self.set(self.computer.selected, x,
+        self.createTrackbar(self.computer, callback=lambda x: self.set("computer", x,
               lambda : setattr(self, "colours", colour_profiles[self.computer.selected_option])))
 
         for name, filter in self.filters.iteritems():
@@ -125,7 +125,7 @@ class Config:
         c[col]=val
 
     def set(self, bound, val, callback = None):
-        c = setattr(self, bound)
+        c = getattr(self, bound)
         c.selected=val
         if callback is not None:
             callback()

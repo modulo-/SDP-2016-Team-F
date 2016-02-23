@@ -73,11 +73,16 @@ class Tracker(object):
 
             # print frame_mask
 
-            _, contours, hierarchy = cv2.findContours(
+            stuff = cv2.findContours(
                 frame_mask,
                 cv2.RETR_TREE,
                 cv2.CHAIN_APPROX_SIMPLE
             )
+
+            if len(stuff)==3:
+                _, contours, hierarchy = stuff
+            else:
+                contours, hierarchy = stuff
 
             return (contours, hierarchy, frame_mask)
         except:
