@@ -12,17 +12,29 @@ from getopt import getopt
 
 
 PITCH_NO = 0
+color = None
 
 latest_world = World('left', PITCH_NO)
+latest_world.our_attacker._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
 latest_world.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
 
+def get_defender(world):
+    if color == 'b':
+        return world.robot_blue_green
+    else:
+        return world.robot_yellow_green
+
+def get_attacker(world):
+    if color == 'b':
+        return world.robot_blue_pink
+    else:
+        return world.robot_yellow_pink
 
 def new_vision(world):
     latest_world.update_positions(
-        {
-            "our_defender": world.robot_blue_green,
-            "ball": world.ball,
-        }
+        our_defender=get_defender(world),
+        our_attacker=get_attacker(world),
+        ball=world.ball,
     )
     if latest_world.our_defender.is_missing():
         warning("Robot is missing!")
@@ -33,32 +45,6 @@ def start_vision():
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
-    if len(argv) == 0:
-        print("Usage: ./main.py [-1PATH] [-2PATH] OPTIONS TEAM-COLOR")
-        print("")
-        print("Where -1 and -2 refer to group 11 and 12's RF devices.")
-        print("TEAM-COLOR must be either 'blue' (or 'b') or 'yellow' (or 'y').")
-        print("")
-        print("Options:")
-        print("")
-        print("--debug Set logging level to 'debug'")
-        print("--info  Set logging level to 'info'")
-        print("--warn  Set logging level to 'warn'")
-        print("--error Set logging level to 'error'")
-        exit(0)
-    print("")
-    print("Enter a task into the shell to run it. Currently supported:")
-    print(" - 'move-grab'")
-    print(" - 'turn-shoot'")
-    print("The following control commands are also available:")
-    print(" - 'exit' to exit")
-    print(" - 'debug' to set the logging level to debug")
-    print(" - 'info' to set the logging level to info")
-    print(" - 'warn' to set the logging level to warnings (default)")
-    print(" - 'error' to set the logging level to errors")
-    print("Enter 'exit' to exit.")
-    attacker = None
-    defender = None
     optlist, args = getopt(argv[1:], '1:2:',
         ['info', 'warn', 'error', 'debug'])
     for (opt, arg) in optlist:
@@ -74,6 +60,36 @@ if __name__ == '__main__':
             logging.root.setLevel(logging.WARNING)
         elif opt == '--error':
             logging.root.setLevel(logging.ERROR)
+    if len(args) != 1 or args[0] not in ['b', 'blue', 'y', 'yellow']:
+        print("Usage: ./main.py [-1PATH] [-2PATH] OPTIONS TEAM-COLOR")
+        print("")
+        print("Where -1 and -2 refer to group 11 and 12's RF devices.")
+        print("TEAM-COLOR must be either 'blue' (or 'b') or 'yellow' (or 'y').")
+        print("")
+        print("Options:")
+        print("")
+        print("--debug Set logging level to 'debug'")
+        print("--info  Set logging level to 'info'")
+        print("--warn  Set logging level to 'warn'")
+        print("--error Set logging level to 'error'")
+        exit(0)
+    if args[0] in ['b', 'blue']:
+        color = 'b'
+    else:
+        color = 'y'
+    print("")
+    print("Enter a task into the shell to run it. Currently supported:")
+    print(" - 'move-grab'")
+    print(" - 'turn-shoot'")
+    print("The following control commands are also available:")
+    print(" - 'exit' to exit")
+    print(" - 'debug' to set the logging level to debug")
+    print(" - 'info' to set the logging level to info")
+    print(" - 'warn' to set the logging level to warnings (default)")
+    print(" - 'error' to set the logging level to errors")
+    print("Enter 'exit' to exit.")
+    attacker = None
+    defender = None
     thread = Thread(target=start_vision)
     thread.daemon = True
     thread.start()
