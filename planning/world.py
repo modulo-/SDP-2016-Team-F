@@ -367,8 +367,8 @@ class World(object):
                          ('their_robot_0', self.their_robots[0]),
                          ('their_robot_1', self.their_robots[1]),
                          ('ball', self.ball)]
-        for (name, obj) in kwargs:
-            if name not in pos_dict or pos_dict[name] is None:
+        for (name, obj) in pitch_objects:
+            if name not in kwargs or kwargs[name] is None:
                 obj.set_missing()
             else:
-                obj.vector = pos_dict[name]
+                obj.vector = kwargs[name]

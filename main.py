@@ -47,6 +47,8 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     optlist, args = getopt(argv[1:], '1:2:',
         ['info', 'warn', 'error', 'debug'])
+    attacker = None
+    defender = None
     for (opt, arg) in optlist:
         if opt == '-1':
             defender = TractorCrabCommsManager(0, arg)
@@ -88,8 +90,6 @@ if __name__ == '__main__':
     print(" - 'warn' to set the logging level to warnings (default)")
     print(" - 'error' to set the logging level to errors")
     print("Enter 'exit' to exit.")
-    attacker = None
-    defender = None
     thread = Thread(target=start_vision)
     thread.daemon = True
     thread.start()
@@ -99,7 +99,6 @@ if __name__ == '__main__':
         attack_planner = AttackPlanner(comms=attacker)
     if defender:
         defence_planner = DefencePlanner(comms=defender)
-    print attack_planner, defence_planner
     def run_planners():
         if attack_planner:
             attack_planner.plan_and_act(latest_world)
