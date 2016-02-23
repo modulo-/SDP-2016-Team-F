@@ -1,6 +1,6 @@
 #!/usr/bin/python2
 from __future__ import division
-import comms
+from comms import SerialHandle
 import sys
 from math import ceil, atan, sqrt, pi
 import logging
@@ -139,7 +139,7 @@ if __name__ == '__main__':
         error('RF device not specified')
         print "Please provide the RF device as an argument (e.g. '/dev/ttyACM0')"
     else:
-        comms.init(sys.argv[1], '60', '~~~')
+        comms = SerialHandle(sys.argv[1], '60', '~~~')
         print "Comms system online. Type 'help' for command information."
         print ""
         print "time is given in milliseconds. Please wait for a command to complete before sending a new one."
