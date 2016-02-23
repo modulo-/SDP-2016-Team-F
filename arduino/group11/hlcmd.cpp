@@ -58,11 +58,17 @@ namespace hlcmd {
             // 1-to-1 mapping
             return 3;
         case GRABBER_OPEN:
-        case GRABBER_CLOSE:
         case KICK:
             // 1. Uninterruptable timed command
             // 2. Interruptable NOP.
             return 4;
+        case GRABBER_CLOSE:
+            // 1. Uninterruptable slow close
+            // 2. Uninterruptable slow open
+            // 3. Uninterruptable fast close
+            // 4. Uninterruptable slow close
+            // 5. Interruptable NOP.
+            return 13;
         case STRAIT:
         case HOLD_SPIN:
         case SPIN:
@@ -176,7 +182,13 @@ namespace hlcmd {
         case GRABBER_CLOSE:
             out[0] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
             *((uint16_t *)(out + 1)) = 600;
-            out[3] = llcmd::NOP;
+            out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 4)) = 600;
+            out[6] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 7)) = 500;
+            out[9] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 10)) = 300;
+            out[12] = llcmd::NOP;
             break;
         }
     }

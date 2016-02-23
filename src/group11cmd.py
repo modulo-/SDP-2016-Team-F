@@ -129,13 +129,17 @@ def help_cmds():
     print ""
     print "Commands which cannot be used in a chain are 'help' and 'exit'."
 
+def run(cmdbytes):
+    comms.stop_resend('')
+    comms.send(''.join(chr(x) for x in cmdbytes), '1')
+
 if __name__ == '__main__':
     logging.root.setLevel(logging.DEBUG)
     if len(sys.argv) < 2:
         error('RF device not specified')
         print "Please provide the RF device as an argument (e.g. '/dev/ttyACM0')"
     else:
-        comms.init(sys.argv[1], '60', '+++')
+        comms.init(sys.argv[1], '60', '~~~')
         print "Comms system online. Type 'help' for command information."
         print ""
         print "time is given in milliseconds. Please wait for a command to complete before sending a new one."

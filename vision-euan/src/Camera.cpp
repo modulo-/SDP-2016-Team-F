@@ -61,6 +61,7 @@ namespace vision {
             cv::undistort(rawFrame, processedFrame, pitch.getCameraMatrix(), pitch.getDistortionCoefficients(), optimalCameraMatrix);
             cv::warpAffine(processedFrame, working, pitch.getAffineTransformation(), processedFrame.size());
             cv::warpAffine(working, processedFrame, pitch.getRotationTransformation(working.size()), working.size());
+            //rawFrame.copyTo(processedFrame);
         }
 
         return status;
