@@ -4,9 +4,10 @@ import numpy as np
 import cv2
 import glob
 from copy import copy
+from logging import debug
 
 import cPickle
-filename = "../../vision/calibrations/undistort.txt"
+filename = "../../oldvision/calibrations/undistort.txt"
 
 # Set the required dimension of all sample checkboard images
 dim = (8, 5)
@@ -32,11 +33,12 @@ for fname in images:
     # Find the chess board corners
     ret, corners = cv2.findChessboardCorners(gray, dim, None)
     
-    print ret, corners
+    debug(ret)
+    debug(corners)
 
     # If found, add object points, image points (after refining them)
     if ret == True:
-    	print "flag"
+    	debug("flag")
 
         objpoints.append(objp)
 
@@ -52,7 +54,7 @@ for fname in images:
 
 cv2.destroyAllWindows()
 
-print objpoints
+debug(objpoints)
 
 # Get the calibration data
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)

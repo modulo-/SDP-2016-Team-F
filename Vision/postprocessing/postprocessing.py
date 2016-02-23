@@ -1,7 +1,7 @@
 from copy import deepcopy
 from math import atan2, pi, hypot,cos, sin, pi
 from Polygon.cPolygon import Polygon
-from vision import tools
+from oldvision import tools
 
 class Coordinate(object):
 

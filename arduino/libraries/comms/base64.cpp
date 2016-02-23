@@ -1,7 +1,5 @@
 #include "base64.h"
 
-#include <stdlib.h>
-
 namespace base64 {
 
 uint8_t val(char c) {
@@ -58,12 +56,9 @@ Checksum checksum(const char *ptr, size_t len) {
     return (Checksum){{chr(sums[0]), chr(sums[1])}};
 }
 
-void decode(const char *ptr, size_t len, char **dec_ptr, size_t *dec_len) {
-    *dec_len = (len * 3) / 4;
-    *dec_ptr = (char *)realloc(*dec_ptr, sizeof(char) * *dec_len);
+void decode(const char *ptr, size_t len, char *dec_ptr) {
     uint8_t buf = 0x00;
     uint8_t bits_in_buf = 0;
-    uint8_t *nextc = (uint8_t *)(*dec_ptr);
     for(size_t i = 0; i < len; i++) {
         uint8_t tmp;
         switch(bits_in_buf) {
@@ -72,22 +67,22 @@ void decode(const char *ptr, size_t len, char **dec_ptr, size_t *dec_len) {
             bits_in_buf = 6;
             break;
         case 2:
-            *nextc = (buf << 6) | val(ptr[i]);
-            nextc++;
+            *dec_ptr = (buf << 6) | val(ptr[i]);
+            dec_ptr++;
             buf = 0x00;
             bits_in_buf = 0;
             break;
         case 4:
             tmp = val(ptr[i]);
-            *nextc = (buf << 4) | tmp >> 2;
-            nextc++;
+            *dec_ptr = (buf << 4) | tmp >> 2;
+            dec_ptr++;
             buf = tmp & 0x03;
             bits_in_buf = 2;
             break;
         case 6:
             tmp = val(ptr[i]);
-            *nextc = (buf << 2) | tmp >> 4;
-            nextc++;
+            *dec_ptr = (buf << 2) | tmp >> 4;
+            dec_ptr++;
             buf = tmp & 0x0f;
             bits_in_buf = 4;
             break;
@@ -95,33 +90,28 @@ void decode(const char *ptr, size_t len, char **dec_ptr, size_t *dec_len) {
     }
 }
 
-void encode(const char *ptr, size_t len, char **enc_ptr, size_t *enc_len) {
+void encode(const char *ptr, size_t len, char *enc_ptr) {
     uint8_t *ptr2 = (uint8_t *)ptr;
-    *enc_len = (len * 4);
-    *enc_len = *enc_len / 3 + (*enc_len % 3 == 0 ? 0 : 1);
-    *enc_ptr = (char *)realloc(*enc_ptr, sizeof(char) * (*enc_len + 1));
-    (*enc_ptr)[*enc_len] = '\0';
     uint8_t buf = 0x00;
     uint8_t bits_in_buf = 0;
-    char *nextc = *enc_ptr;
     for(size_t i = 0; i < len; i++) {
         switch(bits_in_buf) {
         case 0:
-            *nextc = chr(ptr2[i] >> 2);
-            nextc++;
+            *enc_ptr = chr(ptr2[i] >> 2);
+            enc_ptr++;
             buf = ptr2[i] & 0x03;
             bits_in_buf = 2;
             break;
         case 2:
-            *nextc = chr(buf << 4 | ptr2[i] >> 4);
-            nextc++;
+            *enc_ptr = chr(buf << 4 | ptr2[i] >> 4);
+            enc_ptr++;
             buf = ptr2[i] & 0x0f;
             bits_in_buf = 4;
             break;
         case 4:
-            nextc[0] = chr(buf << 2 | ptr2[i] >> 6);
-            nextc[1] = chr(ptr2[i] & 0x3f);
-            nextc += 2;
+            enc_ptr[0] = chr(buf << 2 | ptr2[i] >> 6);
+            enc_ptr[1] = chr(ptr2[i] & 0x3f);
+            enc_ptr += 2;
             buf = 0x00;
             bits_in_buf = 0;
             break;
@@ -129,12 +119,21 @@ void encode(const char *ptr, size_t len, char **enc_ptr, size_t *enc_len) {
     }
     switch(bits_in_buf) {
         case 2:
-            *nextc = chr(buf << 4);
+            *enc_ptr = chr(buf << 4);
             break;
         case 4:
-            *nextc = chr(buf << 2);
+            *enc_ptr = chr(buf << 2);
             break;
     }
+}
+
+size_t encLen(size_t len) {
+    size_t tmp = len * 4;
+    return tmp / 3 + (tmp % 3 == 0 ? 0 : 1);
+}
+
+size_t decLen(size_t len) {
+    return (len * 3) / 4;
 }
 
 }

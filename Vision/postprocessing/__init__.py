@@ -1,5 +1,1 @@
-
-
-class PostProcessing(object):
-
-	pass
+from postprocessing import Postprocessing
