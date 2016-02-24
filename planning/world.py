@@ -75,7 +75,7 @@ class PitchObject(object):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
             self._vector = Vector(
-                new_vector.y, new_vector.x, (new_vector.angle - self._angle_offset - (math.pi / 2)) % (2 * math.pi), new_vector.velocity)
+                new_vector.x, new_vector.y, new_vector.angle - self._angle_offset, new_vector.velocity)
             self._is_missing = False
 
     def is_missing(self):

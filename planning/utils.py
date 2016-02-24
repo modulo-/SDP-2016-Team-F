@@ -12,7 +12,7 @@ def get_rotation_to_point(vec1, vec2):
     delta_x = vec2.x - vec1.x
     delta_y = vec2.y - vec1.y
 
-    displacement = math.hypot(delta_x, delta_y)
+    displacement = math.hypot(delta_y, delta_x)
     if displacement == 0:
         theta = 0
     else:
