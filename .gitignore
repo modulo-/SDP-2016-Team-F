@@ -70,6 +70,12 @@ fabric.properties
 *.dvi
 *.log
 
+# Code::Blocks
+Codeblock/
+*.cbp
+*.depend
+*.layout
+
 # -*- mode: gitignore; -*-
 *~
 \#*\#

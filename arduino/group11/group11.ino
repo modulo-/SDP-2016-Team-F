@@ -17,10 +17,10 @@ namespace comms {
 
 void setup() {
     io::init();
-    pinMode(13, OUTPUT);
-    digitalWrite(13, LOW);
+    // Kicker
+    pinMode(6, OUTPUT);
+    digitalWrite(6, LOW);
     if(!comms::init("60", "~~~")) {
-        digitalWrite(13, HIGH);
     }
     comms::send("rawr!", 'd', 5);
 }

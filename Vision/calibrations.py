@@ -12,17 +12,17 @@ colour_profiles = {
             "max": np.array([40, 255, 255])
         },
         "blue": {
-            'min': np.array([81, 110, 0]),
-            'max': np.array([130, 255, 255])
+            'min': np.array([85, 77, 107]),
+            'max': np.array([107, 126, 255])
             
         },
         "green": {
-            'min': np.array([35, 159, 223]),
-            'max': np.array([81, 255, 255])
+            'min': np.array([51, 43, 180]),
+            'max': np.array([73, 146, 255])
         },
         "pink": {
-            'min': np.array([121, 130, 220]),
-            'max': np.array([194, 255, 255])
+            'min': np.array([158, 49, 218]),
+            'max': np.array([192, 108, 255])
         }
     },
     "3d04_pc1":

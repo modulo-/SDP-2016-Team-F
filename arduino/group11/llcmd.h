@@ -4,12 +4,15 @@
 
 namespace llcmd {
     extern const uint8_t WAIT;
-    extern const uint8_t KICKER_RETRACT;
-    extern const uint8_t KICKER_EXTEND;
+    extern const uint8_t GRABBER_OPEN;
+    extern const uint8_t GRABBER_CLOSE;
+    extern const uint8_t GRABBER_FORCE;
     extern const uint8_t BRAKE;
     extern const uint8_t STRAIT;
     extern const uint8_t SPIN;
+    extern const uint8_t HOLD_SPIN;
     extern const uint8_t NOP;
+    extern const uint8_t KICK;
 
     extern const uint8_t FLAG_UNINTERRUPTABLE;
     extern const size_t cmd_cap;

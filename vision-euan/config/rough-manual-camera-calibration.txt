@@ -1,0 +1,11 @@
+Manual calibration:
+    pitch 3.03: k1=-1, k2=0, p1=0, p2=0, k3=0
+        camera matrix: [1.2e3, 0, 3.1e2, 0, 1.2e3, 2.3e2, 0, 0, 1]
+        distortion coefficients: k1=-1, k2=0, p1=0, p2=0, k3=0
+        translation: src = [(310, 220), (590, 220), (305, 440)], dest = [(320, 240), (630, 240), (320, 470)]
+        rotation: angle = -0.8, scale = 1
+    pitch 3.04:
+        camera matrix: [1.2e3, 0, 3.1e2, 0, 1.2e3, 2.3e2, 0, 0, 1]
+        distortion coefficients: k1=-1, k2=0, p1=0, p2=0, k3=0
+        translation: src = [(310, 240), (590, 255), (300, 455)], dest = [(320, 240), (630, 240), (320, 470)]
+        rotation: angle = 0, scale = 1

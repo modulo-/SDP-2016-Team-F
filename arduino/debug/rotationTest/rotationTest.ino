@@ -39,7 +39,8 @@
 #define WHEEL_CIRCUM WHEEL_DIAM*PI
 //the number of steps in a rotation for the centre wheel
 #define FULL_ROT_MIDDLE 25.0
-#define SERIAL_DEBUG 1
+#define FULL_ROT_LR 180.0
+#define SERIAL_DEBUG
 
 // Initial motor position is 0.
 int positions[ROTARY_COUNT] = {0};
@@ -80,62 +81,144 @@ void printMotorPositions() {
 void turn(long degrees) {
     bool cw = degrees > 0;
     bool finished = false;
+    //degrees of rotation of the wheel to rotation of the robot
+    //because 1 reported 2 degree is 2 degrees of rotation
+    float degToDegLR = (360/FULL_ROT_LR)* ((WHEEL_CIRCUM)/(LR_WHEELBASE*PI));
+    float degToDegC =  (360/FULL_ROT_MIDDLE)* ((WHEEL_CIRCUM)/(2*MIDDLE_RADIUS*PI));
+#ifdef SERIAL_DEBUG
+    Serial.print("degToDegLR:");
+    Serial.print(degToDegLR);
+    Serial.print(" degToDegC:");
+    Serial.println(degToDegC);
+#endif
+    //target speed in deg/s
+    int targetRotV = 10;
     //everything is confusing because the motors are mounted backwards
     degrees = abs(degrees);
     if (degrees > 360)degrees = degrees % 360;
+    updateMotorPositions();
     resetMotorPositions();
     updateMotorPositions();
-    int start[] = {positions[ENCODER_LEFT], positions[ENCODER_RIGHT], positions[ENCODER_MIDDLE]};
     printMotorPositions();
-    if (SERIAL_DEBUG) {
-        Serial.write(cw ? "clockwise " : "anticlockwise ");
-        Serial.println(degrees);
-    }
+    int start[] = {positions[ENCODER_LEFT], positions[ENCODER_RIGHT], positions[ENCODER_MIDDLE]};
+    int prevPositions[] = {positions[ENCODER_LEFT], positions[ENCODER_RIGHT], positions[ENCODER_MIDDLE]};
+    float rotVs[] = {0,0,0};
+#ifdef SERIAL_DEBUG
+    Serial.write(cw ? "clockwise " : "anticlockwise ");
+    Serial.println(degrees);
+#endif
     float deltaL=0;
     float deltaR=0;
     float deltaC=0;
-    int powL=80;
-    int powR=80;
-    int powC=100;
-    int prevTime = millis();
+    int powL=50;
+    int powR=50;
+    int powC=70;
+    int prevTime[] ={0,0,0};
+#ifdef SERIAL_DEBUG
+    int prevPrint=millis();
     bool timeout;
-    while (!finished) {
+#endif
+    while (!finished && !Serial.available()) {
+#ifdef SERIAL_DEBUG
+        timeout=false;
+        if(millis()-prevPrint>100){
+            timeout=true;
+            prevPrint=millis();
+        }
+#endif
         updateMotorPositions();
-        deltaL = -360.0*(((positions[ENCODER_LEFT]-start[0])/180.0)*WHEEL_CIRCUM)/(LR_WHEELBASE*PI);
-        deltaR = 360.0*(((positions[ENCODER_RIGHT]-start[1])/180.0)*WHEEL_CIRCUM)/(LR_WHEELBASE*PI);
-        deltaC = -360.0*(((positions[ENCODER_MIDDLE]-start[2])/FULL_ROT_MIDDLE)*WHEEL_CIRCUM)/(MIDDLE_RADIUS*PI*2);
+        deltaL = -(positions[ENCODER_LEFT]-start[0])*degToDegLR;
+        deltaR =  (positions[ENCODER_RIGHT]-start[1])*degToDegLR;
+        deltaC = -(positions[ENCODER_MIDDLE]-start[2])*degToDegC;
         if (!cw) {
             deltaL= -deltaL;
             deltaR= -deltaR;
             deltaC= -deltaC;
         }
-        if (deltaL >= degrees) {
+        if ((deltaL+deltaR+deltaC)/3 >= degrees) {
             finished=true; 
         }
-        if(deltaR >= degrees) {
-            finished=true;
-        }
-        if(deltaC >= degrees) {
-            finished=true;
-        }
         else{
-            if(deltaL - deltaR > 5) {
-                if(powL>=50)powL--;
-                if(powR<=100)powR++;
+            if(abs(positions[ENCODER_LEFT]-prevPositions[0])>4||millis()-prevTime[0]>100){
+                float rotV = (1000*(positions[ENCODER_LEFT]-prevPositions[0])*degToDegLR)/((millis()-prevTime[0]));
+                rotV=abs(rotV);
+                if(rotV>200)Serial.print("Anomylous rotV on motor L: ");
+                if(rotV>targetRotV&&powL>40){
+                    powL-=1;
+                }
+                else if(rotV<targetRotV){
+                    if(powL>=100){
+                        if(targetRotV>10)targetRotV--;
+                    }
+                    else{
+                        powL +=1;
+                    }
+                }
+                #ifdef SERIAL_DEBUG
+                    /*
+                   Serial.print("rotV L:"); 
+                   Serial.print(rotV); 
+                   Serial.print(" deltaT"); 
+                   Serial.println(millis()-prevTime[0]); 
+                    */
+                #endif
+                prevTime[0]=millis();
+                prevPositions[0]=positions[ENCODER_LEFT];
+                rotVs[0]=rotV;
             }
-            else if(deltaR-deltaL > 5) {
-                if(powR>=50)powR--;
-                if(powL<=50)powL++;
+            if(abs(positions[ENCODER_RIGHT]-prevPositions[1])>4||millis()-prevTime[1]>100){
+                float rotV = (1000*(positions[ENCODER_RIGHT]-prevPositions[1])*degToDegLR)/((millis()-prevTime[1]));
+                rotV=abs(rotV);
+                if(rotV>200)Serial.println("Anomylous rotV on motor R: ");
+                if(rotV>targetRotV&&powR>40){
+                    powR-=1;
+                }
+                else if(rotV<targetRotV){
+                    if(powR>=100){
+                        if(targetRotV>10)targetRotV--;
+                    }
+                    else{
+                        powR +=1;
+                    }
+                }
+                #ifdef SERIAL_DEBUG
+                    /*
+                   Serial.print("rotV R:"); 
+                   Serial.print(rotV); 
+                   Serial.print(" deltaT"); 
+                   Serial.println(millis()-prevTime[1]); 
+                    */
+                #endif
+                prevTime[1]=millis();
+                prevPositions[1]=positions[ENCODER_RIGHT];
+                rotVs[1]=rotV;
             }
-            if(deltaC-((deltaR+deltaL)/2) > 5){
-                if(powC>=50)powC--;
-                if(powR<=100)powR++;
-                if(powL<=100)powL++;
-            }
-            else if(((deltaR+deltaL)/2)-deltaC > 5){
-                if(powC<=100)powC++;
-                if(powR>=50)powR--;
-                if(powL>=50)powL--;
+            if(abs(positions[ENCODER_MIDDLE]-prevPositions[2])>2||millis()-prevTime[2]>100){
+                float rotV = (1000*(positions[ENCODER_MIDDLE]-prevPositions[2])*degToDegC)/((millis()-prevTime[2]));
+                rotV=abs(rotV);
+                if(rotV>200)Serial.print("Anomylous rotV on motor C: ");
+                if(rotV>targetRotV&&powC>40){
+                    powC-=1;
+                }
+                else if(rotV<targetRotV){
+                    if(powC>=100){
+                        if(targetRotV>10)targetRotV--;
+                    }
+                    else{
+                        powC +=1;
+                    }
+                }
+                #ifdef SERIAL_DEBUG
+                   /*
+                   Serial.print("rotV C:"); 
+                   Serial.print(rotV); 
+                   Serial.print(" deltaT"); 
+                   Serial.println(millis()-prevTime[2]); 
+                   */
+                #endif
+                prevTime[2]=millis();
+                prevPositions[2]=positions[ENCODER_MIDDLE];
+                rotVs[2]=rotV;
             }
         }
         if (cw) {
@@ -148,11 +231,10 @@ void turn(long degrees) {
             motorBackward(MOTOR_RIGHT, powR);
             motorForward(MOTOR_MIDDLE, powC);
         }
-        delay(10);
     }
     motorAllStop();
     updateMotorPositions();
-    if(SERIAL_DEBUG){
+    #ifdef SERIAL_DEBUG 
         Serial.print("degrees:");
         Serial.print(degrees);
         Serial.print("\ndeltaL:");
@@ -163,19 +245,27 @@ void turn(long degrees) {
         Serial.print(deltaC);
         Serial.print("\npowL:");
         Serial.print(powL);
-        Serial.print("\npowR:");
+        Serial.print(" powR:");
         Serial.print(powR);
-        Serial.print("\npowC:");
+        Serial.print(" powC:");
         Serial.print(powC);
+        Serial.print("\ntargetRotV:");
+        Serial.print(targetRotV);
+        Serial.print("\nrotVs:");
+        Serial.print(rotVs[0]);
+        Serial.print(" ");
+        Serial.print(rotVs[1]);
+        Serial.print(" ");
+        Serial.print(rotVs[2]);
         Serial.print("\n"); 
         printMotorPositions();
-    }
+    #endif
 }
 
 
 //Don't ask why, I don't know 
 void turnCalibrate(){
-    int degrees=90;
+    int deg=90;
     Serial.write("turning calibration:\r\n");
     char ser=Serial.read();
     //quit signal
@@ -187,9 +277,11 @@ void turnCalibrate(){
             //Roman Numerals because I'm a horrible back
             case 'A':
                 adjustCw=false;
+                Serial.print("Anti-Clockwise\n");
                 break;
             case 'C':
                 adjustCw=true;
+                Serial.print("Clockwise\n");
                 break;
             case 'I':
                 delta=1;
@@ -218,17 +310,17 @@ void turnCalibrate(){
                 break;
             case 'k':
                 Serial.write("Turning for:");
-                Serial.print(degrees);
+                Serial.print(deg);
                 Serial.write("\r\n");
-                if(!adjustCw)degrees=-degrees;
-                turn(degrees);
+                if(!adjustCw)deg=-deg;
+                turn(deg);
                 adjustCw=!adjustCw;
                 break;
         }
-        degrees+=delta;
+        deg+=delta;
         if(delta !=0){
             Serial.print("degrees:");
-            Serial.print(degrees);
+            Serial.print(deg);
             Serial.write("\r\n");
         }
         ser=Serial.read();

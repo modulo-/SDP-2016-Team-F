@@ -9,12 +9,15 @@
 #define cmdArg(cmd, offset, type) ((type *)((cmd) + (offset)))
 
 namespace hlcmd {
-    const uint8_t WAIT   = 0x00;
-    const uint8_t BRAKE  = 0x01;
-    const uint8_t STRAIT = 0x02;
-    const uint8_t SPIN   = 0x03;
-    const uint8_t KICK   = 0x04;
-    const uint8_t MV     = 0x05;
+    const uint8_t WAIT          = 0x00;
+    const uint8_t BRAKE         = 0x01;
+    const uint8_t STRAIT        = 0x02;
+    const uint8_t SPIN          = 0x03;
+    const uint8_t KICK          = 0x04;
+    const uint8_t MV            = 0x05;
+    const uint8_t GRABBER_OPEN  = 0x06;
+    const uint8_t GRABBER_CLOSE = 0x07;
+    const uint8_t HOLD_SPIN     = 0x08;
 
     static uint16_t kickTimeFromDist(uint16_t dist) {
         if(dist >= 1500) {
@@ -33,10 +36,14 @@ namespace hlcmd {
         case WAIT:
         case BRAKE:
         case STRAIT:
+        case SPIN:
+        case HOLD_SPIN:
         case KICK:
             return 3;
         case MV:
-            return 7;
+            return 13;
+        case GRABBER_OPEN:
+        case GRABBER_CLOSE:
         default:
             return 1;
         }
@@ -50,15 +57,23 @@ namespace hlcmd {
         case BRAKE:
             // 1-to-1 mapping
             return 3;
+        case GRABBER_OPEN:
+        case KICK:
+            // 1. Uninterruptable timed command
+            // 2. Interruptable NOP.
+            return 4;
+        case GRABBER_CLOSE:
+            // 1. Uninterruptable slow close
+            // 2. Uninterruptable slow open
+            // 3. Uninterruptable fast close
+            // 4. Uninterruptable slow close
+            // 5. Interruptable NOP.
+            return 13;
         case STRAIT:
+        case HOLD_SPIN:
+        case SPIN:
             // An implicit 100ms brake
             return 6;
-        case KICK:
-            // 1. Extend
-            // 2. Wait
-            // 3. Retract
-            // 4. Interruptable NOP
-            return 10;
         case MV:
             // 1. Spin
             // 2. Brake
@@ -73,20 +88,32 @@ namespace hlcmd {
     }
 
     static void compileMV(const uint8_t *in, uint8_t *out) {
-        int32_t x = *cmdArg(in, 1, int16_t);
-        int32_t y = *cmdArg(in, 3, int16_t);
-        int16_t angle = *cmdArg(in, 5, int16_t);
-        int16_t mv_angle;
-        if(x == 0) {
+        int32_t x = *cmdArg(in, 7, int16_t) - *cmdArg(in, 1, int16_t);
+        int32_t y = *cmdArg(in, 9, int16_t) - *cmdArg(in, 3, int16_t);
+        int32_t angle_strt = *cmdArg(in, 5, int16_t);
+        int32_t angle_end = *cmdArg(in, 11, int16_t);
+        int32_t mv_angle;
+        if(x == 0 && y > 0) {
+            mv_angle = 16200;
+        } else if(x == 0) {
             mv_angle = 5400;
         } else {
-            mv_angle = -atan(float(y) / float(x)) * 10800 / M_PI;
+            mv_angle = -atan2f(float(y), float(x)) * 10800 / M_PI;
         }
+        mv_angle = (((mv_angle - angle_strt) % 21600) + 21600) % 21600;
         int16_t dist = (int16_t)sqrt(x*x + y*y);
-        if(x <= 0) {
-            dist = -dist;
+        if(mv_angle > 10800) {
+            mv_angle -= 21600;
         }
-        int16_t face_angle = (angle - mv_angle) % 21600;
+        if(mv_angle > 5400) {
+            dist = -dist;
+            mv_angle -= 10800;
+        } else if(mv_angle < -5400) {
+            dist = -dist;
+            mv_angle += 10800;
+        }
+        int16_t face_angle = (((angle_end - mv_angle - angle_strt) % 21600)
+            + 21600) % 21600;
         if(face_angle > 10800) {
             face_angle -= 21600;
         }
@@ -98,10 +125,10 @@ namespace hlcmd {
         *((int16_t *)(out + 4)) = 100;
         // 3. Strait
         out[6] = llcmd::STRAIT;
-        *((int16_t *)(out + 4)) = 100;
+        *((int16_t *)(out + 7)) = dist;
         // 4. Brake
         out[9] = llcmd::BRAKE;
-        *((int16_t *)(out + 10)) = dist;
+        *((int16_t *)(out + 10)) = 100;
         // 5. Spin
         out[12] = llcmd::SPIN;
         *((int16_t *)(out + 13)) = face_angle;
@@ -128,17 +155,40 @@ namespace hlcmd {
             *((uint16_t *)(out + 4)) = 100;
             break;
         case KICK:
-            out[0] = llcmd::KICKER_EXTEND | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 1)) = kickTimeFromDist(
-                *cmdArg(in, 1, uint16_t));
-            out[3] = llcmd::WAIT | llcmd::FLAG_UNINTERRUPTABLE;
+            out[0] = llcmd::KICK | llcmd::FLAG_UNINTERRUPTABLE;
+            memcpy(out + 1, in + 1, 2);
+            out[3] = llcmd::NOP;
+            break;
+        case HOLD_SPIN:
+            out[0] = llcmd::HOLD_SPIN;
+            memcpy(out + 1, in + 1, 2);
+            out[3] = llcmd::BRAKE;
             *((uint16_t *)(out + 4)) = 100;
-            out[6] = llcmd::KICKER_RETRACT | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 7)) = 270;
-            out[9] = llcmd::NOP;
+            break;
+        case SPIN:
+            out[0] = llcmd::SPIN;
+            memcpy(out + 1, in + 1, 2);
+            out[3] = llcmd::BRAKE;
+            *((uint16_t *)(out + 4)) = 100;
             break;
         case MV:
             compileMV(in, out);
+            break;
+        case GRABBER_OPEN:
+            out[0] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 1)) = 600;
+            out[3] = llcmd::NOP;
+            break;
+        case GRABBER_CLOSE:
+            out[0] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 1)) = 600;
+            out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 4)) = 600;
+            out[6] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 7)) = 500;
+            out[9] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 10)) = 300;
+            out[12] = llcmd::NOP;
             break;
         }
     }

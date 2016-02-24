@@ -75,7 +75,7 @@ class PitchObject(object):
             raise ValueError('The new vector can not be None and must be an instance of a Vector')
         else:
             self._vector = Vector(
-                new_vector.y, new_vector.x, (new_vector.angle - self._angle_offset - (math.pi / 2)) % (2 * math.pi), new_vector.velocity)
+                new_vector.x, new_vector.y, new_vector.angle - self._angle_offset, new_vector.velocity)
             self._is_missing = False
 
     def is_missing(self):
@@ -357,7 +357,7 @@ class World(object):
                 return r
         return None
 
-    def update_positions(self, pos_dict):
+    def update_positions(self, **kwargs):
         '''
         This method will update the positions of the pitch objects
         that it gets passed by the vision system
@@ -368,7 +368,7 @@ class World(object):
                          ('their_robot_1', self.their_robots[1]),
                          ('ball', self.ball)]
         for (name, obj) in pitch_objects:
-            if name not in pos_dict or pos_dict[name] is None:
+            if name not in kwargs or kwargs[name] is None:
                 obj.set_missing()
             else:
-                obj.vector = pos_dict[name]
+                obj.vector = kwargs[name]

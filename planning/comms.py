@@ -1,5 +1,5 @@
 import math
-import rf_comms as comms
+from rf_comms import SerialHandle
 import struct
 from logging import info
 
@@ -41,12 +41,11 @@ class TractorCrabCommsManager(CommsManager):
 
     def __init__(self, robot, serial_device):
         self.robot_id = 1
-        comms.init(serial_device, "60", "~~~", listen=True)
+        self._handle = SerialHandle(serial_device, "60", "~~~")
         CommsManager.__init__(self, robot)
 
     def _run(self, cmd):
-        comms.stop_resend('1')
-        comms.send(''.join(chr(i) for i in cmd), '1')
+        self._handle.send(''.join(chr(i) for i in cmd), '1')
 
     def _normalize_angle(self, angle):
         # Expects inputs in radians counter-clockwise.
@@ -108,40 +107,40 @@ class RFCommsManager (CommsManager):
         # hex
         rf_channel = "67"
         guard_chars = "~~~"
-        comms.init(serial_device, rf_channel, guard_chars, listen=True)
+        self._handle = SerialHandle(serial_device, rf_channel, guard_chars)
         super(RFCommsManager, self).__init__(robot)
 
     # move a distance in mm
     def move(self, distance):
         mm_distance = distance / 0.1958
         cmd = b"m" + struct.pack(">h", mm_distance)
-        comms.send(cmd, self.robot_id)
+        self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).move(mm_distance)
 
     # turn by an angle in degrees
     def turn(self, angle):
         cmd = b"t" + struct.pack(">h", math.degrees(angle))
-        comms.send(cmd, self.robot_id)
+        self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).turn(angle)
 
     # kick a distance in cm
     def kick(self, distance):
         cmd = b"k" + struct.pack(">h", distance)
-        comms.send(cmd, self.robot_id)
+        self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).kick(distance)
 
     def kick_full_power(self):
         distance = 300
         cmd = b"k" + struct.pack(">h", distance)
-        comms.send(cmd, self.robot_id)
+        self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).kick_full_power()
 
     def close_grabbers(self):
         cmd = b"g"
-        comms.send(cmd, self.robot_id)
+        self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).close_grabbers()
 
     def release_grabbers(self):
         cmd = b"r"
-        comms.send(cmd, self.robot_id)
+        self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).release_grabbers()
