@@ -15,6 +15,12 @@ class Camera(object):
         calibration = tools.get_croppings(pitch=pitch)
         self.crop_values = tools.find_extremes(calibration['outline'])
 
+        # Ensure camera properties are at default values
+        self.capture.set(cv2.CAP_PROP_BRIGHTNESS, 0.5)
+        self.capture.set(cv2.CAP_PROP_CONTRAST, 0.5)
+        self.capture.set(cv2.CAP_PROP_SATURATION, 0.5)
+        self.capture.set(cv2.CAP_PROP_HUE, 0.5)
+
         # Parameters used to fix radial distortion
         radial_data = tools.get_radial_data()
         self.nc_matrix = radial_data['new_camera_matrix']
