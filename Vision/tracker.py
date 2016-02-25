@@ -276,7 +276,7 @@ class DotTracker(Tracker):
                 if corner is not None:
                     corner['y'] = corner['y']-croprange
                     corner['x'] = corner['x']-croprange
-                    orientation = math.degrees(math.atan2((y-corner['y']), (x-corner['x']))) + self.config.delta_angle
+                    orientation = math.degrees(math.atan2((y-corner['y']), (x-corner['x']))) - self.config.delta_angle
                 else:
                     orientation = None
 
