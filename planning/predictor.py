@@ -61,10 +61,10 @@ class Predictor:
             if pos == None or time == None:
                 continue
             deltas = [
-                ((c[-1].x - pos.x)**2 + (x[-1].y - pos.y)**2) / (ct - time)**2
+                ((c[-1].x - pos.x)**2 + (c[-1].y - pos.y)**2) / (ct - time)**2
                 for (c, ct) in zip(chains, chain_endtimes)
             ]
-            (d, index) = min_with_index(deltas)
+            (index, d) = min_with_index(deltas)
             if d != None and d <= Predictor._DELTA_THRESHOLD:
                 chains[index].append(pos)
                 chain_endtimes[index] = time
@@ -75,7 +75,10 @@ class Predictor:
         for chain in chains:
             if longest_chain == None or len(chain) >= len(longest_chain):
                 longest_chain = chain
-        return longest_chain[-1]
+        if longest_chain:
+            return longest_chain[-1]
+        else:
+            return None
 
     def predict(self):
         ret = Positions(
