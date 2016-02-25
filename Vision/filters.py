@@ -44,8 +44,8 @@ def filter_overlay(frame, config):
 
             length = 15
             complex = cmath.rect(length, robot.angle)
-            y = -complex.real
-            x = complex.imag
+            y = -complex.imag
+            x = complex.real
 
             if robot.velocity != 0:
                 arrowhead = (int(x + robot.x), int(y+robot.y))
