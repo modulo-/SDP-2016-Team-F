@@ -166,7 +166,7 @@ class KickToScoreZone(Action):
     '''
     Pass ball to our attacker's score zone
     '''
-    preconditions = [(lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.score_zone.x, w.score_zone.y, 0, 0), r.catch_distance)) < FACING_ROTATION_THRESHOLD,
+    preconditions = [(lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.our_attacker.score_zone.x, w.our_attacker.score_zone.y, 0, 0), r.catch_distance)) < FACING_ROTATION_THRESHOLD,
                       "Defender is facing attacker's score zone"),
                      (lambda w, r: r.has_ball(w.ball), "Defender has ball")]
 
