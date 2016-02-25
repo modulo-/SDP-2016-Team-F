@@ -16,22 +16,38 @@ def min_with_index(l):
     return (min_index, min)
 
 class Predictor:
-    _DELTA_THRESHOLD = 30
+    # A threshold for the deltas (square of the distance) per second squared.
+    # Given in pixels (1px ~ 0.5cm). Set to 3m/s
+    _DELTA_THRESHOLD = 360000
 
     def __init__(self):
-        self._position_history = []
+        self._robot_blue_pink_history = []
+        self._robot_blue_green_history = []
+        self._robot_yellow_pink_history = []
+        self._robot_yellow_green_history = []
+        self._ball_history = []
+        self._history_times = []
         for _ in range(10):
-            self._position_history.append(Positions(None, None, None, None, None))
+            self._robot_blue_pink_history.append(None)
+            self._robot_blue_green_history.append(None)
+            self._robot_yellow_pink_history.append(None)
+            self._robot_yellow_green_history.append(None)
+            self._ball_history.append(None)
+            self._history_times.append(None)
 
     def update(self, world):
-        del self._position_history[0]
-        self._position_history.append(Positions(
-            world.robot_blue_pink,
-            world.robot_blue_green,
-            world.robot_yellow_pink,
-            world.robot_yellow_green,
-            world.ball,
-        ))
+        del self._robot_blue_pink_history[0]
+        del self._robot_blue_green_history[0]
+        del self._robot_yellow_pink_history[0]
+        del self._robot_yellow_green_history[0]
+        del self._ball_history[0]
+        del self._history_times[0]
+        self._robot_blue_pink_history.append(world.robot_blue_pink)
+        self._robot_blue_green_history.append(world.robot_blue_green)
+        self._robot_yellow_pink_history.append(world.robot_yellow_pink)
+        self._robot_yellow_green_history.append(world.robot_yellow_green)
+        self._ball_history.append(world.ball)
+        self._history_times.append(world.time)
 
     def _predict(self, hist):
         # General idea: To eliminate misdetections, we build sequential chains
@@ -39,14 +55,22 @@ class Predictor:
         # chains, it is inserted as a new chain. The chain with the most
         # positions is then considered the "actual" chain.
         chains = []
-        for pos in hist:
+        chain_endtimes = []
+        for (pos, time) in zip(hist, self._history_times):
             # Try to add to an existing chain. If this fails, create a new one.
-            dists = [(c[-1].x - pos.x)**2 + (c[-1].y - pos.y)**2 for c in chains]
-            (d, index) = min_with_index(dists)
+            if pos == None or time == None:
+                continue
+            deltas = [
+                ((c[-1].x - pos.x)**2 + (x[-1].y - pos.y)**2) / (ct - time)**2
+                for (c, ct) in zip(chains, chain_endtimes)
+            ]
+            (d, index) = min_with_index(deltas)
             if d != None and d <= Predictor._DELTA_THRESHOLD:
                 chains[index].append(pos)
+                chain_endtimes[index] = time
             else:
                 chains.append([pos])
+                chain_endtimes.append(time)
         longest_chain = None
         for chain in chains:
             if longest_chain == None or len(chain) >= len(longest_chain):
@@ -54,9 +78,12 @@ class Predictor:
         return longest_chain[-1]
 
     def predict(self):
-        ret = []
-        for i in range(5):
-            ret.append(self._predict([h[i] for h in self._position_history]))
-        ret = Positions(*ret)
+        ret = Positions(
+            self._predict(self._robot_blue_pink_history),
+            self._predict(self._robot_blue_green_history),
+            self._predict(self._robot_yellow_pink_history),
+            self._predict(self._robot_yellow_green_history),
+            self._predict(self._ball_history)
+        )
         debug("Predition: " + str(ret))
         return ret
