@@ -202,21 +202,27 @@ class Robot(PitchObject):
 class Defender(Robot):
     @property
     def tactical_position(self):
-        return self._tactical_position
-
-    @tactical_position.setter
-    def tactical_position(self, value):
-        self._tactical_position = value
+        if not self._tactical_position:
+            # Calculate tactical position
+            raise NotImplementedError
+        return self._tactical_positione
 
 
 class Attacker(Robot):
     @property
     def score_zone(self):
+        if not self._score_zone:
+            # Calculate score zone
+            raise NotImplementedError
         return self._score_zone
 
-    @score_zone.setter
-    def score_zone(self, value):
-        self._score_zone = value
+    @property
+    def attacking_position(self):
+        if not self._attacking_position:
+            # Calculate attacking position
+            raise NotImplementedError
+        return self._attacking_position
+
 
 class Ball(PitchObject):
 
