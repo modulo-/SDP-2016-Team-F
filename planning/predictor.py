@@ -19,6 +19,7 @@ class Predictor:
     # A threshold for the deltas (square of the distance) per second squared.
     # Given in pixels (1px ~ 0.5cm). Set to 3m/s
     _DELTA_THRESHOLD = 360000
+    _HIST_LEN = 50
 
     def __init__(self):
         self._robot_blue_pink_history = []
@@ -27,7 +28,7 @@ class Predictor:
         self._robot_yellow_green_history = []
         self._ball_history = []
         self._history_times = []
-        for _ in range(10):
+        for _ in range(Predictor._HIST_LEN):
             self._robot_blue_pink_history.append(None)
             self._robot_blue_green_history.append(None)
             self._robot_yellow_pink_history.append(None)
