@@ -53,7 +53,7 @@ class Test:
         adjusted_sequence = self.sequence[self.sequence_pos]
         adjusted_sequence['our_defender'].angle = rotation_adjustment(adjusted_sequence['our_defender'].angle)
 
-        self.w.update_positions(adjusted_sequence)
+        self.w.update_positions(**adjusted_sequence)
         self.p.plan_and_act(self.w)
 
         self.sequence_pos += 1
