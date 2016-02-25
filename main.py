@@ -8,12 +8,13 @@ from threading import Timer, Thread
 from sys import argv
 import logging
 from logging import debug, warning
+from planning.predictor import Predictor
 from getopt import getopt
-
 
 PITCH_NO = 0
 color = None
 
+predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_attacker._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
 latest_world.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
@@ -31,6 +32,8 @@ def get_attacker(world):
         return world.robot_yellow_pink
 
 def new_vision(world):
+    predictor.update(world)
+    world = predictor.predict()
     latest_world.update_positions(
         our_defender=get_defender(world),
         our_attacker=get_attacker(world),
