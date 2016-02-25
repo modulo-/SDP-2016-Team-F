@@ -46,15 +46,18 @@ class AttackBlock(Goal):
         raise NotImplementedError
 
 
-class GoToStaticBall(Action):
-    preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
-                     (lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD, "Attacker is facing ball"),
+class GoToBall(Action):
+    preconditions = [(lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD, "Attacker is facing ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Attacker's grabbers are open")]
 
     def perform(self, comms):
-        dx = self.world.ball.x - self.robot.x
-        dy = self.world.ball.y - self.robot.y
-        d = math.sqrt(dx**2 + dy**2)
+        if utils.ball_is_static(self.world):
+            dx = self.world.ball.x - self.robot.x
+            dy = self.world.ball.y - self.robot.y
+            d = math.sqrt(dx**2 + dy**2)
+        else:
+            # Find ball path
+            pass
 
         # TODO grabbing area size
         grabber_size = 30

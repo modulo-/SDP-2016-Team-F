@@ -207,6 +207,8 @@ class Defender(Robot):
             raise NotImplementedError
         return self._tactical_positione
 
+    def clear_computed_positions(self):
+        self._tactical_position = None
 
 class Attacker(Robot):
     @property
@@ -217,12 +219,15 @@ class Attacker(Robot):
         return self._score_zone
 
     @property
-    def attacking_position(self):
-        if not self._attacking_position:
-            # Calculate attacking position
+    def blocking_position(self):
+        if not self._blocking_position:
+            # Calculate blocking position
             raise NotImplementedError
-        return self._attacking_position
+        return self._blocking_position
 
+    def clear_computed_positions(self):
+        self._score_zone = None
+        self._blocking_position = None
 
 class Ball(PitchObject):
 
@@ -286,7 +291,7 @@ class World(object):
     '''
     _ball = Ball(0, 0, 0, 0)
     _our_defender = Defender(0, 0, 0, 0, 0)
-    _our_attacker = Robot(0, 0, 0, 0, 0)
+    _our_attacker = Attacker(0, 0, 0, 0, 0)
     _their_robots = []
     _their_robots.append(Robot(0, 0, 0, 0, 0))
     _their_robots.append(Robot(0, 0, 0, 0, 0))
@@ -378,3 +383,5 @@ class World(object):
                 obj.set_missing()
             else:
                 obj.vector = kwargs[name]
+        self.our_defender.clear_computed_positions()
+        self.our_attacker.clear_computed_positions()
