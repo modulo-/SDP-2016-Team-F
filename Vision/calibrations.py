@@ -79,20 +79,20 @@ colour_profiles = {
     "3d04_pc4":
     {
         "red": {
-            "min": np.array([0, 178, 148]),
-            "max": np.array([5, 255, 255])
+            "min": np.array([173, 160, 125]),
+            "max": np.array([186, 255, 255])
         },
         "yellow": {
-            "min": np.array([21, 172, 181]),
-            "max": np.array([42, 255, 255])
+            "min": np.array([21, 62, 167]),
+            "max": np.array([46, 184, 210])
         },
         "blue": {
-        	'min': np.array([85, 79, 116]),
+        	'min': np.array([85, 115, 140]),
             'max': np.array([128, 255, 255])
             
         },
         "green": {
-            'min': np.array([50, 180, 151]),
+            'min': np.array([50, 100, 151]),
             'max': np.array([65, 255, 255])
         },
         "pink": {
