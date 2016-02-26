@@ -10,5 +10,5 @@ namespace io {
     extern const MotorPowers POWER_FULL;
 
     void motorSet(uint8_t direction, MotorPowers powers);
-    MotorPowers adjustedMotorPowers();
+    MotorPowers adjustedMotorPowers(uint16_t front_weight, uint16_t back_weight);
 }

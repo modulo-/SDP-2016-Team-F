@@ -2,6 +2,7 @@
 #include "sensors.h"
 #include "io.h"
 #include "motors.h"
+#include "state.h"
 #include <stdint.h>
 #include <stddef.h>
 #include <Arduino.h>
@@ -34,6 +35,8 @@ namespace llcmd {
     const uint8_t STRAIT         = 0x08;
     const uint8_t SPIN           = 0x09;
     const uint8_t HOLD_SPIN      = 0x0a;
+    const uint8_t SPD_SET        = 0x0b;
+    const uint8_t ARC            = 0x0c;
     const uint8_t NOP            = 0x7f;
 
     const uint8_t FLAG_UNINTERRUPTABLE = 0x80;
@@ -53,6 +56,10 @@ namespace llcmd {
         case SPIN:
         case HOLD_SPIN:
             return sizeof(int16_t);
+        case ARC:
+            return 2 * sizeof(uint16_t) + sizeof(int16_t);
+        case SPD_SET:
+            return sizeof(uint8_t);
         default:
             return 0;
         }
@@ -92,14 +99,18 @@ namespace llcmd {
             } else {
                 *data -= delta;
             }
-        } else if((cmds[cmd_at] & 0x7f) == STRAIT) {
+        } else if((cmds[cmd_at] & 0x7f) == STRAIT || (cmds[cmd_at] & 0x7f) == ARC) {
             int16_t data = *cmdArg(1, int16_t);
             if(io::dist() >= abs(data)) {
                 finish(true);
             } else {
                 io::motorSet(
                     data > 0 ? MOVE_RIGHT : MOVE_LEFT,
-                    io::adjustedMotorPowers());
+                    (cmds[cmd_at] & 0x7f) == STRAIT ?
+                        io::adjustedMotorPowers(1, 1) :
+                        io::adjustedMotorPowers(
+                            *cmdArg(3, uint16_t),
+                            *cmdArg(5, uint16_t)));
             }
         } else if((cmds[cmd_at] & 0x7f) == SPIN) {
             int16_t data = *cmdArg(1, int16_t);
@@ -112,10 +123,11 @@ namespace llcmd {
     void finish(bool advance) {
         switch(cmds[cmd_at] & 0x7f) {
         case HOLD_SPIN:
-            io::stop(MOTOR_GRABBERS);
         case BRAKE:
         case STRAIT:
         case SPIN:
+        case ARC:
+            io::stop(MOTOR_GRABBERS);
             io::stop(MOTOR_FRONT_LEFT);
             io::stop(MOTOR_FRONT_RIGHT);
             io::stop(MOTOR_BACK_LEFT);
@@ -125,8 +137,12 @@ namespace llcmd {
             digitalWrite(PIN_KICKER, LOW);
             break;
         case GRABBER_OPEN:
+            state::grabbers_open = true;
+            io::stop(MOTOR_GRABBERS);
+            break;
         case GRABBER_CLOSE:
         case GRABBER_FORCE:
+            state::grabbers_open = false;
             io::stop(MOTOR_GRABBERS);
             break;
         }
@@ -156,10 +172,16 @@ namespace llcmd {
             io::backward(MOTOR_GRABBERS, 255);
             break;
         case HOLD_SPIN:
-            io::backward(MOTOR_GRABBERS, 20);
         case SPIN:
             io::motorSet(*cmdArg(1, int16_t) > 0 ? MOVE_CW : MOVE_CC,
                 io::POWER_FULL);
+        case STRAIT:
+        case ARC:
+            if(state::grabbers_open) {
+                io::forward(MOTOR_GRABBERS, 20);
+            } else {
+                io::backward(MOTOR_GRABBERS, 20);
+            }
             break;
         case NOP:
             cmd_at++;
@@ -167,6 +189,11 @@ namespace llcmd {
             break;
         case KICK:
             digitalWrite(PIN_KICKER, HIGH);
+            break;
+        case SPD_SET:
+            state::speed = *cmdArg(1, uint8_t);
+            cmd_at += 2;
+            start();
             break;
         }
         last_time = millis();
