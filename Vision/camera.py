@@ -37,7 +37,7 @@ class Camera(object):
 
         status, frame = self.capture.read()
         frame = self.fix_radial_distortion(frame)
-        frame = cv2.flip(frame, 0)
+        # frame = cv2.flip(frame, 0)
 
 
         frame = cv2.GaussianBlur(frame, (7, 7), 0)

@@ -7,6 +7,8 @@ from logging import info
 
 import cv2
 import numpy as np
+import copy
+from numpy import pi
 
 import filters
 from calibrate import Calibrate
@@ -117,7 +119,9 @@ class Vision:
 
             preprocessed = self.getPreprocessed()
             frame = preprocessed['frame']
-
+            
+            height, width, dim = frame.shape
+            
             q = Queue()
 
             # note hte potential to detect in threads and then join back!
@@ -170,10 +174,9 @@ class Vision:
                             w.robot_yellow_green = Vector(x, y, rad, dis)
                         elif item['identification'] == 'pink':
                             w.robot_yellow_pink = Vector(x, y, rad, dis)
-            # print(w.__dict__)
+            
             # quit()
             self.world_latest = w
-            self.planner_callback(self.world_latest)
 
             # found items will be stored in the queue, and accessed if/when drawing the overlay
 
@@ -190,6 +193,26 @@ class Vision:
                                  lambda event, x, y, flags, param: self.p(event, x, y, flags, param, frame))
 
             c = cv2.waitKey(50) & 0xFF
+            
+            planner_w = copy.deepcopy(w);
+            if planner_w.ball != None:
+            	planner_w.ball.y = height - planner_w.ball.y
+            if planner_w.robot_yellow_green != None:
+            	planner_w.robot_yellow_green.y = height - planner_w.robot_yellow_green.y
+            	planner_w.robot_yellow_green.angle = (pi/2 - planner_w.robot_yellow_green.angle)%(2*pi)
+            if planner_w.robot_yellow_pink != None:
+            	planner_w.robot_yellow_pink.y = height - planner_w.robot_yellow_pink.y
+            	planner_w.robot_yellow_pink.angle = (pi/2 - planner_w.robot_yellow_pink.angle)%(2*pi)
+            if planner_w.robot_blue_green != None:
+            	planner_w.robot_blue_green.y = height - planner_w.robot_blue_green.y
+            	planner_w.robot_blue_green.angle = (pi/2 - planner_w.robot_blue_green.angle)%(2*pi)
+            if planner_w.robot_blue_pink != None:
+            	planner_w.robot_blue_pink.y = height - planner_w.robot_blue_pink.y
+            	planner_w.robot_blue_pink.angle = (pi/2 - planner_w.robot_blue_pink.angle)%(2*pi)
+            	
+            # print(planner_w.__dict__)
+            
+            self.planner_callback(planner_w)
         else:
             cv2.destroyAllWindows()
 

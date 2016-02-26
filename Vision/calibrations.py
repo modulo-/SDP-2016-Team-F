@@ -1,35 +1,38 @@
 import numpy as np
-
+# 75 31 blue
+# 32 69 green
+# 62 80 pink
+# 31 58 yellow
 colour_profiles = {
     "breadnel":
     {
         "red": {
-            "min": np.array([138, 229, 0]),
+            "min": np.array([174, 63, 100]),
             "max": np.array([255, 255, 255])
         },
         "yellow": {
-            "min": np.array([20, 192, 192]),
-            "max": np.array([40, 255, 255])
+            "min": np.array([28, 21, 230]),
+            "max": np.array([42, 255, 255])
         },
         "blue": {
-            'min': np.array([85, 77, 107]),
-            'max': np.array([107, 126, 255])
+            'min': np.array([85, 60, 100]),
+            'max': np.array([107, 255, 255])
             
         },
         "green": {
-            'min': np.array([51, 43, 180]),
-            'max': np.array([73, 146, 255])
+            'min': np.array([51, 16, 236]),
+            'max': np.array([73, 255, 255])
         },
         "pink": {
-            'min': np.array([158, 49, 218]),
-            'max': np.array([192, 108, 255])
+            'min': np.array([150, 30, 200]),
+            'max': np.array([170, 255, 255])
         }
     },
     "3d04_pc1":
     {
         "red": {
-            "min": np.array([0, 148, 82]),
-            "max": np.array([16, 255, 255])
+            "min": np.array([174, 148, 82]),
+            "max": np.array([255, 255, 255])
         },
         "yellow": {
             "min": np.array([28, 112, 157]),
