@@ -367,8 +367,6 @@ class World(object):
                 obj.set_missing()
             else:
                 obj.vector = kwargs[name]
-        self.our_defender.clear_computed_positions()
-        self.our_attacker.clear_computed_positions()
 
     @property
     def score_zone(self):
