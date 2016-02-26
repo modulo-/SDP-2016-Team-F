@@ -201,33 +201,17 @@ class Robot(PitchObject):
 
 class Defender(Robot):
     @property
-    def tactical_position(self):
-        if not self._tactical_position:
-            # Calculate tactical position
-            raise NotImplementedError
-        return self._tactical_positione
+    def get_tactical_position(self, world):
+        # Calculate tactical position
+        raise NotImplementedError
 
-    def clear_computed_positions(self):
-        self._tactical_position = None
 
 class Attacker(Robot):
-    @property
-    def score_zone(self):
-        if not self._score_zone:
-            # Calculate score zone
-            raise NotImplementedError
-        return self._score_zone
+    def get_blocking_position(self, world):
+        # Calculate blocking position
+        # If opponent with ball in our half:
+        raise NotImplementedError
 
-    @property
-    def blocking_position(self):
-        if not self._blocking_position:
-            # Calculate blocking position
-            raise NotImplementedError
-        return self._blocking_position
-
-    def clear_computed_positions(self):
-        self._score_zone = None
-        self._blocking_position = None
 
 class Ball(PitchObject):
 
@@ -385,3 +369,10 @@ class World(object):
                 obj.vector = kwargs[name]
         self.our_defender.clear_computed_positions()
         self.our_attacker.clear_computed_positions()
+
+    @property
+    def score_zone(self):
+        if not self._score_zone:
+            # Calculate score zone
+            raise NotImplementedError
+        return self._score_zone
