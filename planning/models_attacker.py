@@ -114,9 +114,7 @@ class TurnToGoal(Action):
 
 class TurnToBall(Action):
     def perform(self, comms):
-        x = self.world.ball.x
-        y = self.world.ball.y
-        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
+        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, self.world.ball.vector))
 
 
 class Shoot(Action):
