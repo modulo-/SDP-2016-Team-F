@@ -20,6 +20,7 @@ class Predictor:
     # Given in pixels (1px ~ 0.5cm). Set to 3m/s
     _DELTA_THRESHOLD = 360000
     _HIST_LEN = 50
+    _VISION_DELAY = 0.2
 
     def __init__(self):
         self._robot_blue_pink_history = []
@@ -50,34 +51,44 @@ class Predictor:
         self._ball_history.append(world.ball)
         self._history_times.append(world.time)
 
+    def _derive_future(c):
+        # Weighted by the index. TODO: Maybe use a better weighting.
+        deltas = sum(
+            ((c[i][0].x - c[i-1][0].x)*i, (c[i][0].y - c[i-1][0].y)*i, (c[i][1] - c[i-1][1]*i))
+            for i in range(1, len(c))
+        )
+        vec = (deltas[0] / deltas[2], deltas[1] / deltas[2])
+        t = time()
+        tdelta = t + Predictor._VISION_DELAY - c[-1][1]
+        return Position(c[-1][0].x + vec[0]*tdelta, c[-1][0].y + vec[1]*tdelta,
+                c[-1][0].angle)
+
+    # TODO: add angle prediction.
     def _predict(self, hist):
         # General idea: To eliminate misdetections, we build sequential chains
         # of possible positions. If a position is too far from any existing
         # chains, it is inserted as a new chain. The chain with the most
         # positions is then considered the "actual" chain.
         chains = []
-        chain_endtimes = []
         for (pos, time) in zip(hist, self._history_times):
             # Try to add to an existing chain. If this fails, create a new one.
             if pos == None or time == None:
                 continue
             deltas = [
-                ((c[-1].x - pos.x)**2 + (c[-1].y - pos.y)**2) / (ct - time)**2
-                for (c, ct) in zip(chains, chain_endtimes)
+                ((c[-1][0].x - pos.x)**2 + (c[-1][0].y - pos.y)**2) / (c[-1][1] - time)**2
+                for c in chains
             ]
             (index, d) = min_with_index(deltas)
             if d != None and d <= Predictor._DELTA_THRESHOLD:
-                chains[index].append(pos)
-                chain_endtimes[index] = time
+                chains[index].append((pos, time))
             else:
-                chains.append([pos])
-                chain_endtimes.append(time)
+                chains.append([(pos, time)])
         longest_chain = None
         for chain in chains:
             if longest_chain == None or len(chain) >= len(longest_chain):
                 longest_chain = chain
         if longest_chain:
-            return longest_chain[-1]
+            return self._derive_future(longest_chain)
         else:
             return None
 
