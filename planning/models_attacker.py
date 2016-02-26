@@ -44,7 +44,8 @@ class AttackBlock(Goal):
     '''
     def __init__(self, world, robot):
         self.actions = [TurnToBlockingAngle(world, robot),
-                        GoToBlockingPoistion(world, robot)]
+                        GoToBlockingPoistion(world, robot),
+                        TurnToFaceBlockingPosition(world, robot)]
 
     def generate_action(self):
         raise NotImplementedError
@@ -138,9 +139,24 @@ class TurnToDefender(Action):
         raise NotImplementedError
 
 
-class GoToBlockingPosition(Action):
+class TurnToFaceBlockingPosition(Action):
     def perform(self, comms):
-        raise NotImplementedError
+        position = self.robot.get_blocking_position(self.world)
+        rotation = utils.attacker_get_rotation_to_point(self.robot.vector, position)
+        comms.turn(rotation)
+
+
+class GoToBlockingPosition(Action):
+    preconditions = [(lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, r.get_blocking_position(w)))
+                      < ROTATION_THRESHOLD, "Attacker is facing blocking position")]
+
+    def perform(self, comms):
+        position = self.robot.get_blocking_position(self.world)
+        dx = position.x - self.robot.x
+        dy = position.y - self.robot.y
+        d = math.sqrt(dx**2 + dy**2)
+        comms.move(d)
+
 
 class TurnToBlockingAngle(Action):
     precondtions = [(lambda w, r: r.is_pass_blocking_position(w),
