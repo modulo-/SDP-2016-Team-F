@@ -47,18 +47,30 @@ class Vision:
 
         self.world_latest = World()
         self.world_previous = None
+        
+        #c.run(True)
+        
+        print("Basic camera calibration complete")
+        colours = c.calibrateColor(self.cam)
+        all_colors = np.empty([10, 3], dtype = np.uint8)
+        color_id = 0
 
-        #print("Basic camera calibration complete")
-        # colours = c.calibrateColor(self.cam)
-
-        # if colours is not None:
-        #     for colour, data in colours.iteritems():
-        #         if data is not None:
-        #             for field in data:
-        #                 self.config.colours[colour][field] = np.uint8([[data[field]]])
-        #     print("Colors recorded")
-        # else:
-        #     print("Colors calibration skipped")
+        if colours is not None:
+            for colour, data in colours.iteritems():
+                if data is not None:
+                    for field in data:
+                        self.config.colours[colour][field] = np.uint8(data[field])
+                        all_colors[color_id] = np.uint8(data[field])
+                        color_id += 1
+            print("Colors recorded")
+            np.save("color_calibrations", all_colors)
+        else:
+            print("Colors calibration skipped")
+            all_colors = np.load("color_calibrations.npy")
+            all_color_names = ['red', 'yellow', 'blue', 'green', 'pink']
+            for i in range(0,5):
+            	self.config.colours[all_color_names[i]]['max'] = all_colors[i*2]
+            	self.config.colours[all_color_names[i]]['min'] = all_colors[i*2+1]
 
         self.config.addFilter("overlay", filters.filter_overlay,
                               default=1)
@@ -179,7 +191,6 @@ class Vision:
             self.world_latest = w
 
             # found items will be stored in the queue, and accessed if/when drawing the overlay
-
             for name in self.config.filter_stack:
                 filter = self.config.filters[name]
                 if filter["option"].selected:
