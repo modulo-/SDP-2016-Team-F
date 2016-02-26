@@ -5,6 +5,9 @@ from position import Vector
 from models_common import Goal, Action, ROTATION_THRESHOLD,\
     FACING_ROTATION_THRESHOLD, are_equivalent_positions
 
+def is_robot_facing_position(r, pos):
+    return abs(utils.attacker_get_rotation_to_point(r.vector, pos)) < ROTATION_THRESHOLD
+
 class GetBall(Goal):
     '''
     Go to and grab ball
@@ -34,8 +37,10 @@ class AttackPosition(Goal):
     '''
     Move to optimum attacking position
     '''
-    def generate_action(self):
-        raise NotImplementedError
+    def __init__(self, world, robot):
+        self.actions = [GoToScoreZone(world, robot),
+                        TurnToScoreZone(world, robot)]
+        super(Score, self).__init__(world, robot)
 
 
 class AttackBlock(Goal):
@@ -46,13 +51,11 @@ class AttackBlock(Goal):
         self.actions = [TurnToBlockingAngle(world, robot),
                         GoToBlockingPoistion(world, robot),
                         TurnToFaceBlockingPosition(world, robot)]
-
-    def generate_action(self):
-        raise NotImplementedError
+        super(AttackBlock, self).__init__(world, robot)
 
 
 class GoToBall(Action):
-    preconditions = [(lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD, "Attacker is facing ball"),
+    preconditions = [(lambda w, r: is_robot_facing_position(r, w.ball.vector), "Attacker is facing ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Attacker's grabbers are open")]
 
     def perform(self, comms):
@@ -71,7 +74,7 @@ class GoToBall(Action):
 
 class GoToOpeningDistanceStaticBall(Action):
     preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
-                     (lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_THRESHOLD, "Attacker is facing ball")]
+                     (lambda w, r: is_facing_position(r.vector, w.ball), "Attacker is facing ball")]
     # lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
 
     def perform(self, comms):
@@ -125,7 +128,15 @@ class Shoot(Action):
         comms.kick_full_power()
 
 
+class TurnToScoreZone(Action):
+    def perform(self, comms):
+        position = self.world.score_zone
+        rotation = utils.attacker_get_rotation_to_point(self.robot.vector, position)
+        comms.turn(rotation)
+
 class GoToScoreZone(Action):
+    preconditions = [(lambda w, r: is_robot_facing_position(r, w.score_zone),
+                      "Attacker is facing score zone")]
     def perform(self, comms):
         raise NotImplementedError
 
@@ -145,8 +156,8 @@ class TurnToFaceBlockingPosition(Action):
 
 
 class GoToBlockingPosition(Action):
-    preconditions = [(lambda w, r: abs(utils.attacker_get_rotation_to_point(r.vector, r.get_blocking_position(w)))
-                      < ROTATION_THRESHOLD, "Attacker is facing blocking position")]
+    preconditions = [(lambda w, r: is_robot_facing_position(r, r.get_blocking_position(w)),
+                      "Attacker is facing blocking position")]
 
     def perform(self, comms):
         position = self.robot.get_blocking_position(self.world)
