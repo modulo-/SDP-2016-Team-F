@@ -3,8 +3,8 @@
 * Arduino
 */
 
-#include "SDPArduino.h"
-#include <Wire.h>
+//#include "SDPArduino.h"
+//#include <Wire.h>
 
 //analog in/digital I/O ports A0 to A3
 
@@ -14,7 +14,7 @@ const int buttonPin2 = A3;
 //const int buttonPin4 = 4;
 
 void setup() {
-  SDPsetup();
+  //SDPsetup();
   Serial.begin(9600);
   pinMode(buttonPin1, INPUT);
   pinMode(buttonPin2, INPUT);
