@@ -163,13 +163,13 @@ namespace llcmd {
         }
         switch(cmds[cmd_at] & 0x7f) {
         case GRABBER_OPEN:
-            io::forward(MOTOR_GRABBERS, 50);
-            break;
-        case GRABBER_CLOSE:
             io::backward(MOTOR_GRABBERS, 50);
             break;
+        case GRABBER_CLOSE:
+            io::forward(MOTOR_GRABBERS, 50);
+            break;
         case GRABBER_FORCE:
-            io::backward(MOTOR_GRABBERS, 255);
+            io::forward(MOTOR_GRABBERS, 255);
             break;
         case HOLD_SPIN:
         case SPIN:
@@ -178,9 +178,9 @@ namespace llcmd {
         case STRAIT:
         case ARC:
             if(state::grabbers_open) {
-                io::forward(MOTOR_GRABBERS, 20);
-            } else {
                 io::backward(MOTOR_GRABBERS, 20);
+            } else {
+                io::forward(MOTOR_GRABBERS, 20);
             }
             break;
         case NOP:

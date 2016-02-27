@@ -51,7 +51,7 @@ namespace hlcmd {
         case GRABBER_OPEN:
         case GRABBER_CLOSE:
         default:
-            return 2;
+            return 1;
         }
     }
 
