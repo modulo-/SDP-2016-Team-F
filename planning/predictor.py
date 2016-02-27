@@ -54,10 +54,11 @@ class Predictor:
     def _derive_future(c):
         # Weighted by the index. TODO: Maybe use a better weighting.
         deltas = sum(
-            ((c[i][0].x - c[i-1][0].x)*i, (c[i][0].y - c[i-1][0].y)*i, (c[i][1] - c[i-1][1]*i))
+            ((c[i][0].x - c[i-1][0].x)*(i**2), (c[i][0].y - c[i-1][0].y)*(i**2), (c[i][1] - c[i-1][1]*(i**2)))
             for i in range(1, len(c))
         )
-        vec = (deltas[0] / deltas[2], deltas[1] / deltas[2])
+        weighting = sum(i**2 for i in range(1, len(c)))
+        vec = (deltas[0] / (deltas[2] * weighting), deltas[1] / (deltas[2] * weighting))
         t = time()
         tdelta = t + Predictor._VISION_DELAY - c[-1][1]
         return Position(c[-1][0].x + vec[0]*tdelta, c[-1][0].y + vec[1]*tdelta,
