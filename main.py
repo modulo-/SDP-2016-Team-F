@@ -39,6 +39,8 @@ def new_vision(world):
         our_attacker=get_attacker(world),
         ball=world.ball,
     )
+    if latest_world.our_defender.can_catch_ball(latest_world.ball):
+        info('Can catch ball.')
     if latest_world.our_defender.is_missing():
         warning("Robot is missing!")
 

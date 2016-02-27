@@ -1,10 +1,11 @@
 from collections import namedtuple
 from logging import debug
 from Vision.world import Vector
+from time import time
 
 Positions = namedtuple('Positions', 'robot_blue_pink robot_blue_green ' +
         'robot_yellow_pink robot_yellow_green ball')
-Position = namedtuple('Position', 'x y angle')
+Position = namedtuple('Position', 'x y angle velocity')
 
 def min_with_index(l):
     min = None
@@ -51,18 +52,21 @@ class Predictor:
         self._ball_history.append(world.ball)
         self._history_times.append(world.time)
 
-    def _derive_future(c):
+    def _derive_future(self, c):
+        if len(c) == 1:
+            return c[-1][0]
         # Weighted by the index. TODO: Maybe use a better weighting.
-        deltas = sum(
-            ((c[i][0].x - c[i-1][0].x)*(i**2), (c[i][0].y - c[i-1][0].y)*(i**2), (c[i][1] - c[i-1][1]*(i**2)))
-            for i in range(1, len(c))
+        deltas = (
+            sum((c[i][0].x - c[i-1][0].x)*(i**2) for i in range(1, len(c))),
+            sum((c[i][0].y - c[i-1][0].y)*(i**2) for i in range(1, len(c))),
+            sum((c[i][1] - c[i-1][1]*(i**2)) for i in range(1, len(c))),
         )
         weighting = sum(i**2 for i in range(1, len(c)))
         vec = (deltas[0] / (deltas[2] * weighting), deltas[1] / (deltas[2] * weighting))
         t = time()
         tdelta = t + Predictor._VISION_DELAY - c[-1][1]
         return Position(c[-1][0].x + vec[0]*tdelta, c[-1][0].y + vec[1]*tdelta,
-                c[-1][0].angle)
+                c[-1][0].angle, 0)
 
     # TODO: add angle prediction.
     def _predict(self, hist):
