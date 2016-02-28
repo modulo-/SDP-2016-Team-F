@@ -1,5 +1,6 @@
 import math
 import logging
+from position import Vector
 
 
 def get_rotation_to_point(vec1, vec2):
@@ -37,6 +38,19 @@ def attacker_get_rotation_to_point(robot_vec, ball_vec):
 
 
 def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
+    robot_vec_left = Vector(robot_vec.x, robot_vec.y, robot_vec.angle - math.pi / 2, 0)
+    robot_vec_right = Vector(robot_vec.x, robot_vec.y, robot_vec.angle + math.pi / 2, 0)
+
+    first_angle = defender_get_rotation_to_catch_point_helper(robot_vec_left, ball_vec, catch_distance)
+    second_angle = defender_get_rotation_to_catch_point_helper(robot_vec_right, ball_vec, catch_distance)
+
+    if abs(first_angle) < abs(second_angle):
+        return first_angle
+    else:
+        return second_angle
+
+
+def defender_get_rotation_to_catch_point_helper(robot_vec, ball_vec, catch_distance):
     '''
     This method returns an angle by which the defending robot needs to rotate to face the catching point.
     It takes either an x, y coordinate of the ball that we want to approach to and computes the catching point.
@@ -58,10 +72,10 @@ def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
         alpha = math.asin(catch_distance / displacement)
     logging.debug("alpha angle = {0} in degrees {1}".format(alpha, math.degrees(alpha)))
     if theta > 0:
-        logging.debug("rotation to the catch point = {0} in degrees {1}".format(theta - alpha, math.degrees(theta - alpha)))
+        logging.info("rotation to the catch point = {0} in degrees {1}".format(theta - alpha, math.degrees(theta - alpha)))
         return theta - alpha
     else:
-        logging.debug("rotation to the catch point = {0} in degrees {1}".format(theta + alpha, math.degrees(theta + alpha)))
+        logging.info("rotation to the catch point = {0} in degrees {1}".format(theta + alpha, math.degrees(theta + alpha)))
         return theta + alpha
 
 

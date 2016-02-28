@@ -1,3 +1,6 @@
+
+import getopt
+import sys
 import cocos
 import cocos.actions as ac
 import math
@@ -53,7 +56,7 @@ class Test:
         adjusted_sequence = self.sequence[self.sequence_pos]
         adjusted_sequence['our_defender'].angle = rotation_adjustment(adjusted_sequence['our_defender'].angle)
 
-        self.w.update_positions(**adjusted_sequence)
+        self.w.update_positions(our_defender=adjusted_sequence['our_defender'], ball=adjusted_sequence['ball'])
         self.p.plan_and_act(self.w)
 
         self.sequence_pos += 1
@@ -66,11 +69,59 @@ class Test:
 
 class Scene(cocos.layer.ColorLayer):
 
-    def __init__(self):
+    def __init__(self, test):
         super(Scene, self).__init__(100, 255, 100, 255)
 
+        if(test == "1"):
+            self.test1()
+        elif(test == "2"):
+            self.test2()
+        elif(test == "3"):
+            self.test3()
+        else:
+            print("NO TEST ASSICIATED!")
+
+    def test1(self):
         start_robot_x = 100
         start_robot_y = 100
+        start_robot_rotation = math.radians(200)
+        start_ball_x = 200
+        start_ball_y = 170
+
+        robot = self.add_robot([start_robot_x, start_robot_y], start_robot_rotation)
+        ball = self.add_ball([start_ball_x, start_ball_y])
+        t = Test(our_defender=robot, ball=ball)
+
+        # 1) For starting rotation "math.radians(200)"; start_robot_x = 100; start_robot_y = 100;
+        sequence = [
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            # {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 1.57079632679, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        ]
+
+        t.run(sequence)
+
+    def test2(self):
+        start_robot_x = 100
+        start_robot_y = 100
+        start_robot_rotation = math.radians(315)
+        start_ball_x = 200
+        start_ball_y = 170
+
+        robot = self.add_robot([start_robot_x, start_robot_y], start_robot_rotation)
+        ball = self.add_ball([start_ball_x, start_ball_y])
+        t = Test(our_defender=robot, ball=ball)
+
+        # 2) For starting rotation "math.radians(315)"
+        sequence = [
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 0.436053765381, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+        ]
+
+        t.run(sequence)
+
+    def test3(self):
+        start_robot_x = 250
+        start_robot_y = 220
         start_robot_rotation = math.radians(270)
         start_ball_x = 200
         start_ball_y = 170
@@ -79,17 +130,11 @@ class Scene(cocos.layer.ColorLayer):
         ball = self.add_ball([start_ball_x, start_ball_y])
         t = Test(our_defender=robot, ball=ball)
 
-        # 1) For starting rotation "math.radians(270)"
+        # 3) For starting rotation "math.radians(270)"; start_robot_x = 250; start_robot_y = 220;
         sequence = [
             {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation + 1.92014072481, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 0.643501108793, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
         ]
-
-        # 2) For starting rotation "math.radians(180)"
-        # sequence = [
-        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 1.57079632679, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        # ]
 
         t.run(sequence)
 
@@ -181,12 +226,13 @@ class Sprite (cocos.sprite.Sprite):
 class Robot(Sprite):
 
     def __init__(self, pos, rotation_radians):
-        super(Robot, self).__init__('res/robot.png', pos)
+        super(Robot, self).__init__('res/robot_side.png', pos)
         self._movement_speed = 2
         self._rotation_speed = 2
 
         # initial rotation adjustment
-        rotation_radians -= math.pi / 2
+        # rotation_radians -= math.pi / 2  # old
+
         if rotation_radians < 0:
             rotation_radians += math.pi * 2
         self.rotation = math.degrees(rotation_radians)
@@ -207,13 +253,13 @@ class Ball(Sprite):
 
 
 class Environment():
-    def __init__(self, width, height):
+    def __init__(self, width, height, verbose, test):
 
         logging.basicConfig(level=logging.INFO, format="\033[95m\r%(asctime)s - %(levelname)s - %(message)s\033[0m")
 
         # director init takes the same arguments as pyglet.window
         cocos.director.director.init(width=width, height=height, resizable=False)
-        world = Scene()
+        world = Scene(test)
 
         # A scene that contains the layer hello_layer
         main_scene = cocos.scene.Scene(world)
@@ -222,5 +268,32 @@ class Environment():
         cocos.director.director.run(main_scene)
 
 
+def usage():
+    print("Just use it!")
+
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hvrt:", ["help", "verbose", "run", "test="])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)  # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
+    verbose = False
+    for o, a in opts:
+        if o == "-v":
+            verbose = True
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif o in ("-r", "--run"):
+            Environment(width=600, height=400, verbose=verbose)
+        elif o in ("-t", "--test"):
+            Environment(width=600, height=400, verbose=verbose, test=a)
+        else:
+            assert False, "unhandled option"
+
+
 if __name__ == "__main__":
-    Environment(width=600, height=400)
+    main()

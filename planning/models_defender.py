@@ -73,7 +73,14 @@ class GoToStaticBall(Action):
         else:
             distance_to_move = math.sin(math.radians(beta)) * self.robot.catch_distance / math.sin(math.radians(alpha))
 
-        comms.move(distance_to_move)
+        angle_to_ball_left = utils.defender_get_rotation_to_catch_point_helper(Vector(self.robot.x, self.robot.y, self.robot.angle - math.pi / 2, 0), Vector(self.world.ball.x, self.world.ball.y, 0, 0), self.robot.catch_distance)
+        angle_to_ball_right = utils.defender_get_rotation_to_catch_point_helper(Vector(self.robot.x, self.robot.y, self.robot.angle + math.pi / 2, 0), Vector(self.world.ball.x, self.world.ball.y, 0, 0), self.robot.catch_distance)
+        print(angle_to_ball_left, angle_to_ball_right)
+
+        if(abs(angle_to_ball_left) < abs(angle_to_ball_right)):
+            comms.move(distance_to_move)
+        else:
+            comms.move(-distance_to_move)
 
 
 class GrabBall(Action):
