@@ -14,17 +14,6 @@ from comms import CommsManager
 import logging
 
 
-def rotation_adjustment(angle):
-    angle -= math.radians(270)
-
-    if angle < 0:
-        return angle + math.pi * 2
-    elif angle > math.pi * 2:
-        return angle - math.pi * 2
-    else:
-        return angle
-
-
 class Test:
 
     def __init__(self, our_defender, ball):
@@ -34,7 +23,8 @@ class Test:
         self.sequence_pos = None
         self.p = DefencePlanner(comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
         self.w = World('left', 0)
-        self.w.our_defender._receiving_area = {'width': 50, 'height': 50, 'front_offset': 10}
+        self.w.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
+        self.w.our_defender._catch_distance = 32
 
     def run(self, sequence):
         self.sequence = sequence
@@ -52,11 +42,9 @@ class Test:
             self.p.set_task(self.sequence[self.sequence_pos]['task'])
             print ("Changing task to " + self.sequence[self.sequence_pos]['task'])
 
-        # adjusting
-        adjusted_sequence = self.sequence[self.sequence_pos]
-        adjusted_sequence['our_defender'].angle = rotation_adjustment(adjusted_sequence['our_defender'].angle)
-
-        self.w.update_positions(our_defender=adjusted_sequence['our_defender'], ball=adjusted_sequence['ball'])
+        # update & act
+        sequence = self.sequence[self.sequence_pos]
+        self.w.update_positions(our_defender=sequence['our_defender'], ball=sequence['ball'])
         self.p.plan_and_act(self.w)
 
         self.sequence_pos += 1
@@ -79,7 +67,7 @@ class Scene(cocos.layer.ColorLayer):
         elif(test == "3"):
             self.test3()
         else:
-            print("NO TEST ASSICIATED!")
+            print("NO TEST ASSOCIATED!")
 
     def test1(self):
         start_robot_x = 100
@@ -95,7 +83,7 @@ class Scene(cocos.layer.ColorLayer):
         # 1) For starting rotation "math.radians(200)"; start_robot_x = 100; start_robot_y = 100;
         sequence = [
             {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            # {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 1.57079632679, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 1.22504562969, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
         ]
 
         t.run(sequence)
@@ -114,7 +102,7 @@ class Scene(cocos.layer.ColorLayer):
         # 2) For starting rotation "math.radians(315)"
         sequence = [
             {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 0.436053765381, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation + 0.439926013907, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
         ]
 
         t.run(sequence)
@@ -133,7 +121,7 @@ class Scene(cocos.layer.ColorLayer):
         # 3) For starting rotation "math.radians(270)"; start_robot_x = 250; start_robot_y = 220;
         sequence = [
             {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 0.643501108793, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
+            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation + 0.315777172952, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
         ]
 
         t.run(sequence)
