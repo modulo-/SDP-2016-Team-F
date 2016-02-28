@@ -56,13 +56,11 @@ class Option(object):
 class Config:
     pitch_room = Option("pitch_room", text="Pitch room", options=["3.D03", "3.D04"])
     computer = Option("colour", text="Our colour", options=list(calibrations.colour_profiles))
-    # colours = colour_profiles['3d04_pc4']
-    colours = colour_profiles['breadnel']
 
     dot_areas = {
-        'blue': 5,
-        'yellow': 5,
-        'red': 2
+        'blue': 2,
+        'yellow': 2,
+        'red': 5
     }
     
     filters = OrderedDict()
