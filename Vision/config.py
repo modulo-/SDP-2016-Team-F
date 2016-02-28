@@ -56,6 +56,7 @@ class Option(object):
 class Config:
     pitch_room = Option("pitch_room", text="Pitch room", options=["3.D03", "3.D04"])
     computer = Option("colour", text="Our colour", options=list(calibrations.colour_profiles))
+    colours = colour_profiles['pitch_3d03']
 
     dot_areas = {
         'blue': 2,

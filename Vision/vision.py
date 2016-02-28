@@ -69,10 +69,10 @@ class Vision:
                         all_colors[color_id] = np.uint8(data[field])
                         color_id += 1
             print("Colors recorded")
-            np.save("color_calibrations", all_colors)
+            np.save("Vision/color_calibrations", all_colors)
         else:
             print("Colors calibration skipped")
-            all_colors = np.load("color_calibrations.npy")
+            all_colors = np.load("Vision/color_calibrations.npy")
             all_color_names = ['red', 'yellow', 'blue', 'green', 'pink']
             for i in range(0,5):
             	self.config.colours[all_color_names[i]]['max'] = all_colors[i*2]
