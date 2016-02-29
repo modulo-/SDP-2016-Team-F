@@ -69,7 +69,7 @@ class Vision:
                         all_colors[color_id] = np.uint8(data[field])
                         color_id += 1
             print("Colors recorded")
-            np.save("Vision/color_calibrations", all_colors)
+            np.save("color_calibrations", all_colors)
         else:
             print("Colors calibration skipped")
             all_colors = np.load("color_calibrations.npy")
