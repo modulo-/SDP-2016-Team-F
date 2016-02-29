@@ -7,9 +7,10 @@ from planning.world import World
 from threading import Timer, Thread
 from sys import argv
 import logging
-from logging import debug, warning
+from logging import debug, info, warning
 from planning.predictor import Predictor
 from getopt import getopt
+from time import time
 
 PITCH_NO = 0
 color = None
@@ -19,12 +20,11 @@ class Interrupt:
         self.last_t = 0
         self.cond = cond
         self.run = run
-Interrupt = namedtuple('Interrupt', 'last_t cond run')
 
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
-latest_world.our_attacker._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
-latest_world.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
+latest_world.our_attacker._receiving_area = {'width': 40, 'height': 50, 'front_offset': 10}
+latest_world.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 10}
 interrupts = []
 
 def get_defender(world):
@@ -129,14 +129,14 @@ if __name__ == '__main__':
     defence_planner = None
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
+        interrupts.append(Interrupt(
+            lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
+            lambda: attack_planner.plan_and_act(latest_world)))
     if defender:
         defence_planner = DefencePlanner(comms=defender)
-    interrupts.append(Interrupt(
-        lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
-        lambda: attack_planner.plan_and_act(latest_world)))
-    interrupts.append(Interrupt(
-        lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-        lambda: defence_planner.plan_and_act(latest_world)))
+        interrupts.append(Interrupt(
+            lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
+            lambda: defence_planner.plan_and_act(latest_world)))
     def run_planners():
         if attack_planner:
             attack_planner.plan_and_act(latest_world)

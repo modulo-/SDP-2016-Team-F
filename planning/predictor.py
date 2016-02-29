@@ -2,6 +2,7 @@ from collections import namedtuple
 from logging import debug
 from Vision.world import Vector
 from time import time
+import math
 
 Positions = namedtuple('Positions', 'robot_blue_pink robot_blue_green ' +
         'robot_yellow_pink robot_yellow_green ball')
@@ -57,12 +58,12 @@ class Predictor:
             return c[-1][0]
         weights = [1/i for i in range(1, len(c))][::-1]
         deltas = (
-            sum((c[i][0].x - c[i-1][0].x)*weights[i-1]) for i in range(1, len(c))),
-            sum((c[i][0].y - c[i-1][0].y)*weights[i-1]) for i in range(1, len(c))),
-            sum((c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
+            sum(((c[i][0].x - c[i-1][0].x)*weights[i-1]) for i in range(1, len(c))),
+            sum(((c[i][0].y - c[i-1][0].y)*weights[i-1]) for i in range(1, len(c))),
+            sum(((c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
         )
         weight = sum(weights)
-        vec = (deltas[0] / (deltas[2] * weights), deltas[1] / (deltas[2] * weights))
+        vec = (deltas[0] / (deltas[2] * weight), deltas[1] / (deltas[2] * weight))
         t = time()
         tdelta = t + Predictor._VISION_DELAY - c[-1][1]
         angle = None
