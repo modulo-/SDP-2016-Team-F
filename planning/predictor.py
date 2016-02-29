@@ -52,24 +52,29 @@ class Predictor:
         self._ball_history.append(world.ball)
         self._history_times.append(world.time)
 
-    def _derive_future(self, c):
+    def _derive_future(self, c, is_ball):
         if len(c) == 1:
             return c[-1][0]
-        # Weighted by the index. TODO: Maybe use a better weighting.
+        weights = [1/i for i in range(1, len(c))][::-1]
         deltas = (
-            sum((c[i][0].x - c[i-1][0].x)*(i**2) for i in range(1, len(c))),
-            sum((c[i][0].y - c[i-1][0].y)*(i**2) for i in range(1, len(c))),
-            sum((c[i][1] - c[i-1][1]*(i**2)) for i in range(1, len(c))),
+            sum((c[i][0].x - c[i-1][0].x)*weights[i-1]) for i in range(1, len(c))),
+            sum((c[i][0].y - c[i-1][0].y)*weights[i-1]) for i in range(1, len(c))),
+            sum((c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
         )
-        weighting = sum(i**2 for i in range(1, len(c)))
-        vec = (deltas[0] / (deltas[2] * weighting), deltas[1] / (deltas[2] * weighting))
+        weight = sum(weights)
+        vec = (deltas[0] / (deltas[2] * weights), deltas[1] / (deltas[2] * weights))
         t = time()
         tdelta = t + Predictor._VISION_DELAY - c[-1][1]
+        angle = None
+        if is_ball:
+            angle = math.atan2(vec[0], vec[1])
+        else:
+            angle = c[-1][0].angle
         return Position(c[-1][0].x + vec[0]*tdelta, c[-1][0].y + vec[1]*tdelta,
-                c[-1][0].angle, 0)
+                angle, math.hypot(vec[0], vec[1]))
 
     # TODO: add angle prediction.
-    def _predict(self, hist):
+    def _predict(self, hist, is_ball=False):
         # General idea: To eliminate misdetections, we build sequential chains
         # of possible positions. If a position is too far from any existing
         # chains, it is inserted as a new chain. The chain with the most
@@ -93,7 +98,7 @@ class Predictor:
             if longest_chain == None or len(chain) >= len(longest_chain):
                 longest_chain = chain
         if longest_chain:
-            return self._derive_future(longest_chain)
+            return self._derive_future(longest_chain, is_ball)
         else:
             return None
 
@@ -103,7 +108,7 @@ class Predictor:
             self._predict(self._robot_blue_green_history),
             self._predict(self._robot_yellow_pink_history),
             self._predict(self._robot_yellow_green_history),
-            self._predict(self._ball_history)
+            self._predict(self._ball_history, True)
         )
         debug("Predition: " + str(ret))
         return ret
