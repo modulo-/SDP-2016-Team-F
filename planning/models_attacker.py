@@ -12,7 +12,7 @@ class GetBall(Goal):
 
     def __init__(self, world, robot):
         self.actions = [GrabBall(world, robot),
-                        GoToStaticBall(world, robot),
+                        GoToBall(world, robot),
                         OpenGrabbers(world, robot),
                         GoToOpeningDistanceStaticBall(world, robot),
                         TurnToBall(world, robot)]

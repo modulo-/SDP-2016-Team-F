@@ -253,9 +253,11 @@ class DotTracker(Tracker):
                 'colour': self.colour_name
             })
         else:
-            for i in xrange(2):
+            robots_found = 0
+            
+            while(1):
                 # Trim contours matrix
-                if len(contours) < 1:
+                if len(contours) < 1 or robots_found == 2:
                     break
 
                 cnt_index = self.get_largest_contour_index(contours)
@@ -269,6 +271,11 @@ class DotTracker(Tracker):
 
                 section = self.crop(frame, (x, y), croprange)
                 identification = self.getID(section)
+                
+                if identification == None:
+                    continue
+                
+                robots_found += 1
 
                 assert identification in ['pink', 'green']
                 corner = self.getCorner(section, (x,y), identification)
@@ -281,7 +288,7 @@ class DotTracker(Tracker):
                     orientation = None
 
                 queue.put({
-                    'name': self.item + '_' + str(i),
+                    'name': self.item + '_' + str(robots_found - 1),
                     'x': x,
                     'y': y,
                     'corner': corner,
@@ -300,7 +307,18 @@ class DotTracker(Tracker):
         pinkedness = np.sum(pinkMask)
         greenness = np.sum(greenMask)
 
-        return "pink" if pinkedness > greenness else "green"
+        minimum = 10
+        if pinkedness < minimum or greenness < minimum:
+            return None
+    
+        h, w, d = section.shape
+        
+        contours, _, _ = self.get_contours(section, (0, w, 0, h), self.config.colours['pink'])
+
+        if(len(contours) >= 3):
+            return "pink"
+        
+        return "green"
 
     def getCorner(self, section, (x,y), identification):
         if (identification == 'pink'):
