@@ -5,6 +5,7 @@ import numpy as np
 from collections import namedtuple
 import warnings
 import filters
+import copy
 
 # Turn off warnings for PolynomialFit
 warnings.simplefilter('ignore', np.RankWarning)
@@ -37,13 +38,36 @@ class Tracker(object):
                 return None
 
             # Convert frame to HSV
+            normalizing_factors = np.sum(frame, axis=2)
+            normalizing_factors[normalizing_factors == 0] = 1
+            h, w = normalizing_factors.shape
+            norm = frame.astype(float) / normalizing_factors.reshape(h, w, 1)
+            norm *= 255
+            norm = norm.astype(np.uint8)
             frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
             # print colour
             # Create a mask
-            frame_mask = cv2.inRange(frame_hsv,
-                                     colour['min'],
-                                     colour['max'])
+
+            if colour['max'][0] < 180:
+                frame_mask = cv2.inRange(frame_hsv,
+                                         colour['min'],
+                                         colour['max'])
+            else:
+                lower = copy.deepcopy(colour['min'])
+                lower[0] = max(180, lower[0]) - 180
+                upper = copy.deepcopy(colour['max'])
+                upper[0] = upper[0] - 180
+                frame_mask = cv2.inRange(frame_hsv,
+                                         lower,
+                                         upper)
+                
+                if colour['min'][0] < 180:
+                    upper = copy.deepcopy(colour['max'])
+                    upper[0] = 179
+                    frame_mask1 = cv2.inRange(frame_hsv,
+                                              colour['min'],
+                                              upper)
+                    frame_mask = cv2.bitwise_or(frame_mask, frame_mask1)
             
             #
             # if self.config.open >= 1:
@@ -307,7 +331,7 @@ class DotTracker(Tracker):
         pinkedness = np.sum(pinkMask)
         greenness = np.sum(greenMask)
 
-        minimum = 10
+        minimum = 2
         if pinkedness < minimum or greenness < minimum:
             return None
     

@@ -61,7 +61,7 @@ class Config:
     dot_areas = {
         'blue': 2,
         'yellow': 2,
-        'red': 5
+        'red': 2
     }
     
     filters = OrderedDict()
