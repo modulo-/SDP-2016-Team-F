@@ -1,5 +1,6 @@
 import utils
 import math
+import logging
 
 from position import Vector
 from models_common import Goal, Action, ROTATION_THRESHOLD,\
@@ -54,8 +55,7 @@ class GoToStaticBall(Action):
     '''
     Move defender to the ball when static
     '''
-    preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
-                     (lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)) < ROTATION_THRESHOLD, "Defender is facing ball")]
+    preconditions = [(lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)[0]) < ROTATION_THRESHOLD, "Defender is facing ball")]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -65,7 +65,13 @@ class GoToStaticBall(Action):
         if displacement == 0:
             alpha = 0
         else:
-            alpha = math.degrees(math.asin(self.robot.catch_distance / float(displacement)))
+            # TODO: has to handle this edge case better
+            try:
+                alpha = math.degrees(math.asin(self.robot.catch_distance / float(displacement)))
+            except ValueError as er:
+                print("Value Error!")
+                print(er)
+                return 0
         beta = 90 - alpha
 
         if math.sin(math.radians(alpha)) == 0:
@@ -73,6 +79,12 @@ class GoToStaticBall(Action):
         else:
             distance_to_move = math.sin(math.radians(beta)) * self.robot.catch_distance / math.sin(math.radians(alpha))
 
+        # Find the movement side
+        angle, side = utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(self.world.ball.x, self.world.ball.y, 0, 0), self.robot.catch_distance)
+        if side == "left":
+            distance_to_move = -distance_to_move
+
+        logging.info("Wants to move by: " + str(distance_to_move))
         comms.move(distance_to_move)
 
 
@@ -94,7 +106,9 @@ class TurnToCatchPoint(Action):
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
-        comms.turn(utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0), self.robot.catch_distance))
+        angle = utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0), self.robot.catch_distance)[0]
+        logging.info("Wants to rotate by: " + str(angle))
+        comms.turn(angle)
 
 
 class Shoot(Action):
@@ -142,7 +156,7 @@ class OpenGrabbersForOpponentShot(Action):
     '''
     def rotation_precondition(self, w, r):
         possessing = w.robot_in_posession
-        rotation = utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(possessing.x, possessing.y, 0, 0), r.catch_distance)
+        rotation = utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(possessing.x, possessing.y, 0, 0), r.catch_distance)[0]
         return abs(rotation) < FACING_ROTATION_THRESHOLD
 
     preconditions = [(lambda w, r: r.aligned_on_goal_arc(w.robot_in_possession), "Defender is aligned with robot in possession on goal arc"),
@@ -166,7 +180,7 @@ class KickToScoreZone(Action):
     '''
     Pass ball to our attacker's score zone
     '''
-    preconditions = [(lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.our_attacker.score_zone.x, w.our_attacker.score_zone.y, 0, 0), r.catch_distance)) < FACING_ROTATION_THRESHOLD,
+    preconditions = [(lambda w, r: abs(r=utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0)[0], Vector(w.score_zone.x, w.score_zone.y, 0, 0), r.catch_distance)) < FACING_ROTATION_THRESHOLD,
                       "Defender is facing attacker's score zone"),
                      (lambda w, r: r.has_ball(w.ball), "Defender has ball")]
 
