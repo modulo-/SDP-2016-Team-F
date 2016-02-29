@@ -18,9 +18,11 @@
 #define MOTOR_KICKER 5 // forward is kick
 #define MOTOR_GRABBER 3 // forward is grab
 
-#define ENCODER_LEFT 3
-#define ENCODER_RIGHT 4
+#define ENCODER_LEFT 2
+#define ENCODER_RIGHT 1
 #define ENCODER_MIDDLE 5 //+ve is clockwise
+
+#define PIN_KICKER 6
 
 //the radius of the left and right wheels
 #define LR_WHEELBASE 0.15
@@ -97,6 +99,7 @@ void setup() {
     if (!comms::init("67", "~~~")) {
         digitalWrite(13, HIGH);
     }
+    pinMode(PIN_KICKER, OUTPUT);
 
     Wire.begin(ROTARY_SLAVE_ADDRESS);  // I2C slave at given address
     initSensors();
@@ -172,14 +175,14 @@ void parseOptions(byte* message){
 
 void grab(byte * message) {
     //close flippers
-    motorForward(MOTOR_GRABBER, 20);
+    motorForward(MOTOR_GRABBER, 25);
     delay(800);
     motorAllStop();
 }
 
 void release(byte * message){
     //move flippers away
-    motorBackward(MOTOR_GRABBER, 20);
+    motorBackward(MOTOR_GRABBER, 25);
     delay(800);
     motorAllStop();
 }
@@ -487,26 +490,25 @@ void kick(int distance) { // distance in cm
             kickerTime = kickerTime150;
             break;
         default:
-            kickerTime = 120 + (int) distance * 0.3533;
+            kickerTime = distance;
             break;
     }
     //close flippers
     //motorForward(MOTOR_GRABBER, 20);
     //delay(800);
     //move flippers away
-    motorBackward(MOTOR_GRABBER, 20);
+    motorBackward(MOTOR_GRABBER, 25);
     delay(800);
     motorAllStop();
-    delay(400);
-    
     //kick
-    motorForward(MOTOR_KICKER, kickerStrength);
+    digitalWrite(PIN_KICKER, HIGH);   
+
     delay(kickerTime);
     //put kicker back down
-    motorBackward(MOTOR_KICKER, 30);
+    digitalWrite(PIN_KICKER, LOW);   
     delay(600);
     //put grabbers back in 
-    motorForward(MOTOR_GRABBER, 20);
+    motorForward(MOTOR_GRABBER, 25);
     delay(200);
     motorAllStop();
     #ifdef SERIAL_DEBUG
