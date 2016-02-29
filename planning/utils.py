@@ -16,7 +16,7 @@ def get_rotation_to_point(vec1, vec2):
     if displacement == 0:
         theta = 0
     else:
-        theta = math.atan2(delta_y, delta_x) - vec1.angle  # atan2(sin(self.angle), cos(self.angle))
+        theta = math.atan2(delta_x, delta_y) - vec1.angle  # atan2(sin(self.angle), cos(self.angle))
         if theta > math.pi:
             theta -= 2 * math.pi
         elif theta < -math.pi:
@@ -67,8 +67,9 @@ def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
 
 def ball_is_static(world):
     # TODO find real threshold value
-    static_treshold = 0.1
-    return world.ball.velocity < static_treshold
+    return True
+    static_threshold = 0.5
+    return world.ball.velocity < static_threshold
 
 
 # Test if robot can score
@@ -88,6 +89,8 @@ def can_score(world, our_robot, their_goal, turn=0):
     goal_x = their_goal.x
 
     predicted_y = predict_y_intersection(world, goal_x, our_robot, full_width=True)
+
+    logging.info("Predicted goal intersection ({0}, {1})".format(goal_x, predicted_y))
 
     # return goal_posts[0][1] < predicted_y < goal_posts[1][1]
     return their_goal.lower_post < predicted_y < their_goal.higher_post

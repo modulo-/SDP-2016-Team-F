@@ -124,7 +124,7 @@ class Robot(PitchObject):
         back_left = (self.x + self._receiving_area['front_offset'], self.y + self._receiving_area['width'] / 2.0)
         back_right = (self.x + self._receiving_area['front_offset'], self.y - self._receiving_area['width'] / 2.0)
         area = Polygon((front_left, front_right, back_left, back_right))
-        area.rotate(math.pi/2-self.angle, self.x, self.y)
+        area.rotate(math.pi / 2 - self.angle, self.x, self.y)
         return area
 
     @catcher_area.setter

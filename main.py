@@ -24,7 +24,7 @@ class Interrupt:
 
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
-latest_world.our_attacker._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
+latest_world.our_attacker._receiving_area = {'width': 25, 'height': 10, 'front_offset': 20}
 latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
 interrupts = []
 
