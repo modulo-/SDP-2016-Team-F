@@ -22,7 +22,7 @@ class Predictor:
     # Given in pixels (1px ~ 0.5cm). Set to 3m/s
     _DELTA_THRESHOLD = 360000
     _HIST_LEN = 50
-    _VISION_DELAY = 0.2
+    _VISION_DELAY = 1
 
     def __init__(self):
         self._robot_blue_pink_history = []

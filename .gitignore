@@ -116,3 +116,4 @@ flycheck_*.el
 /server/
 
 /Vision/color_calibrations.npy
+/color_calibrations.npy
