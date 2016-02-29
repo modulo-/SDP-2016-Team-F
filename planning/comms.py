@@ -50,7 +50,7 @@ class TractorCrabCommsManager(CommsManager):
     def _normalize_angle(self, angle):
         # Expects inputs in radians counter-clockwise.
         # Returns output in minutes clockwise.
-        angle = int(math.degrees(-angle) * 60)
+        angle = int(math.degrees(angle) * 60)
         if angle < -10800 or angle > 10800:
             angle = (angle + 10800) % 21600 - 10800
         return angle

@@ -22,6 +22,8 @@ class Interrupt:
         self.run = run
         self.delay = delay
 
+PLANNER_DELAY = 4
+
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_attacker._receiving_area = {'width': 25, 'height': 10, 'front_offset': 20}
@@ -137,18 +139,18 @@ if __name__ == '__main__':
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-            lambda: defender.close_grabbers(), 2))
-            #lambda: defence_planner.plan_and_act(latest_world)))
+            #lambda: defender.close_grabbers(), 2))
+            lambda: defence_planner.plan_and_act(latest_world), 2))
     def run_planners():
         if attack_planner:
             attack_planner.plan_and_act(latest_world)
         if defence_planner:
             defence_planner.plan_and_act(latest_world)
-        timer = Timer(1, run_planners)
+        timer = Timer(PLANNER_DELAY, run_planners)
         timer.daemon = True
         timer.start()
 
-    timer = Timer(1, run_planners)
+    timer = Timer(PLANNER_DELAY, run_planners)
     timer.daemon = True
     timer.start()
     while True:
