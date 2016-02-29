@@ -24,19 +24,18 @@ from scipy.spatial import distance as sp_dist
 class Vision:
     def __init__(self, video_port=0, pitch=None, planner_callback=None):
         self.config = Config(self)
-
         while pitch is None:
             req_room = raw_input("Enter Pitch Room [{opts}]: ".format(opts="/".join(self.config.pitch_room.options)))
             pitch_no = self.config.pitch_room.getCode(req_room, unifier=lambda str: re.sub(r'\W+', '', str.upper()))
             if pitch_no is not None:
                 pitch = pitch_no
-                self.config.pitch_room.selected = pitch
-                if pitch == 0:
-                    self.config.colours = colour_profiles['pitch_3d03']
-                elif pitch == 1:
-                    self.config.colours = colour_profiles['pitch_3d04']
-        #    else:
-                #print("Try again")
+
+        
+        self.config.pitch_room.selected = pitch
+        if pitch == 0:
+            self.config.colours = colour_profiles['pitch_3d03']
+        elif pitch == 1:
+            self.config.colours = colour_profiles['pitch_3d04']
 
         self.cam = Camera(port=video_port, pitch=pitch, config=self.config)
         #print("Camera initialised")
@@ -69,7 +68,7 @@ class Vision:
                         all_colors[color_id] = np.uint8(data[field])
                         color_id += 1
             print("Colors recorded")
-            np.save("Vision/color_calibrations", all_colors)
+            np.save("color_calibrations", all_colors)
         else:
             print("Colors calibration skipped")
             all_colors = np.load("color_calibrations.npy")
