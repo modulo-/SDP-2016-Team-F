@@ -21,6 +21,7 @@
 #define ENCODER_LEFT 2
 #define ENCODER_RIGHT 1
 #define ENCODER_MIDDLE 5 //+ve is clockwise
+#define ENCODER_GRABBER 4 
 
 #define PIN_KICKER 6
 
@@ -116,7 +117,7 @@ void loop() {
 namespace comms {
     const char DEVICEID = DEVICE_ID;
 
-    void process(void *data, size_t len) {
+    void process(void const*data, unsigned int len) {
         byte * message = (byte *) data;
 
         switch (message[0]) {
@@ -139,12 +140,12 @@ namespace comms {
                 doData(message);
                 break;
             case CMD_GRAB:
-                grab(message);
+                grab();
                 break;
             case CMD_RELEASE:
-                release(message);
+                release();
         }
-        free(data);
+        //free(data);
     }
 }
 
@@ -173,15 +174,21 @@ void parseOptions(byte* message){
     }
 }
 
-void grab(byte * message) {
+void grab() {
     //close flippers
+    resetMotorPositions();
+    int time = millis();
     motorForward(MOTOR_GRABBER, 25);
-    delay(800);
+    while(positions[ENCODER_GRABBER] <10 && millis()-time<800){
+    }
     motorAllStop();
 }
 
-void release(byte * message){
+void release(){
     //move flippers away
+    int time=millis();
+    while(positions[ENCODER_GRABBER] >0 && millis()-time<800){
+    }
     motorBackward(MOTOR_GRABBER, 25);
     delay(800);
     motorAllStop();
@@ -489,15 +496,14 @@ void kick(int distance) { // distance in cm
         case 150:
             kickerTime = kickerTime150;
             break;
+        case 300:
+            kickerTime = 100;
+            break;
         default:
             kickerTime = distance;
             break;
     }
-    //close flippers
-    //motorForward(MOTOR_GRABBER, 20);
-    //delay(800);
-    //move flippers away
-    motorBackward(MOTOR_GRABBER, 25);
+    release();
     delay(800);
     motorAllStop();
     //kick
@@ -508,7 +514,7 @@ void kick(int distance) { // distance in cm
     digitalWrite(PIN_KICKER, LOW);   
     delay(600);
     //put grabbers back in 
-    motorForward(MOTOR_GRABBER, 25);
+    grab();
     delay(200);
     motorAllStop();
     #ifdef SERIAL_DEBUG
