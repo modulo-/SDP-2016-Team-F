@@ -7,8 +7,8 @@ colour_profiles = {
     "pitch_3d04":
     {
         "red": {
-            "min": np.array([0, 63, 100]),
-            "max": np.array([16, 255, 255])
+            "min": np.array([176, 63, 100]),
+            "max": np.array([180, 255, 255])
         },
         "yellow": {
             "min": np.array([24, 21, 230]),
