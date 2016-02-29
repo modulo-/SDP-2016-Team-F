@@ -63,7 +63,6 @@ def new_vision(world):
         ball=world.ball,
     )
     t = time()
-    info('Hello')
     for interrupt in interrupts:
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
