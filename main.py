@@ -16,15 +16,16 @@ PITCH_NO = 0
 color = None
 
 class Interrupt:
-    def __init__(self, cond, run):
+    def __init__(self, cond, run, delay):
         self.last_t = 0
         self.cond = cond
         self.run = run
+        self.delay = delay
 
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
-latest_world.our_attacker._receiving_area = {'width': 40, 'height': 50, 'front_offset': 10}
-latest_world.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 10}
+latest_world.our_attacker._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
+latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
 interrupts = []
 
 def get_defender(world):
@@ -62,8 +63,9 @@ def new_vision(world):
         ball=world.ball,
     )
     t = time()
+    info('Hello')
     for interrupt in interrupts:
-        if t - interrupt.last_t >= 0.2 and interrupt.cond():
+        if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
     if latest_world.our_defender.can_catch_ball(latest_world.ball):
@@ -131,12 +133,13 @@ if __name__ == '__main__':
         attack_planner = AttackPlanner(comms=attacker)
         interrupts.append(Interrupt(
             lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
-            lambda: attack_planner.plan_and_act(latest_world)))
+            lambda: attack_planner.plan_and_act(latest_world), 2))
     if defender:
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-            lambda: defence_planner.plan_and_act(latest_world)))
+            lambda: defender.close_grabbers(), 2))
+            #lambda: defence_planner.plan_and_act(latest_world)))
     def run_planners():
         if attack_planner:
             attack_planner.plan_and_act(latest_world)

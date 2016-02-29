@@ -70,7 +70,10 @@ class Predictor:
         if is_ball:
             angle = math.atan2(vec[0], vec[1])
         else:
-            angle = c[-1][0].angle
+            for p in c[::-1]:
+                if p[0].angle != None:
+                    angle = p[0].angle
+                    break
         return Position(c[-1][0].x + vec[0]*tdelta, c[-1][0].y + vec[1]*tdelta,
                 angle, math.hypot(vec[0], vec[1]))
 
