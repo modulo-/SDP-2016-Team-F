@@ -7,17 +7,26 @@ from planning.world import World
 from threading import Timer, Thread
 from sys import argv
 import logging
-from logging import debug, warning
+from logging import debug, info, warning
 from planning.predictor import Predictor
 from getopt import getopt
+from time import time
 
 PITCH_NO = 0
 color = None
 
+class Interrupt:
+    def __init__(self, cond, run, delay):
+        self.last_t = 0
+        self.cond = cond
+        self.run = run
+        self.delay = delay
+
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
-latest_world.our_attacker._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
-latest_world.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
+latest_world.our_attacker._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
+latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
+interrupts = []
 
 def get_defender(world):
     if color == 'b':
@@ -31,14 +40,35 @@ def get_attacker(world):
     else:
         return world.robot_yellow_pink
 
+def get_green_opponent(world):
+    if color == 'b':
+        return world.robot_yellow_green
+    else:
+        return world.robot_blue_green
+
+def get_pink_opponent(world):
+    if color == 'b':
+        return world.robot_yellow_pink
+    else:
+        return world.robot_blue_pink
+
 def new_vision(world):
     predictor.update(world)
     world = predictor.predict()
     latest_world.update_positions(
         our_defender=get_defender(world),
         our_attacker=get_attacker(world),
+        their_robot_0=get_green_opponent(world),
+        their_robot_1=get_pink_opponent(world),
         ball=world.ball,
     )
+    t = time()
+    for interrupt in interrupts:
+        if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
+            interrupt.last_t = t
+            interrupt.run()
+    if latest_world.our_defender.can_catch_ball(latest_world.ball):
+        info('Can catch ball.')
     if latest_world.our_defender.is_missing():
         warning("Robot is missing!")
 
@@ -100,8 +130,15 @@ if __name__ == '__main__':
     defence_planner = None
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
+        interrupts.append(Interrupt(
+            lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
+            lambda: attack_planner.plan_and_act(latest_world), 2))
     if defender:
         defence_planner = DefencePlanner(comms=defender)
+        interrupts.append(Interrupt(
+            lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
+            lambda: defender.close_grabbers(), 2))
+            #lambda: defence_planner.plan_and_act(latest_world)))
     def run_planners():
         if attack_planner:
             attack_planner.plan_and_act(latest_world)

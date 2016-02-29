@@ -2,7 +2,7 @@ import math
 
 from Polygon.cPolygon import Polygon
 from position import Vector
-from logging import info
+from logging import debug, info
 
 # Width measures the front and back of an object
 # Length measures along the sides of an object
@@ -124,7 +124,7 @@ class Robot(PitchObject):
         back_left = (self.x + self._receiving_area['front_offset'], self.y + self._receiving_area['width'] / 2.0)
         back_right = (self.x + self._receiving_area['front_offset'], self.y - self._receiving_area['width'] / 2.0)
         area = Polygon((front_left, front_right, back_left, back_right))
-        area.rotate(self.angle, self.x, self.y)
+        area.rotate(math.pi/2-self.angle, self.x, self.y)
         return area
 
     @catcher_area.setter
@@ -149,9 +149,9 @@ class Robot(PitchObject):
         Get if the ball is in the catcher zone but may not have possession
         '''
         if self.catcher_area.isInside(ball.x, ball.y):
-            info("Can catch ball")
+            debug("Can catch ball")
         else:
-            info("Can't catch ball")
+            debug("Can't catch ball")
         return self.catcher_area.isInside(ball.x, ball.y)
 
     def has_ball(self, ball):
@@ -265,7 +265,7 @@ class Pitch(object):
         return self._height
 
     def __repr__(self):
-        return str(self._width, self._height)
+        return str((self._width, self._height))
 
 
 class World(object):
