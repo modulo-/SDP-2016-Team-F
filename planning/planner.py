@@ -1,6 +1,7 @@
-from comms import CommsManager
 import models_attacker as attacker
 import models_defender as defender
+
+from comms import CommsManager
 from logging import info
 
 
