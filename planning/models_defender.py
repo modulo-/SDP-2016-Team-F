@@ -33,6 +33,14 @@ class ReceivingPass(Goal):
                         WaitForBallToCome(world, robot),
                         TurnToBall(world, robot),
                         FollowBall(world, robot)]
+        # FIXME
+        # Suggested replacement:
+        # - GrabBall
+        # - GoToStaticBall
+        #   * FIXME: this needs different preconditions here.
+        # - WaitForBallToCome
+        # - FollowBall
+        # - FaceFriendly
         super(ReceivingPass, self).__init__(world, robot)
 
 
@@ -91,9 +99,12 @@ class WaitForBallToCome(Action):
     Defender just waits for the ball to approach it
     '''
 
+    # FIXME: precondition: ball actually moving.
+    # FIXME: ball_can_reach_robot doesn't do anything.
+    # FIXME: robot_can_reach_ball doesn't do anything.
     preconditions = [(lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_BALL_THRESHOLD, "Defender is facing ball"),
-                     (lambda w, r: utils.ball_can_reach_robot(w.ball), "The ball can reach the robot"),
-                     (lambda w, r: utils.robot_can_reach_ball(w.ball), "Defender can reach the ball")]
+                     (lambda w, r: utils.ball_can_reach_robot(w.ball, r), "The ball can reach the robot"),
+                     (lambda w, r: utils.robot_can_reach_ball(w.ball, r), "Defender can reach the ball")]
 
     def perform(self, comms):
         pass
@@ -105,10 +116,29 @@ class FollowBall(Action):
     that the ball reaches the robot
     '''
 
-    preconditions = [(lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_BALL_THRESHOLD, "Defender is facing ball")]
+    # Different precondition: Face counter to ball trajectory instead of facing
+    # the ball (allows intercepting as well as possible.
+    # FIXME: Add precondition requiring the ball to be moving.
 
     def perform(self, comms):
-        pass
+        turn_angle = (self.world.ball.angle - self.robot.angle) % (2 * math.pi) - pi/2
+        dist = math.hypot(self.robot.x - self.world.ball.x, self.robot.y - self.world.ball.y)
+        tri_angle = utils.get_rotation_to_point(self.world.ball.vector, self.robot)
+        dist *= math.cos(tri_angle)
+        if abs(turn_angle) < ROTATION_BALL_THRESHOLD:
+            logging.info("Adjusting to ball position by distance: " + str(dist))
+            comms.move(dist)
+        else:
+            logging.info("Adjusting angle by %f, distance by %f." % (turn_angle, dist))
+            comms.turn_then_move(turn_angle, dist)
+
+class FaceFriendly(Action):
+    # FIXME: precondition: friendly on pitch
+
+    def perform(self, comms):
+        angle = utils.get_rotation_to_point(self.robot.vector, self.world.our_attacker.vector)
+        logging.info("Facing friendly: Rotating %f" % angle)
+        comms.turn(angle)
 
 
 class TurnToBallIfClose(Action):
@@ -120,7 +150,6 @@ class TurnToBallIfClose(Action):
         angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
         logging.info("Wants to close-rotate by: " + str(angle))
         comms.turn(angle)
-
 
 class TurnToBall(Action):
     def perform(self, comms):

@@ -145,12 +145,13 @@ def ball_is_static(world):
     return world.ball.velocity < static_threshold
 
 
-def ball_can_reach_robot(world):
+def ball_can_reach_robot(ball, robot):
     '''
     Estimates the final location of moving ball and checks if the
     ball can reach a robot
     '''
 
+    # FIXME this has to do stuff.
     # expected_distance = world.ball.velocity
     # dx = expected_distance * math.sin(math.radians(world.ball.angle))
     # dy = expected_distance * math.cos(math.radians(world.ball.angle))
@@ -160,7 +161,7 @@ def ball_can_reach_robot(world):
     return True
 
 
-def robot_can_reach_ball(world):
+def robot_can_reach_ball(ball, robot):
     '''
     Estimates the final location of moving ball and checks if the
     ball
