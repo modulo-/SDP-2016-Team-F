@@ -12,9 +12,9 @@ from models_common import Goal, Action, are_equivalent_positions
 
 
 ROTATION_BALL_THRESHOLD = 0.2
-ROTATION_THRESHOLD = 0.1
-FACING_ROTATION_THRESHOLD = 0.1
-
+ROTATION_THRESHOLD = 0.2
+FACING_ROTATION_THRESHOLD = 0.2
+CLOSE_DISTANCE_BALL_THRESHOLD = 50
 
 '''
 > GOALS
@@ -31,8 +31,8 @@ class ReceivingPass(Goal):
         self.actions = [GrabBall(world, robot),
                         # GoToStaticBall(world, robot)
                         WaitForBallToCome(world, robot),
-                        FollowBall(world, robot),
-                        TurnToBall(world, robot)]
+                        TurnToBall(world, robot),
+                        FollowBall(world, robot)]
         super(ReceivingPass, self).__init__(world, robot)
 
 
@@ -43,6 +43,7 @@ class GetBall(Goal):
 
     def __init__(self, world, robot):
         self.actions = [GrabBall(world, robot),
+                        # TurnToBallIfClose(world, robot),
                         GoToStaticBall(world, robot),
                         TurnToCatchPoint(world, robot)]
         super(GetBall, self).__init__(world, robot)
@@ -110,11 +111,24 @@ class FollowBall(Action):
         pass
 
 
+class TurnToBallIfClose(Action):
+    preconditions = [(lambda w, r: math.hypot(self.robot.vector, self.world.ball.vector) < CLOSE_DISTANCE_BALL_THRESHOLD, "Defender is close to a ball")]
+
+    def perform(self, comms):
+        x = self.world.ball.x
+        y = self.world.ball.y
+        angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
+        logging.info("Wants to close-rotate by: " + str(angle))
+        comms.turn(angle)
+
+
 class TurnToBall(Action):
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
-        comms.turn(utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
+        angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
+        logging.info("Wants to rotate by: " + str(angle))
+        comms.turn(angle)
 
 
 class GoToStaticBall(Action):
@@ -135,8 +149,12 @@ class GoToStaticBall(Action):
             try:
                 alpha = math.degrees(math.asin(self.robot.catch_distance / float(displacement)))
             except ValueError as er:
-                print("Value Error!")
                 print(er)
+                x = self.world.ball.x
+                y = self.world.ball.y
+                angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
+                logging.info("Wants to close-rotate by: " + str(angle))
+                comms.turn(angle)
                 return 0
         beta = 90 - alpha
 
@@ -158,8 +176,7 @@ class GrabBall(Action):
     '''
     Grab ball
     '''
-    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Defender can catch ball"),
-                     (lambda w, r: r.catcher == 'OPEN', "Defender's grabbers are open")]
+    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Defender can catch ball")]
 
     def perform(self, comms):
         comms.close_grabbers()
