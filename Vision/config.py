@@ -108,7 +108,7 @@ class Config:
 
 
         cv2.createTrackbar("delta_angle", self.FILTER_PARAMS, self.delta_angle, 360,
-                           lambda x: self.set("delta_angle", x))
+                           lambda x: setattr(self, "delta_angle", x))
 
         cv2.createTrackbar("open", self.FILTER_PARAMS, 0, 10,
                            lambda x: self.set("open", x*2-1))
