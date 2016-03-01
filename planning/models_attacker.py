@@ -100,7 +100,7 @@ class GoToBall(Action):
 
 class GoToOpeningDistanceStaticBall(Action):
     preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
-                     (lambda w, r: is_facing_position(r.vector, w.ball), "Attacker is facing ball")]
+                     (lambda w, r: is_robot_facing_position(r, w.ball), "Attacker is facing ball")]
     # lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
 
     def perform(self, comms):
