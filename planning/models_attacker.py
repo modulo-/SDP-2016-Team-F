@@ -42,6 +42,7 @@ class AttackBlock(Goal):
     '''
     Our attacker block attacking opponent
     '''
+
     def generate_action(self):
         raise NotImplementedError
 
