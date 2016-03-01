@@ -205,7 +205,7 @@ class TurnToBallIfClose(Action):
         comms.turn(angle)
 
 class TurnToBall(Action):
-    preconditions = [lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
@@ -268,7 +268,6 @@ class GrabBall(Action):
     '''
     preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Defender can catch ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
-        (lambda w, r: r.catcher == 'OPEN')]
 
     def perform(self, comms):
         comms.close_grabbers()
