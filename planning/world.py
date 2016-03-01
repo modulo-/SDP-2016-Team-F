@@ -209,8 +209,16 @@ class Defender(Robot):
 class Attacker(Robot):
     def get_blocking_position(self, world):
         # Calculate blocking position
-        # If opponent with ball in our half:
-        raise NotImplementedError
+        possession = world.robot_in_possession
+        assert(possession in world.their_robots)
+        target = None
+        if possession.in_our_half:
+            target = world.our_goal
+        else:
+            # Use their other robot as target
+            target = ([r for r in world.their_robots if r != posession])[0]
+        m =  (posession.y - target.y) / (posession.x - target.x)
+        return Vector(self.x, possession.y + m * (self.x - posession.x), 0, 0)
 
 
 class Ball(PitchObject):
