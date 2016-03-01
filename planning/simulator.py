@@ -1,8 +1,11 @@
+
+import getopt
+import sys
 import cocos
 import cocos.actions as ac
 import math
-from threading import Timer
 
+from threading import Timer
 from position import Vector
 from world import World
 from planner import DefencePlanner
@@ -11,95 +14,97 @@ from comms import CommsManager
 import logging
 
 
-def rotation_adjustment(angle):
-    angle -= math.radians(270)
-
-    if angle < 0:
-        return angle + math.pi * 2
-    elif angle > math.pi * 2:
-        return angle - math.pi * 2
-    else:
-        return angle
-
-
 class Test:
 
-    def __init__(self, our_defender, ball):
-        self.our_defender = our_defender
-        self.ball = ball
-        self.sequence = None
-        self.sequence_pos = None
+    def __init__(self, scene):
+        self.scene = scene
+
+    def initialise(self, initial_state):
+        self.our_defender = self.scene.add_robot(initial_state['our_defender'])
+        self.ball = self.scene.add_ball(initial_state['ball'])
         self.p = DefencePlanner(comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
+        self.p.set_task(initial_state['task'])
         self.w = World('left', 0)
-        self.w.our_defender._receiving_area = {'width': 50, 'height': 50, 'front_offset': 10}
+        self.w.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
+        self.w.our_defender._catch_distance = 32
+        self.steps = 0
+        self.max_steps = initial_state['max_steps']
 
-    def run(self, sequence):
-        self.sequence = sequence
-        self.sequence_pos = 0
-
+    def run(self, initial_state, test_name):
+        logging.info(">> " + test_name + " started")
+        self.initialise(initial_state)
         self.step()
 
     def step(self):
-        print("\nStep: " + str(self.sequence_pos))
-        if self.sequence_pos >= len(self.sequence):
+        print("\nStep: " + str(self.steps))
+        if self.steps >= self.max_steps:
             print "Finished"
             return
 
-        if 'task' in self.sequence[self.sequence_pos].keys():
-            self.p.set_task(self.sequence[self.sequence_pos]['task'])
-            print ("Changing task to " + self.sequence[self.sequence_pos]['task'])
-
-        # adjusting
-        adjusted_sequence = self.sequence[self.sequence_pos]
-        adjusted_sequence['our_defender'].angle = rotation_adjustment(adjusted_sequence['our_defender'].angle)
-
-        self.w.update_positions(**adjusted_sequence)
+        # update & act
+        self.w.update_positions(our_defender=self.our_defender.get_vec(), ball=self.ball.get_vec())
         self.p.plan_and_act(self.w)
 
-        self.sequence_pos += 1
+        self.steps += 1
 
     def wait_and_next_step(self, delay):
         print("Waiting for " + str(delay) + " seconds...")
         t = Timer(delay, self.step)
         t.start()
 
+    def test1(self):
+        initial_state = {
+            'task': 'move-grab',
+            'max_steps': 2,
+            'our_defender': Vector(100, 100, math.radians(270), 0),
+            'ball': Vector(200, 170, 0, 0),
+        }
+
+        self.run(initial_state, "Test 1")
+
+    def test2(self):
+        initial_state = {
+            'task': 'move-grab',
+            'max_steps': 2,
+            'our_defender': Vector(100, 100, math.radians(315), 0),
+            'ball': Vector(200, 170, 0, 0),
+        }
+
+        self.run(initial_state, "Test 2")
+
+    def test3(self):
+        initial_state = {
+            'task': 'move-grab',
+            'max_steps': 2,
+            'our_defender': Vector(250, 220, math.radians(200), 0),
+            'ball': Vector(200, 170, 0, 0),
+        }
+
+        self.run(initial_state, "Test 3")
+
 
 class Scene(cocos.layer.ColorLayer):
 
-    def __init__(self):
+    def __init__(self, test):
         super(Scene, self).__init__(100, 255, 100, 255)
+        t = Test(self)
 
-        start_robot_x = 100
-        start_robot_y = 100
-        start_robot_rotation = math.radians(270)
-        start_ball_x = 200
-        start_ball_y = 170
+        if(test == "1"):
+            t.test1()
+        elif(test == "2"):
+            t.test2()
+        elif(test == "3"):
+            t.test3()
+        else:
+            print("NO TEST ASSOCIATED!")
 
-        robot = self.add_robot([start_robot_x, start_robot_y], start_robot_rotation)
-        ball = self.add_ball([start_ball_x, start_ball_y])
-        t = Test(our_defender=robot, ball=ball)
-
-        # 1) For starting rotation "math.radians(270)"
-        sequence = [
-            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-            {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation + 1.92014072481, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        ]
-
-        # 2) For starting rotation "math.radians(180)"
-        # sequence = [
-        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        #     {'our_defender': Vector(start_robot_x, start_robot_y, start_robot_rotation - 1.57079632679, 0), 'ball': Vector(start_ball_x, start_ball_y, 0, 0)},
-        # ]
-
-        t.run(sequence)
-
-    def add_robot(self, pos, rotation_radians):
-        robot = Robot(pos=pos, rotation_radians=rotation_radians)
+    def add_robot(self, vec):
+        robot = Robot(pos=[vec.x, vec.y], rotation_radians=vec.angle)
         self.add(robot)
         return robot
 
-    def add_ball(self, pos):
-        ball = Ball(pos=pos)
+    def add_ball(self, vec):
+        ball = Ball(pos=[vec.x, vec.y])
         self.add(ball)
         return ball
 
@@ -177,16 +182,17 @@ class Sprite (cocos.sprite.Sprite):
         self.do(ac.RotateBy(angle, self._rotation_speed))
         return self._rotation_speed
 
+    def get_vec(self):
+        return Vector(self.x, self.y, math.radians(self.rotation), 0)
+
 
 class Robot(Sprite):
 
     def __init__(self, pos, rotation_radians):
-        super(Robot, self).__init__('res/robot.png', pos)
+        super(Robot, self).__init__('res/robot_side.png', pos)
         self._movement_speed = 2
-        self._rotation_speed = 2
+        self._rotation_speed = 1
 
-        # initial rotation adjustment
-        rotation_radians -= math.pi / 2
         if rotation_radians < 0:
             rotation_radians += math.pi * 2
         self.rotation = math.degrees(rotation_radians)
@@ -207,13 +213,13 @@ class Ball(Sprite):
 
 
 class Environment():
-    def __init__(self, width, height):
+    def __init__(self, width, height, verbose, test):
 
         logging.basicConfig(level=logging.INFO, format="\033[95m\r%(asctime)s - %(levelname)s - %(message)s\033[0m")
 
         # director init takes the same arguments as pyglet.window
         cocos.director.director.init(width=width, height=height, resizable=False)
-        world = Scene()
+        world = Scene(test)
 
         # A scene that contains the layer hello_layer
         main_scene = cocos.scene.Scene(world)
@@ -222,5 +228,32 @@ class Environment():
         cocos.director.director.run(main_scene)
 
 
+def usage():
+    print("Just use it!")
+
+
+def main():
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hvrt:", ["help", "verbose", "run", "test="])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)  # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
+    verbose = False
+    for o, a in opts:
+        if o == "-v":
+            verbose = True
+        elif o in ("-h", "--help"):
+            usage()
+            sys.exit()
+        elif o in ("-r", "--run"):
+            Environment(width=600, height=400, verbose=verbose)
+        elif o in ("-t", "--test"):
+            Environment(width=600, height=400, verbose=verbose, test=a)
+        else:
+            assert False, "unhandled option"
+
+
 if __name__ == "__main__":
-    Environment(width=600, height=400)
+    main()

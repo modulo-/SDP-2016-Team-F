@@ -50,14 +50,14 @@ class TractorCrabCommsManager(CommsManager):
     def _normalize_angle(self, angle):
         # Expects inputs in radians counter-clockwise.
         # Returns output in minutes clockwise.
-        angle = int(math.degrees(-angle) * 60)
+        angle = int(math.degrees(angle) * 60)
         if angle < -10800 or angle > 10800:
             angle = (angle + 10800) % 21600 - 10800
         return angle
 
     def _normalize_dist(self, distance):
-        # Expects inputs in cm. Returns output in mm.
-        dist = int(distance * 10)
+        # Expects inputs in px (1px ~= 0.5cm. Returns output in mm.
+        dist = int(distance * 5)
         # Ensure that dist is always in range. Set to 0 else.
         if dist < -0x8000 or dist > 0x7fff:
             dist = 0

@@ -114,3 +114,6 @@ flycheck_*.el
 
 # server auth directory
 /server/
+
+/Vision/color_calibrations.npy
+/color_calibrations.npy

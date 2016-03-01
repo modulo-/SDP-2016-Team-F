@@ -56,13 +56,12 @@ class Option(object):
 class Config:
     pitch_room = Option("pitch_room", text="Pitch room", options=["3.D03", "3.D04"])
     computer = Option("colour", text="Our colour", options=list(calibrations.colour_profiles))
-    colours = colour_profiles['3d04_pc3']
-    # colours = colour_profiles['breadnel']
+    colours = colour_profiles['pitch_3d03']
 
     dot_areas = {
-        'blue': 10,
-        'yellow': 10,
-        'red': 0
+        'blue': 2,
+        'yellow': 2,
+        'red': 2
     }
     
     filters = OrderedDict()
@@ -79,7 +78,7 @@ class Config:
     erode =-1
     dilate =-1
 
-    delta_angle = 35
+    delta_angle = 45
 
     def __init__(self, vision):
         cv2.namedWindow(self.FILTER_SELECTION)
@@ -87,8 +86,8 @@ class Config:
         self.vision = vision
 
     def GUI(self):
-        self.createTrackbar(self.computer, callback=lambda x: self.set("computer", x,
-              lambda : setattr(self, "colours", colour_profiles[self.computer.selected_option])))
+        #self.createTrackbar(self.computer, callback=lambda x: self.set("computer", x,
+        #      lambda : setattr(self, "colours", colour_profiles[self.computer.selected_option])))
 
         for name, filter in self.filters.iteritems():
             self.createTrackbar(filter["option"])
@@ -109,7 +108,7 @@ class Config:
 
 
         cv2.createTrackbar("delta_angle", self.FILTER_PARAMS, self.delta_angle, 360,
-                           lambda x: self.set("delta_angle", x))
+                           lambda x: setattr(self, "delta_angle", x))
 
         cv2.createTrackbar("open", self.FILTER_PARAMS, 0, 10,
                            lambda x: self.set("open", x*2-1))

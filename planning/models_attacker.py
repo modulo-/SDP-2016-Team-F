@@ -1,5 +1,6 @@
 import utils
 import math
+from logging import info
 
 from position import Vector
 from models_common import Goal, Action, ROTATION_THRESHOLD,\
@@ -12,7 +13,7 @@ class GetBall(Goal):
 
     def __init__(self, world, robot):
         self.actions = [GrabBall(world, robot),
-                        GoToStaticBall(world, robot),
+                        GoToBall(world, robot),
                         OpenGrabbers(world, robot),
                         GoToOpeningDistanceStaticBall(world, robot),
                         TurnToBall(world, robot)]
@@ -49,7 +50,6 @@ class AttackBlock(Goal):
 
 	self.world = world
 	self.robot = robot
-
     def generate_action(self):
         # get our position
         our_position = (world.our_attacker.x, world.our_attacker.y)
@@ -66,7 +66,6 @@ class AttackBlock(Goal):
         (displacement, direction) = world.get_direction_to_point(point)
         comms.turn(direction)
         comms.move(displacement)
-        raise NotImplementedError
 
 
 class GoToBall(Action):
@@ -74,13 +73,16 @@ class GoToBall(Action):
                      (lambda w, r: r.catcher == 'OPEN', "Attacker's grabbers are open")]
 
     def perform(self, comms):
+        d = None
         if utils.ball_is_static(self.world):
             dx = self.world.ball.x - self.robot.x
             dy = self.world.ball.y - self.robot.y
             d = math.sqrt(dx**2 + dy**2)
         else:
             # Find ball path
-            pass
+            dx = self.world.ball.x - self.robot.x
+            dy = self.world.ball.y - self.robot.y
+            d = math.sqrt(dx**2 + dy**2)
 
         # TODO grabbing area size
         grabber_size = 30
@@ -118,16 +120,17 @@ class GrabBall(Action):
 
 
 class TurnToGoal(Action):
-    preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
+    preconditions = []#[(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
 
     def perform(self, comms):
         # TODO find best point to shoot to
         # x = self.world.their_goal.x + self.world.their_goal.width / 2
         # x = (self.world.their_goal.higher_post -
         #     self.world.their_goal.lower_post) / 2
-        x = 220
-        y = 0  # self.world.their_goal.y
-        comms.turn(self.robot.attacker_get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
+        x = 0
+        y = self.world.their_goal.y
+        info("Turning to goal at ({0}, {1})".format(x, y))
+        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
 
 
 class TurnToBall(Action):

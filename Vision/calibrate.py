@@ -61,14 +61,6 @@ class Calibrate(object):
         # Get various data about the image from the user
         self.get_pitch_outline()
 
-        self.get_zone('Zone_0', 'draw LEFT Defender')
-        self.get_zone('Zone_1', 'draw LEFT Attacker')
-        self.get_zone('Zone_2', 'draw RIGHT Attacker')
-        self.get_zone('Zone_3', 'draw RIGHT Defender')
-
-        self.get_goal('Zone_0')
-        self.get_goal('Zone_3')
-
         print 'Press any key to finish.'
         cv2.waitKey(0)
         cv2.destroyAllWindows()
@@ -163,10 +155,10 @@ class Calibrate(object):
 
         for colour in colours:
             c=1
-            #print("click on {}, to continue press 'q'".format(colour))
+            print("click on {}, to continue press 'q'".format(colour))
 
             cv2.setMouseCallback(self.config.COLCAL_TITLE,
-                                 lambda event, x, y, flags, param:self.p(event, x, y, flags, param, hsv, colours[colour]))
+                                 lambda event, x, y, flags, param:self.p(event, x, y, flags, param, hsv, colours[colour], colour))
             while c!=113: # q
                 if c==27:
                     cv2.destroyWindow(self.config.COLCAL_TITLE)
@@ -174,16 +166,16 @@ class Calibrate(object):
                 c = cv2.waitKey(100) & 0xFF
             else:
                 l = colours[colour]
-                l = self.filterPixels(l,2)
                 if len(l) > 0:
-                    min = np.min(np.asarray(l), axis=0)
-                    max = np.max(np.asarray(l), axis=0)
-                    mean = np.mean(np.asarray(l), axis=0)
-                    #print(min, max, mean)
+                    minp = np.min(np.asarray(l), axis=0)
+                    maxp = np.max(np.asarray(l), axis=0)
+                    if colour == 'red' and self.config.pitch_room.selected == 1:
+                        minp[0] -= 5
+                        maxp[0] += 5
+
                     colours[colour] = {
-                        "min":min,
-                        "max":max,
-                        "mean":mean,
+                        "min":minp,
+                        "max":maxp,
                     }
                 else:
                     colours[colour] = None
@@ -191,20 +183,19 @@ class Calibrate(object):
         cv2.destroyWindow(self.config.COLCAL_TITLE)
         return colours
 
-    def p(self, event, x, y, flags, param,frame, lst):
+    def p(self, event, x, y, flags, param,frame, lst, colour_name):
         if event == cv2.EVENT_LBUTTONDOWN:
             windowSize = 1
-            print (frame[y][x])
+            # print (frame[y][x])
             data = np.asarray(frame[y-windowSize:y+windowSize+1,x-windowSize:x+windowSize+1])
             height, width, d = data.shape
             data = data.reshape((width*height, 3))
-            filtered = self.filterPixels(data, 2)
-            # print filtered
-            lst.append(np.mean(filtered, axis=0))
-
-    @staticmethod
-    def filterPixels(data, deviationAllowance):
-        mean = np.mean(data, axis=0)
-        std = np.std(data, axis=0)
-        filtered = data[[all(x) for x in abs(data - mean) < deviationAllowance * std]]
-        return filtered
+            
+            for pixel in data:
+                if colour_name == 'red' and pixel[0] <= 16:
+                    pixel[0] += 180
+            	if (pixel[0] >= self.config.colours[colour_name]["min"][0] and
+                    pixel[0] <= self.config.colours[colour_name]["max"][0]):
+            	    lst.append(pixel)
+            	    print "pixel recorded"
+            	    print pixel
