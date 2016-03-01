@@ -1,9 +1,6 @@
 import math
 from logging import info
 
-# TODO
-ROTATION_THRESHOLD = 0.1
-FACING_ROTATION_THRESHOLD = 0.1
 DISTANCE_THRESHOLD = 5
 
 

@@ -3,8 +3,37 @@ import math
 import logging
 
 from position import Vector
-from models_common import Goal, Action, ROTATION_THRESHOLD,\
-    FACING_ROTATION_THRESHOLD, are_equivalent_positions
+from models_common import Goal, Action, are_equivalent_positions
+
+
+'''
+> CONSTANTS
+'''
+
+
+ROTATION_BALL_THRESHOLD = 0.2
+ROTATION_THRESHOLD = 0.1
+FACING_ROTATION_THRESHOLD = 0.1
+
+
+'''
+> GOALS
+'''
+
+
+class ReceivingPass(Goal):
+    '''
+    The first task of Milestone 3
+    Receiving a pass
+    '''
+
+    def __init__(self, world, robot):
+        self.actions = [GrabBall(world, robot),
+                        # GoToStaticBall(world, robot)
+                        WaitForBallToCome(world, robot),
+                        FollowBall(world, robot),
+                        TurnToBall(world, robot)]
+        super(ReceivingPass, self).__init__(world, robot)
 
 
 class GetBall(Goal):
@@ -49,6 +78,43 @@ class Tactical(Goal):
         self.actions = [TurnToTacticalDefenceAngle(world, robot),
                         MoveToTacticalDefencePosition(world, robot)]
         super(Tactical, self).__init__(world, robot)
+
+
+'''
+> ACTIONS
+'''
+
+
+class WaitForBallToCome(Action):
+    '''
+    Defender just waits for the ball to approach it
+    '''
+
+    preconditions = [(lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_BALL_THRESHOLD, "Defender is facing ball"),
+                     (lambda w, r: utils.ball_can_reach_robot(w.ball), "The ball can reach the robot"),
+                     (lambda w, r: utils.robot_can_reach_ball(w.ball), "Defender can reach the ball")]
+
+    def perform(self, comms):
+        pass
+
+
+class FollowBall(Action):
+    '''
+    Be in the trajectory of moving ball as long as it's predicted
+    that the ball reaches the robot
+    '''
+
+    preconditions = [(lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_BALL_THRESHOLD, "Defender is facing ball")]
+
+    def perform(self, comms):
+        pass
+
+
+class TurnToBall(Action):
+    def perform(self, comms):
+        x = self.world.ball.x
+        y = self.world.ball.y
+        comms.turn(utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
 
 
 class GoToStaticBall(Action):

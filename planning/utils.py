@@ -1,6 +1,6 @@
 import math
 import logging
-from position import Vector
+from position import Vector, Coordinate
 
 
 def get_rotation_to_point(vec1, vec2):
@@ -143,6 +143,31 @@ def ball_is_static(world):
     return True
     static_threshold = 0.5
     return world.ball.velocity < static_threshold
+
+
+def ball_can_reach_robot(world):
+    '''
+    Estimates the final location of moving ball and checks if the
+    ball can reach a robot
+    '''
+
+    # expected_distance = world.ball.velocity
+    # dx = expected_distance * math.sin(math.radians(world.ball.angle))
+    # dy = expected_distance * math.cos(math.radians(world.ball.angle))
+
+    # expected_position = Coordinate(world.ball.x + dx, world.ball.y + dy)
+
+    return True
+
+
+def robot_can_reach_ball(world):
+    '''
+    Estimates the final location of moving ball and checks if the
+    ball
+    '''
+
+    # threshold = 30
+    return True
 
 
 # Test if robot can score
