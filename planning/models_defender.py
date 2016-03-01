@@ -32,7 +32,7 @@ class ReceivingPass(Goal):
     def __init__(self, world, robot):
         self.start_time = time()
         self.actions = [GrabBall(world, robot),
-                        GoToStaticBall(world, robot,
+                        GoToStaticBall(world, robot, [
                             (lambda w, r: time() - self.start_time > 6, "5 seconds have passed.")]),
                         TurnToCatchPoint(world, robot, [
                             (lambda w, r: time() - self.start_time > 6, "5 seconds have passed.")]),
@@ -120,7 +120,7 @@ class Tactical(Goal):
 '''
 
 class AlignForPassIntercept(Action):
-    preconditions = [(lambda w, r: all(!r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
+    preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
 
     def perform(self, comms):
         # Hardcoded: The robot should face right (angle = pi/2)
@@ -143,10 +143,10 @@ class AlignForPassIntercept(Action):
 
 
 class AlignForGoalIntercept(Action):
-    preconditions = [(lambda w, r: any(!r.is_missing() for r in w.their_robots), "Enemy robot is on the pitch.")]
+    preconditions = [(lambda w, r: any(not r.is_missing() for r in w.their_robots), "Enemy robot is on the pitch.")]
 
     def perform(self, comms):
-        robots = filter(lambda r: !r.is_missing(), self.world.their_robots)
+        robots = filter(lambda r: not r.is_missing(), self.world.their_robots)
         robots.sort(key=lambda r: math.hypot(r.x - self.robot.x, r.y - self.robot.y))
         robot = robots[0]
         # Hardcoded: The robot should face the opposite side. Our goal is that
@@ -185,7 +185,7 @@ class WaitForBallToCome(Action):
                      (lambda w, r: utils.ball_can_reach_robot(w.ball, r), "The ball can reach the robot"),
                      (lambda w, r: utils.robot_can_reach_ball(w.ball, r), "Defender can reach the ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
-                     (lambda w, r: !utils.ball_is_static(w.ball), "The ball is moving.")]
+                     (lambda w, r: not utils.ball_is_static(w.ball), "The ball is moving.")]
 
     def perform(self, comms):
         pass
@@ -200,7 +200,7 @@ class FollowBall(Action):
     # Different precondition: Face counter to ball trajectory instead of facing
     # the ball (allows intercepting as well as possible.
     preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
-                     (lambda w, r: !utils.ball_is_static(w.ball), "The ball is moving.")]
+                     (lambda w, r: not utils.ball_is_static(w.ball), "The ball is moving.")]
 
     def perform(self, comms):
         turn_angle = (self.world.ball.angle - self.robot.angle + pi/2) % (2 * pi) - pi
@@ -215,7 +215,7 @@ class FollowBall(Action):
             comms.turn_then_move(turn_angle, dist)
 
 class FaceFriendly(Action):
-    preconditions = [(lambda w, r: !w.our_attacker.is_missing(), "Friendly is on the pitch.")]
+    preconditions = [(lambda w, r: not w.our_attacker.is_missing(), "Friendly is on the pitch.")]
 
     def perform(self, comms):
         angle = utils.get_rotation_to_point(self.robot.vector, self.world.our_attacker.vector)
@@ -235,7 +235,7 @@ class TurnToBallIfClose(Action):
         comms.turn(angle)
 
 class TurnToBall(Action):
-    preconditions = [lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
@@ -287,10 +287,10 @@ class GoToStaticBall(Action):
         comms.move(distance_to_move)
 
 class OpenGrabbers(Action):
-    preconditions = [(lambda w, r: r.catcher == 'CLOSED')]
+    preconditions = [(lambda w, r: r.catcher == 'CLOSED', "Grabbers are closed.")]
 
     def perform(self, comms):
-        comms.open_grabbers()
+        comms.release_grabbers()
         self.robot.catcher = 'OPEN'
 
 class GrabBall(Action):
@@ -299,7 +299,6 @@ class GrabBall(Action):
     '''
     preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Defender can catch ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
-        (lambda w, r: r.catcher == 'OPEN')]
 
     def perform(self, comms):
         comms.close_grabbers()

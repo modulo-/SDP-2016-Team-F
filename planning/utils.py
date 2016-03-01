@@ -138,7 +138,7 @@ def ball_is_static(world):
     Returns true if the ball has lower velovity then defined threshold.
     '''
 
-    static_threshold = 0.2
+    static_threshold = 1
     return world.ball.velocity < static_threshold
 
 
