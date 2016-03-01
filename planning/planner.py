@@ -61,16 +61,16 @@ class AttackPlanner(Planner):
         '''
         Selects a goal for robot
         '''
-        if robot.has_ball(world.ball):
+'''        if robot.has_ball(world.ball):
             return attacker.Score(world, robot)
         else:
-            return attacker.GetBall(world, robot)
-"""        if self.current_task == 'move-grab':
+            return attacker.GetBall(world, robot)'''
+        if self.current_task == 'move-grab':
             return attacker.GetBall(world, robot)
         elif self.current_task == 'turn-move-grab':
             return attacker.GetBall(world, robot)
         elif self.current_task == 'turn-shoot':
-            return attacker.Score(world, robot)"""
+            return attacker.Score(world, robot)
 
 
 class DefencePlanner(Planner):
