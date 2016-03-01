@@ -39,7 +39,6 @@ class Planner (object):
         '''
         Make plans for each robot and perform them
         '''
-        world.our_defender.catcher = self.grabber_state
         robot = world.our_defender
         goal = self.get_goal(world, robot)
         if goal is None:

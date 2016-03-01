@@ -32,12 +32,12 @@ class ReceivingPass(Goal):
     def __init__(self, world, robot):
         self.start_time = time()
         self.actions = [GrabBall(world, robot),
+                        # FIXME: this object doesn't persist, so the 6 seconds never pass.
                         GoToStaticBall(world, robot, [
-                            (lambda w, r: time() - self.start_time > 6, "5 seconds have passed.")]),
+                            (lambda w, r: time() - self.start_time > 6, "6 seconds have passed.")]),
                         TurnToCatchPoint(world, robot, [
-                            (lambda w, r: time() - self.start_time > 6, "5 seconds have passed.")]),
+                            (lambda w, r: time() - self.start_time > 6, "6 seconds have passed.")]),
                         WaitForBallToCome(world, robot),
-                        TurnToBall(world, robot),
                         FollowBall(world, robot),
                         OpenGrabbers(world, robot),
                         FaceFriendly(world, robot)]
@@ -185,7 +185,7 @@ class WaitForBallToCome(Action):
                      (lambda w, r: utils.ball_can_reach_robot(w.ball, r), "The ball can reach the robot"),
                      (lambda w, r: utils.robot_can_reach_ball(w.ball, r), "Defender can reach the ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
-                     (lambda w, r: not utils.ball_is_static(w.ball), "The ball is moving.")]
+                     (lambda w, r: not utils.ball_is_static(w), "The ball is moving.")]
 
     def perform(self, comms):
         pass
@@ -200,7 +200,7 @@ class FollowBall(Action):
     # Different precondition: Face counter to ball trajectory instead of facing
     # the ball (allows intercepting as well as possible.
     preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
-                     (lambda w, r: not utils.ball_is_static(w.ball), "The ball is moving.")]
+                     (lambda w, r: not utils.ball_is_static(w), "The ball is moving.")]
 
     def perform(self, comms):
         turn_angle = (self.world.ball.angle - self.robot.angle + pi/2) % (2 * pi) - pi
