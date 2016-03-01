@@ -83,3 +83,5 @@ class DefencePlanner(Planner):
         '''
         if self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
+        if self.current_task == 'm31':
+            return defender.ReceivingPass(world, robot)
