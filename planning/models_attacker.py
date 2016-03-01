@@ -52,11 +52,11 @@ class AttackBlock(Goal):
 
     def generate_action(self):
         # get our position
-	    our_position = (world.our_attacker.x, world.our_attacker.y)
+        our_position = (world.our_attacker.x, world.our_attacker.y)
         # get opponents position
-	    their_position = (world.their_attackers.x, world.their_attackers.y)
+        their_position = (world.their_attackers.x, world.their_attackers.y)
         # get our angle
-	    our_angle = world.our_attacker.angle
+        our_angle = world.our_attacker.angle
         # get opponents angle
         their_angle = world.their_attackers.angle
         # generate point to move to
