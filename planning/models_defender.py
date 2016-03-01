@@ -5,6 +5,7 @@ import logging
 from position import Vector
 from models_common import Goal, Action, are_equivalent_positions
 from math import pi
+from time import time
 
 
 '''
@@ -29,10 +30,12 @@ class ReceivingPass(Goal):
     '''
 
     def __init__(self, world, robot):
+        self.start_time = time()
         self.actions = [GrabBall(world, robot),
-                        # GoToStaticBall(world, robot),
-                        # TurnToCatchPoint(world, robot),
-                        # FIXME: how to do the rotation? Know to run this part of the plan?
+                        GoToStaticBall(world, robot,
+                            (lambda w, r: time() - self.start_time > 6, "5 seconds have passed.")]),
+                        TurnToCatchPoint(world, robot, [
+                            (lambda w, r: time() - self.start_time > 6, "5 seconds have passed.")]),
                         WaitForBallToCome(world, robot),
                         TurnToBall(world, robot),
                         FollowBall(world, robot),

@@ -31,9 +31,10 @@ class Action(object):
     '''
     preconditions = []
 
-    def __init__(self, world, robot):
+    def __init__(self, world, robot, additional_preconds=[]):
         self.world = world
         self.robot = robot
+        self.preconditions = self.__class__.preconditions + additional_preconds
 
     # Test the action's preconditions
     def is_possible(self):
