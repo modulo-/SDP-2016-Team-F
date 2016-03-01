@@ -20,7 +20,12 @@ class Test:
         self.scene = scene
 
     def initialise(self, initial_state):
-        self.our_defender = self.scene.add_robot(initial_state['our_defender'])
+        self.our_defender = None
+        self.our_attacker = None
+        if initial_state['our_defender']:
+            self.our_defender = self.scene.add_robot("defender", initial_state['our_defender'])
+        if initial_state['our_attacker']:
+            self.our_attacker = self.scene.add_robot("attacker", initial_state['our_attacker'])
         self.ball = self.scene.add_ball(initial_state['ball'])
         self.p = DefencePlanner(comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
         self.p.set_task(initial_state['task'])
@@ -42,7 +47,7 @@ class Test:
             return
 
         # update & act
-        self.w.update_positions(our_defender=self.our_defender.get_vec(), ball=self.ball.get_vec())
+        self.w.update_positions(our_attacker=self.our_attacker.get_vec() if self.our_attacker is not None else None, our_defender=self.our_defender.get_vec() if self.our_defender is not None else None, ball=self.ball.get_vec())
         self.p.plan_and_act(self.w)
 
         self.steps += 1
@@ -57,6 +62,7 @@ class Test:
             'task': 'move-grab',
             'max_steps': 2,
             'our_defender': Vector(100, 100, math.radians(270), 0),
+            'our_attacker': None,
             'ball': Vector(200, 170, 0, 0),
         }
 
@@ -67,6 +73,7 @@ class Test:
             'task': 'move-grab',
             'max_steps': 2,
             'our_defender': Vector(100, 100, math.radians(315), 0),
+            'our_attacker': None,
             'ball': Vector(200, 170, 0, 0),
         }
 
@@ -77,6 +84,7 @@ class Test:
             'task': 'move-grab',
             'max_steps': 2,
             'our_defender': Vector(250, 220, math.radians(200), 0),
+            'our_attacker': None,
             'ball': Vector(200, 170, 0, 0),
         }
 
@@ -95,6 +103,8 @@ class Scene(cocos.layer.ColorLayer):
             t.test2()
         elif(test == "3"):
             t.test3()
+        elif(test == "m31"):
+            t.testm3_1()
         else:
             print("NO TEST ASSOCIATED!")
 
