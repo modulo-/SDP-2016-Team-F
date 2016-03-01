@@ -10,11 +10,6 @@ from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
 from planning.predictor import Predictor
-<<<<<<< Updated upstream
-from getopt import getopt
-=======
-from planning import utils
->>>>>>> Stashed changes
 from time import time
 
 PITCH_NO = 0
@@ -33,7 +28,7 @@ PLANNER_DELAY = 4
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_attacker._receiving_area = {'width': 25, 'height': 10, 'front_offset': 20}
-latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
+latest_world.our_defender._receiving_area = {'width': 30, 'height': 10, 'front_offset': 20}
 interrupts = []
 
 
@@ -202,7 +197,6 @@ def run(attacker, defender, plan):
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-            #lambda: defender.close_grabbers(), 2))
             lambda: defence_planner.plan_and_act(latest_world), 2))
 
     def run_planners():
