@@ -32,7 +32,8 @@ class ReceivingPass(Goal):
                         # GoToStaticBall(world, robot)
                         WaitForBallToCome(world, robot),
                         TurnToBall(world, robot),
-                        FollowBall(world, robot)]
+                        FollowBall(world, robot),
+                        OpenGrabbers(world, robot)]
         # FIXME
         # Suggested replacement:
         # - GrabBall
@@ -40,6 +41,7 @@ class ReceivingPass(Goal):
         #   * FIXME: this needs different preconditions here.
         # - WaitForBallToCome
         # - FollowBall
+        # - OpenGrabbers
         # - FaceFriendly
         super(ReceivingPass, self).__init__(world, robot)
 
@@ -53,7 +55,8 @@ class GetBall(Goal):
         self.actions = [GrabBall(world, robot),
                         # TurnToBallIfClose(world, robot),
                         GoToStaticBall(world, robot),
-                        TurnToCatchPoint(world, robot)]
+                        TurnToCatchPoint(world, robot),
+                        OpenGrabbers(world, robot)]
         super(GetBall, self).__init__(world, robot)
 
 
@@ -62,6 +65,8 @@ class DefendGoal(Goal):
     Move around goal to block attacker
     '''
     def __init__(self, world, robot):
+        # FIXME: What does the OpenGrabbersForOpponentShot try to do?
+        # The grabbers should be open anyway.
         self.actions = [OpenGrabbersForOpponentShot(world, robot),
                         TurnToOpposingAttacker(world, robot),
                         MoveOnGoalArc(world, robot),
@@ -104,7 +109,8 @@ class WaitForBallToCome(Action):
     # FIXME: robot_can_reach_ball doesn't do anything.
     preconditions = [(lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_BALL_THRESHOLD, "Defender is facing ball"),
                      (lambda w, r: utils.ball_can_reach_robot(w.ball, r), "The ball can reach the robot"),
-                     (lambda w, r: utils.robot_can_reach_ball(w.ball, r), "Defender can reach the ball")]
+                     (lambda w, r: utils.robot_can_reach_ball(w.ball, r), "Defender can reach the ball"),
+                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
 
     def perform(self, comms):
         pass
@@ -119,6 +125,7 @@ class FollowBall(Action):
     # Different precondition: Face counter to ball trajectory instead of facing
     # the ball (allows intercepting as well as possible.
     # FIXME: Add precondition requiring the ball to be moving.
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
 
     def perform(self, comms):
         turn_angle = (self.world.ball.angle - self.robot.angle) % (2 * math.pi) - pi/2
@@ -142,7 +149,8 @@ class FaceFriendly(Action):
 
 
 class TurnToBallIfClose(Action):
-    preconditions = [(lambda w, r: math.hypot(self.robot.vector, self.world.ball.vector) < CLOSE_DISTANCE_BALL_THRESHOLD, "Defender is close to a ball")]
+    preconditions = [(lambda w, r: math.hypot(self.robot.vector, self.world.ball.vector) < CLOSE_DISTANCE_BALL_THRESHOLD, "Defender is close to a ball"),
+                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
 
     def perform(self, comms):
         x = self.world.ball.x
@@ -152,6 +160,7 @@ class TurnToBallIfClose(Action):
         comms.turn(angle)
 
 class TurnToBall(Action):
+    preconditions = [lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
@@ -164,7 +173,8 @@ class GoToStaticBall(Action):
     '''
     Move defender to the ball when static
     '''
-    preconditions = [(lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)[0]) < ROTATION_THRESHOLD, "Defender is facing ball")]
+    preconditions = [(lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)[0]) < ROTATION_THRESHOLD, "Defender is facing ball"),
+                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
 
     def perform(self, comms):
         dx = self.world.ball.x - self.robot.x
@@ -200,21 +210,31 @@ class GoToStaticBall(Action):
         logging.info("Wants to move by: " + str(distance_to_move))
         comms.move(distance_to_move)
 
+class OpenGrabbers(Action):
+    preconditions = [(lambda w, r: r.catcher == 'CLOSED')]
+
+    def perform(self, comms):
+        comms.open_grabbers()
+        self.robot.catcher = 'OPEN'
 
 class GrabBall(Action):
     '''
     Grab ball
     '''
-    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Defender can catch ball")]
+    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Defender can catch ball"),
+                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+        (lambda w, r: r.catcher == 'OPEN')]
 
     def perform(self, comms):
         comms.close_grabbers()
+        self.robot.catcher = 'CLOSED'
 
 
 class TurnToCatchPoint(Action):
     '''
     Turn to point for catching ball
     '''
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
