@@ -137,6 +137,7 @@ def set_plan(attack_planner, defence_planner, plan):
 
 
 def main():
+    global color
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:", ["help", "visible", "defender=", "attacker=", "logging=", "color=", "plan="])
