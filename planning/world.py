@@ -246,8 +246,8 @@ class Pitch(object):
 
     def __init__(self, pitch_num):
         # TODO Get real pitch size
-        self._width = 100
-        self._height = 100
+        self._width = 600
+        self._height = 400
 
     def is_within_bounds(self, robot, x, y):
         '''

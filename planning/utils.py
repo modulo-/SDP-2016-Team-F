@@ -2,7 +2,6 @@ import math
 import logging
 from position import Vector, Coordinate
 
-
 def get_rotation_to_point(vec1, vec2):
     '''
     This method returns an angle by which vec1 needs to rotate to achieve alignment with vec2.
@@ -139,9 +138,7 @@ def ball_is_static(world):
     Returns true if the ball has lower velovity then defined threshold.
     '''
 
-    # TODO find real threshold value
-    return True
-    static_threshold = 0.5
+    static_threshold = 0.2
     return world.ball.velocity < static_threshold
 
 
