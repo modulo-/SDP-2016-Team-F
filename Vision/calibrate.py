@@ -151,12 +151,6 @@ class Calibrate(object):
 
 
         cv2.imshow(self.config.COLCAL_TITLE, frame)
-        normalizing_factors = np.sum(frame, axis=2)
-        normalizing_factors[normalizing_factors == 0] = 1
-        h, w = normalizing_factors.shape
-        norm = frame.astype(float) / normalizing_factors.reshape(h, w, 1)
-        norm *= 255
-        norm = norm.astype(np.uint8)
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         for colour in colours:
@@ -173,11 +167,15 @@ class Calibrate(object):
             else:
                 l = colours[colour]
                 if len(l) > 0:
-                    min = np.min(np.asarray(l), axis=0)
-                    max = np.max(np.asarray(l), axis=0)
+                    minp = np.min(np.asarray(l), axis=0)
+                    maxp = np.max(np.asarray(l), axis=0)
+                    if colour == 'red' and self.config.pitch_room.selected == 1:
+                        minp[0] -= 5
+                        maxp[0] += 5
+
                     colours[colour] = {
-                        "min":min,
-                        "max":max,
+                        "min":minp,
+                        "max":maxp,
                     }
                 else:
                     colours[colour] = None

@@ -92,12 +92,6 @@ def filter_grayscale(frame, config):
 
 def filter_colour(colour, frame, config):
     # Convert BGR to HSV
-    normalizing_factors = np.sum(frame, axis=2)
-    normalizing_factors[normalizing_factors == 0] = 1
-    h, w = normalizing_factors.shape
-    norm = frame.astype(float) / normalizing_factors.reshape(h, w, 1)
-    norm *= 255
-    norm = norm.astype(np.uint8)
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
     if (colour is None):
