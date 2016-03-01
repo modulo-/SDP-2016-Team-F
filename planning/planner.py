@@ -37,7 +37,7 @@ class Planner (object):
 
     def plan_and_act(self, world):
         '''
-        Make plans for each robot and perform them
+        Make plans for each robot, perform them and return delay
         '''
         world.our_defender.catcher = self.grabber_state
         robot = world.our_defender
@@ -49,6 +49,7 @@ class Planner (object):
             action = action
         self.previous_action = action
         self.actuate(action)
+        return action.get_delay()
 
 
 class AttackPlanner(Planner):

@@ -6,6 +6,7 @@ ROTATION_THRESHOLD = 0.1
 FACING_ROTATION_THRESHOLD = 0.1
 DISTANCE_THRESHOLD = 5
 
+DEFAULT_DELAY = 1
 
 def are_equivalent_positions(a, b):
     return math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2) < DISTANCE_THRESHOLD
@@ -55,3 +56,6 @@ class Action(object):
     # Get messages relating to action
     def get_messages(self):
         return []
+
+    def get_delay(self):
+        return DEFAULT_DELAY
