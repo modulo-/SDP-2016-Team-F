@@ -378,9 +378,10 @@ class DotTracker(Tracker):
         hsv_high = self.config.colours[colour]["max"]
             
         mask_hsv = cv2.inRange(frame_hsv, hsv_low, hsv_high)
-        frame_mask = mask_hsv
+        res = mask_hsv.count_nonzero(mask_hsv)
+        # frame_mask = mask_hsv
 
-        res = cv2.bitwise_and(frame_hsv, frame_hsv, mask=frame_mask)
-        res = cv2.cvtColor(res, cv2.COLOR_HSV2BGR)
+        # res = cv2.bitwise_and(frame_hsv, frame_hsv, mask=frame_mask)
+        # res = cv2.cvtColor(res, cv2.COLOR_HSV2BGR)
 
         return res
