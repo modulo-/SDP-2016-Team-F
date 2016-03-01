@@ -47,7 +47,25 @@ class AttackBlock(Goal):
                         GoToBlockingPoistion(world, robot),
                         TurnToFaceBlockingPosition(world, robot)]
 
+	self.world = world
+	self.robot = robot
+
     def generate_action(self):
+        # get our position
+	    our_position = (world.our_attacker.x, world.our_attacker.y)
+        # get opponents position
+	    their_position = (world.their_attackers.x, world.their_attackers.y)
+        # get our angle
+	    our_angle = world.our_attacker.angle
+        # get opponents angle
+        their_angle = world.their_attackers.angle
+        # generate point to move to
+        angle = (math.pi)/2 - our_angle
+        point = our_position + (math.cos(angle), math.sin(angle))
+        # turn and move robot to point
+        (displacement, direction) = world.get_direction_to_point(point)
+        comms.turn(direction)
+        comms.move(displacement)
         raise NotImplementedError
 
 
