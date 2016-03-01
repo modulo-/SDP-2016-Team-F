@@ -45,6 +45,29 @@ class ReceivingPass(Goal):
         # - FaceFriendly
         super(ReceivingPass, self).__init__(world, robot)
 
+class InterceptPass(Goal):
+    '''
+    Task 3.1 of Milestone 3
+    Intercept a pass between two opponents
+    '''
+
+    def __init__(self, world, robot):
+        self.actions = [FollowBall(world, robot),
+                        OpenGrabbers(world, robot),
+                        AlignForPassIntercept(world, robot)]
+        super(InterceptPass, self).__init__(world, robot)
+
+class InterceptGoal(Goal):
+    '''
+    Task 3.2 of Milestone 3
+    Intercept a goal shoot of an opponent.
+    '''
+
+    def __init__(self, world, robot):
+        self.actions = [FollowBall(world, robot),
+                        OpenGrabbers(world, robot),
+                        AlignForGoalIntercept(world, robot)]
+        super(InterceptGoal, self).__init__(world, robot)
 
 class GetBall(Goal):
     '''
@@ -98,6 +121,28 @@ class Tactical(Goal):
 > ACTIONS
 '''
 
+class AlignForPassIntercept(Action):
+    # FIXME: precondition: two opponents on the pitch.
+
+    def perform(self, comms):
+        # TODO: Make sure robot is facing right.
+        dx = self.world.their_robots[1].x - self.world.their_robots[0].x
+        dy = self.world.their_robots[1].y - self.world.their_robots[0].y
+        if dx == 0:
+            logger.error("We're fucked.")
+            return
+        part = (self.robot.x - self.world.their_robots[0].x) / dx
+        y = dy * part + self.world.their_robots[0].y
+        dist = self.robot.y - y
+        logging.info("Moving to intercept. Moving distance: %f", dist)
+        comms.move(dist)
+
+class AlignForGoalIntercept(Action):
+    def perform(self, comms):
+        # TODO: select closest robot.
+        # TODO: move along y to get in the way of the kick.
+        # TODO: Make sure robot is facing the other side of the pitch.
+        pass
 
 class WaitForBallToCome(Action):
     '''
