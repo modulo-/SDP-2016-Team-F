@@ -5,6 +5,7 @@ import numpy as np
 from collections import namedtuple
 import warnings
 import filters
+import copy
 
 # Turn off warnings for PolynomialFit
 warnings.simplefilter('ignore', np.RankWarning)
@@ -25,25 +26,42 @@ class Tracker(object):
             pass
         return inte
 
-    def get_contours(self, frame, crop, colour, o_type=None):
+    def get_contours(self, frame_hsv, crop, colour, o_type=None):
         """
         Adjust the given frame based on 'min', 'max', 'contrast' and 'blur'
         keys in adjustments dictionary.
         """
         try:
             if o_type == 'BALL':
-                frame = frame[crop[2]:crop[3], crop[0]:crop[1]]
-            if frame is None:
+                frame_hsv = frame_hsv[crop[2]:crop[3], crop[0]:crop[1]]
+            if frame_hsv is None:
                 return None
 
             # Convert frame to HSV
-            frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-
+            # frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             # print colour
             # Create a mask
-            frame_mask = cv2.inRange(frame_hsv,
-                                     colour['min'],
-                                     colour['max'])
+
+            if colour['max'][0] < 180:
+                frame_mask = cv2.inRange(frame_hsv,
+                                         colour['min'],
+                                         colour['max'])
+            else:
+                lower = copy.deepcopy(colour['min'])
+                lower[0] = max(180, lower[0]) - 180
+                upper = copy.deepcopy(colour['max'])
+                upper[0] = upper[0] - 180
+                frame_mask = cv2.inRange(frame_hsv,
+                                         lower,
+                                         upper)
+                
+                if colour['min'][0] < 180:
+                    upper = copy.deepcopy(colour['max'])
+                    upper[0] = 179
+                    frame_mask1 = cv2.inRange(frame_hsv,
+                                              colour['min'],
+                                              upper)
+                    frame_mask = cv2.bitwise_or(frame_mask, frame_mask1)
             
             #
             # if self.config.open >= 1:
@@ -120,8 +138,8 @@ class Tracker(object):
         Get exact corner points for the plate given one contour.
         """
         if contour is not None:
-            rectangle = cv2.minAreaRect(contour)
-            box = cv2.boxPoints(rectangle)
+            rect = cv2.minAreaRect(contour)
+            box = cv2.boxPoints(rect)
             return np.int0(box)
 
     def join_contours(self, contours):
@@ -210,7 +228,7 @@ class DotTracker(Tracker):
         self.offset = offset
         self.item = item
 
-    def find(self, frame, queue, colour_name=None, corner=False):
+    def find(self, frame_hsv, queue, colour_name=None, corner=False):
         if colour_name is None:
             colour = self.colour
         else:
@@ -226,8 +244,8 @@ class DotTracker(Tracker):
         )
         """
         # adjustments = {'min':,'mz'}
-        w, h, d = frame.shape
-        contours, hierarchy, mask = self.get_contours(frame,
+        w, h, d = frame_hsv.shape
+        contours, hierarchy, mask = self.get_contours(frame_hsv,
                                                       (0, h, 0, w),
                                                       colour,
                                                       'BALL')
@@ -269,16 +287,25 @@ class DotTracker(Tracker):
                 (x, y), radius = cv2.minEnclosingCircle(cnt)
                 croprange = 20
 
-                section = self.crop(frame, (x, y), croprange)
-                identification = self.getID(section)
+                section_hsv = self.crop(frame_hsv, (x, y), croprange)
+                identification = self.getID(section_hsv)
                 
                 if identification == None:
+                    continue
+                
+                corners = self.get_contour_corners(cnt)
+                if (abs(corners[0][0] - corners[1][0]) > 30 or
+                    abs(corners[1][0] - corners[2][0]) > 30 or
+                    abs(corners[2][0] - corners[3][0]) > 30 or
+                    abs(corners[0][1] - corners[1][1]) > 30 or
+                    abs(corners[1][1] - corners[2][1]) > 30 or
+                    abs(corners[2][1] - corners[3][1]) > 30):
                     continue
                 
                 robots_found += 1
 
                 assert identification in ['pink', 'green']
-                corner = self.getCorner(section, (x,y), identification)
+                corner = self.getCorner(section_hsv, (x,y), identification)
 
                 if corner is not None:
                     corner['y'] = corner['y']-croprange
@@ -300,9 +327,9 @@ class DotTracker(Tracker):
 
         queue.put(None)
 
-    def getID(self, section):
-        pinkMask = filters.filter_colour("pink", section, self.config)
-        greenMask = filters.filter_colour("green", section, self.config)
+    def getID(self, section_hsv):
+        pinkMask = self.filter_colour_id("pink", section_hsv)
+        greenMask = self.filter_colour_id("green", section_hsv)
 
         pinkedness = np.sum(pinkMask)
         greenness = np.sum(greenMask)
@@ -311,24 +338,24 @@ class DotTracker(Tracker):
         if pinkedness < minimum or greenness < minimum:
             return None
     
-        h, w, d = section.shape
+        h, w, d = section_hsv.shape
         
-        contours, _, _ = self.get_contours(section, (0, w, 0, h), self.config.colours['pink'])
+        contours, _, _ = self.get_contours(section_hsv, (0, w, 0, h), self.config.colours['pink'])
 
         if(len(contours) >= 3):
             return "pink"
         
         return "green"
 
-    def getCorner(self, section, (x,y), identification):
+    def getCorner(self, section_hsv, (x,y), identification):
         if (identification == 'pink'):
             leftcorner = 'green'
         else:
             leftcorner = 'pink'
 
         q = Queue.Queue()
-
-        self.find(section, q, leftcorner, corner=True)
+        
+        self.find(section_hsv, q, leftcorner, corner=True)
         try:
             corner = q.get_nowait()
         except Queue.Empty:
@@ -336,12 +363,25 @@ class DotTracker(Tracker):
 
         return {"x":corner['x']+x, "y":corner['y']+y}
 
-    def crop(self, frame, (x,y), croprange):
-        h, w, d = frame.shape
+    def crop(self, frame_hsv, (x,y), croprange):
+        h, w, d = frame_hsv.shape
         left = int(max(0, x - croprange))
         right = int(min(w, x + croprange))
         top = int(max(0, y - croprange))
         bottom = int(min(h, y + croprange))
 
-        section = frame[top:bottom, left:right]
-        return section
+        section_hsv = frame_hsv[top:bottom, left:right]
+        return section_hsv
+
+    def filter_colour_id(self, colour, frame_hsv):
+        hsv_low = self.config.colours[colour]["min"]
+        hsv_high = self.config.colours[colour]["max"]
+            
+        mask_hsv = cv2.inRange(frame_hsv, hsv_low, hsv_high)
+        res = mask_hsv.count_nonzero(mask_hsv)
+        # frame_mask = mask_hsv
+
+        # res = cv2.bitwise_and(frame_hsv, frame_hsv, mask=frame_mask)
+        # res = cv2.cvtColor(res, cv2.COLOR_HSV2BGR)
+
+        return res

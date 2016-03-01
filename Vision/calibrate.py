@@ -167,11 +167,15 @@ class Calibrate(object):
             else:
                 l = colours[colour]
                 if len(l) > 0:
-                    min = np.min(np.asarray(l), axis=0)
-                    max = np.max(np.asarray(l), axis=0)
+                    minp = np.min(np.asarray(l), axis=0)
+                    maxp = np.max(np.asarray(l), axis=0)
+                    if colour == 'red' and self.config.pitch_room.selected == 1:
+                        minp[0] -= 5
+                        maxp[0] += 5
+
                     colours[colour] = {
-                        "min":min,
-                        "max":max,
+                        "min":minp,
+                        "max":maxp,
                     }
                 else:
                     colours[colour] = None
@@ -187,12 +191,11 @@ class Calibrate(object):
             height, width, d = data.shape
             data = data.reshape((width*height, 3))
             
-            median_pixel = np.median(data, axis=0)
-            
-            if (median_pixel[0] >= self.config.colours[colour_name]["min"][0] and
-                median_pixel[0] <= self.config.colours[colour_name]["max"][0]):
-            	lst.append(median_pixel)
-            	print "pixel recorded"
-            	print median_pixel
-            else:
-            	print "pixel not recorded"
+            for pixel in data:
+                if colour_name == 'red' and pixel[0] <= 16:
+                    pixel[0] += 180
+            	if (pixel[0] >= self.config.colours[colour_name]["min"][0] and
+                    pixel[0] <= self.config.colours[colour_name]["max"][0]):
+            	    lst.append(pixel)
+            	    print "pixel recorded"
+            	    print pixel
