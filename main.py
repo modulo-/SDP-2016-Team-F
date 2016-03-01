@@ -23,7 +23,7 @@ class Interrupt:
         self.run = run
         self.delay = delay
 
-PLANNER_DELAY = 4
+PLANNER_DELAY = 2
 
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
