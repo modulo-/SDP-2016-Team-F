@@ -66,6 +66,13 @@ class TractorCrabCommsManager(CommsManager):
     def _16_bitify(self, n):
         return [n & 0xff, (n >> 8) & 0xff]
 
+    def turn_then_move(self, angle, distance):
+        self._run(
+            [self.CMD_SPIN] +
+            self._16_bitify(self._normalize_angle(angle)) +
+            [self.CMD_STRAIT] +
+            self._16_bitify(self._normalize_dist(distance)))
+
     def move(self, distance):
         # NOTE: moves to the right, NOT forward. (We need better support for a different action set).
         # Expects input in cm.
