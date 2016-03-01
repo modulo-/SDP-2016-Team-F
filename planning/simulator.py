@@ -20,7 +20,8 @@ class Test:
         self.scene = scene
 
     def initialise(self, initial_state):
-        self.our_defender = self.scene.add_robot(initial_state['our_defender'])
+        self.our_defender = self.scene.add_robot("defender", initial_state['our_defender'])
+        self.our_attacker = self.scene.add_robot("attacker", initial_state['our_attacker'])
         self.ball = self.scene.add_ball(initial_state['ball'])
         self.p = DefencePlanner(comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
         self.p.set_task(initial_state['task'])
@@ -42,7 +43,7 @@ class Test:
             return
 
         # update & act
-        self.w.update_positions(our_defender=self.our_defender.get_vec(), ball=self.ball.get_vec())
+        self.w.update_positions(our_attacker=self.our_attacker.get_vec(), our_defender=self.our_defender.get_vec(), ball=self.ball.get_vec())
         self.p.plan_and_act(self.w)
 
         self.steps += 1
@@ -82,6 +83,17 @@ class Test:
 
         self.run(initial_state, "Test 3")
 
+    def testm3_1(self):
+        initial_state = {
+            'task': 'm31',
+            'max_steps': 2,
+            'our_defender': Vector(400, 300, math.radians(90), 0),
+            'our_attacker': Vector(50, 200, math.radians(45), 0),
+            'ball': Vector(100, 200, 0, 0),
+        }
+
+        self.run(initial_state, "Test M3 - Receiving a pass")
+
 
 class Scene(cocos.layer.ColorLayer):
 
@@ -95,11 +107,17 @@ class Scene(cocos.layer.ColorLayer):
             t.test2()
         elif(test == "3"):
             t.test3()
+        elif(test == "m3_1"):
+            t.testm3_1()
         else:
             print("NO TEST ASSOCIATED!")
 
-    def add_robot(self, vec):
-        robot = Robot(pos=[vec.x, vec.y], rotation_radians=vec.angle)
+    def add_robot(self, robot_type, vec):
+        if (robot_type == "defender"):
+            robot = Defender(pos=[vec.x, vec.y], rotation_radians=vec.angle)
+        elif (robot_type == "attacker"):
+            robot = Attacker(pos=[vec.x, vec.y], rotation_radians=vec.angle)
+
         self.add(robot)
         return robot
 
@@ -124,7 +142,7 @@ class SimulatorComms(CommsManager):
         rotation = self.robot.rotation + 90
         dx = d * math.sin(math.radians(rotation))
         dy = d * math.cos(math.radians(rotation))
-        # print("Robot dxdy: {0} {1}".format(dx, dy))
+
         delay = self.robot.move_to(
             self.robot.position[0] + dx,
             self.robot.position[1] + dy)
@@ -167,11 +185,6 @@ class Sprite (cocos.sprite.Sprite):
     def set_position(self, x, y):
         self.position = (x, y)
 
-    def move_to(self, x, y):
-        self.do(ac.MoveTo((x, y), duration=self._movement_speed))
-        print("Moving from: {0}".format(self.position))
-        return self._movement_speed
-
     def rotate_by(self, radians):
         '''
         positive angle - counter-clockwise rotation
@@ -186,16 +199,32 @@ class Sprite (cocos.sprite.Sprite):
         return Vector(self.x, self.y, math.radians(self.rotation), 0)
 
 
-class Robot(Sprite):
+class Defender(Sprite):
 
     def __init__(self, pos, rotation_radians):
-        super(Robot, self).__init__('res/robot_side.png', pos)
-        self._movement_speed = 2
-        self._rotation_speed = 1
+        super(Defender, self).__init__('res/robot_side.png', pos)
+        self._movement_speed = 3
+        self._rotation_speed = 2
+        self.rotation = math.degrees(rotation_radians % (math.pi * 2))
 
-        if rotation_radians < 0:
-            rotation_radians += math.pi * 2
-        self.rotation = math.degrees(rotation_radians)
+    def move_to(self, x, y):
+        self.do(ac.MoveTo((x, y), duration=self._movement_speed))
+        print("Moving from: {0}".format(self.position))
+        return self._movement_speed
+
+
+class Attacker(Sprite):
+
+    def __init__(self, pos, rotation_radians):
+        super(Attacker, self).__init__('res/robot_side.png', pos)
+        self._movement_speed = 3
+        self._rotation_speed = 2
+        self.rotation = math.degrees(rotation_radians % (math.pi * 2))
+
+    def move_to(self, x, y):
+        self.do(ac.MoveTo((x, y), duration=self._movement_speed))
+        print("Moving from: {0}".format(self.position))
+        return self._movement_speed
 
 
 class Ball(Sprite):

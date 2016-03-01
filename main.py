@@ -27,7 +27,7 @@ PLANNER_DELAY = 4
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_attacker._receiving_area = {'width': 25, 'height': 10, 'front_offset': 20}
-latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
+latest_world.our_defender._receiving_area = {'width': 30, 'height': 10, 'front_offset': 20}
 interrupts = []
 
 def get_defender(world):
@@ -139,7 +139,6 @@ if __name__ == '__main__':
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-            #lambda: defender.close_grabbers(), 2))
             lambda: defence_planner.plan_and_act(latest_world), 2))
     def run_planners():
         if attack_planner:
@@ -153,6 +152,7 @@ if __name__ == '__main__':
     timer = Timer(PLANNER_DELAY, run_planners)
     timer.daemon = True
     timer.start()
+    defence_planner.set_task('m31')
     while True:
         task = None
         try:

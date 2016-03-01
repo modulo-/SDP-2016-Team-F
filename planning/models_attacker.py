@@ -3,8 +3,13 @@ import math
 from logging import info
 
 from position import Vector
-from models_common import Goal, Action, ROTATION_THRESHOLD,\
-    FACING_ROTATION_THRESHOLD, are_equivalent_positions
+from models_common import Goal, Action, are_equivalent_positions
+
+
+# TODO
+ROTATION_THRESHOLD = 0.2
+FACING_ROTATION_THRESHOLD = 0.2
+
 
 def is_robot_facing_position(r, pos):
     return abs(utils.attacker_get_rotation_to_point(r.vector, pos)) < ROTATION_THRESHOLD
