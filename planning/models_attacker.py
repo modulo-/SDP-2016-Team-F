@@ -137,20 +137,20 @@ class TurnToGoal(Action):
         comms.turn(self.angle)
 
     def get_delay(self):
-        return abs(self.angle) * ROTATION_TIME_FACTOR
+        return abs(self.angle) * ROTATION_TIME_FACTOR + 0.1
 
 class TurnToDefenderToGive(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
 
     def __init__(self, world, robot):
-        self.angle = utils.attacker_get_rotation_to_point(robot.vector, our_defender.vector)
+        self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.our_defender.vector)
         super(TurnToDefenderToGive, self).__init__(world, robot)
 
     def perform(self, comms):
         comms.turn(self.angle)
 
     def get_delay(self):
-        return abs(self.angle) * ROTATION_TIME_FACTOR
+        return abs(self.angle) * ROTATION_TIME_FACTOR + 0.1
 
 class TurnToBall(Action):
     def __init__(self, world, robot):
@@ -161,7 +161,7 @@ class TurnToBall(Action):
         comms.turn(self.angle)
 
     def get_delay(self):
-        return abs(self.angle) * ROTATION_TIME_FACTOR
+        return abs(self.angle) * ROTATION_TIME_FACTOR + 0.1
 
 
 class Shoot(Action):
@@ -174,7 +174,7 @@ class Shoot(Action):
 
 class KickToDefender(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has ball"),
-                     (lambda w, r: robot_is_facing_position(self.robot, self.our_defender.vector), "Robot can score")]
+                     (lambda w, r: is_robot_facing_position(r, w.our_defender.vector), "Robot can score")]
 
     def perform(self, comms):
         comms.kick_full_power()
@@ -190,7 +190,7 @@ class TurnToScoreZone(Action):
         comms.turn(self.angle)
 
     def get_delay(self):
-        return abs(self.angle) * ROTATION_TIME_FACTOR
+        return abs(self.angle) * ROTATION_TIME_FACTOR + 0.1
 
 
 class GoToScoreZone(Action):
@@ -211,7 +211,7 @@ class TurnToDefenderToReceive(Action):
         comms.turn(self.angle)
 
     def get_delay(self):
-        return abs(self.angle) * ROTATION_TIME_FACTOR
+        return abs(self.angle) * ROTATION_TIME_FACTOR + 0.1
 
 
 class TurnToFaceBlockingPosition(Action):
@@ -224,7 +224,7 @@ class TurnToFaceBlockingPosition(Action):
         comms.turn(self.angle)
 
     def get_delay(self):
-        return abs(self.angle) * ROTATION_TIME_FACTOR
+        return abs(self.angle) * ROTATION_TIME_FACTOR + 0.1
 
 class GoToBlockingPosition(Action):
     preconditions = [(lambda w, r: is_robot_facing_position(r, r.get_blocking_position(w)),
@@ -254,4 +254,4 @@ class TurnToBlockingAngle(Action):
         comms.turn(self.angle)
 
     def get_delay(self):
-        return abs(self.angle) * ROTATION_TIME_FACTOR
+        return abs(self.angle) * ROTATION_TIME_FACTOR + 0.1
