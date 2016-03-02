@@ -226,13 +226,16 @@ class Attacker(Robot):
             return Vector(0, 0, 0, 0)
         assert(not possession.is_our_team)
         target = None
-        if possession.in_our_half:
+        if world.in_our_half(possession):
             target = world.our_goal
         else:
             # Use their other robot as target
             target = ([r for r in world.their_robots if r != posession])[0]
-        m =  (posession.y - target.y) / (posession.x - target.x)
-        return Vector(self.x, possession.y + m * (self.x - posession.x), 0, 0)
+        if possession.x - target.x == 0:
+            error("Robot in possession in line on x!")
+            return Vector(0, 0, 0, 0)
+        m =  (possession.y - target.y) / (possession.x - target.x)
+        return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
 
 
 class Ball(PitchObject):
@@ -268,8 +271,8 @@ class Pitch(object):
 
     def __init__(self, pitch_num):
         # TODO Get real pitch size
-        self._width = 100
-        self._height = 100
+        self._width = 600
+        self._height = 400
 
     def is_within_bounds(self, robot, x, y):
         '''

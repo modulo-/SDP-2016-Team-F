@@ -47,7 +47,7 @@ class AttackPosition(Goal):
         self.actions = [TurnToDefenderToReceive(world, robot),
                         GoToScoreZone(world, robot),
                         TurnToScoreZone(world, robot)]
-        super(Score, self).__init__(world, robot)
+        super(AttackPosition, self).__init__(world, robot)
 
 
 class AttackerPass(Goal):
@@ -69,7 +69,7 @@ class AttackerBlock(Goal):
         self.actions = [TurnToBlockingAngle(world, robot),
                         GoToBlockingPosition(world, robot),
                         TurnToFaceBlockingPosition(world, robot)]
-        super(AttackBlock, self).__init__(world, robot)
+        super(AttackerBlock, self).__init__(world, robot)
 
 
 class GoToGrabStaticBall(Action):
@@ -182,7 +182,7 @@ class KickToDefender(Action):
 
 class TurnToScoreZone(Action):
     def __init__(self, world, robot):
-        position = self.world.score_zone
+        position = world.score_zone
         self.angle = utils.attacker_get_rotation_to_point(robot.vector, position)
         super(TurnToScoreZone, self).__init__(world, robot)
 
@@ -243,7 +243,7 @@ class TurnToBlockingAngle(Action):
                      "Attacker in pass blocking position")]
 
     def __init__(self, world, robot):
-        if world.robot_in_posession:
+        if world.robot_in_possession:
             self.angle = utils.attacker_get_rotation_to_point(robot, world.robot_in_possession.vector)
         else:
             error("Attempting to block while no robot in possession")
