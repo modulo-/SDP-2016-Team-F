@@ -3,6 +3,7 @@ import models_defender as defender
 
 from comms import CommsManager
 from logging import info
+from models_common import DEFAULT_DELAY
 
 
 class Planner (object):
@@ -43,7 +44,8 @@ class Planner (object):
         robot = world.our_defender
         goal = self.get_goal(world, robot)
         if goal is None:
-            return
+            info("Planner has no goal")
+            return DEFAULT_DELAY
         action = goal.generate_action()
         if action != self.previous_action:
             action = action
