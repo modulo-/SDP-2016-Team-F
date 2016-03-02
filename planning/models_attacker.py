@@ -44,9 +44,21 @@ class AttackPosition(Goal):
     Move to optimum attacking position
     '''
     def __init__(self, world, robot):
-        self.actions = [GoToScoreZone(world, robot),
+        self.actions = [TurnToDefenderToReceive(world, robot),
+                        GoToScoreZone(world, robot),
                         TurnToScoreZone(world, robot)]
         super(Score, self).__init__(world, robot)
+
+
+class AttackerPass(Goal):
+    '''
+    Pass to defender
+    For milestone 3
+    '''
+    def __init__(self, world, robot):
+        self.actions = [KickToDefender(world, robot),
+                        TurnToDefenderToGive(world, robot)]
+        super(AttackerPass, self).__init__(world, robot)
 
 
 class AttackBlock(Goal):
@@ -58,6 +70,7 @@ class AttackBlock(Goal):
                         GoToBlockingPoistion(world, robot),
                         TurnToFaceBlockingPosition(world, robot)]
         super(AttackBlock, self).__init__(world, robot)
+
 
 class GoToBall(Action):
     preconditions = [(lambda w, r: is_robot_facing_position(r, w.ball.vector), "Attacker is facing ball"),
@@ -111,7 +124,7 @@ class GrabBall(Action):
 
 
 class TurnToGoal(Action):
-    preconditions = []#[(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
 
     def perform(self, comms):
         # TODO find best point to shoot to
@@ -124,6 +137,12 @@ class TurnToGoal(Action):
         comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
 
 
+class TurnToDefenderToGive(Action):
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
+
+    def perform(self, comms):
+        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, self.our_defender.vector))
+
 class TurnToBall(Action):
     def perform(self, comms):
         comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, self.world.ball.vector))
@@ -132,6 +151,14 @@ class TurnToBall(Action):
 class Shoot(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has ball"),
                      (lambda w, r: utils.can_score(w, r, w.their_goal), "Robot can score")]
+
+    def perform(self, comms):
+        comms.kick_full_power()
+
+
+class KickToDefender(Action):
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has ball"),
+                     (lambda w, r: robot_is_facing_position(self.robot, self.our_defender.vector), "Robot can score")]
 
     def perform(self, comms):
         comms.kick_full_power()
@@ -150,11 +177,11 @@ class GoToScoreZone(Action):
         raise NotImplementedError
 
 
-class TurnToDefender(Action):
+class TurnToDefenderToReceive(Action):
     precondtions = [(lambda w, r: r.are_equivalent_positions(r.vector, r.score_zone), "Attacker in score zone")]
 
     def perform(self, comms):
-        raise NotImplementedError
+        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, self.our_defender.vector))
 
 
 class TurnToFaceBlockingPosition(Action):
