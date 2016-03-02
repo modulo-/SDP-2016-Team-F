@@ -228,7 +228,7 @@ class FollowBall(Action):
                      (lambda w, r: not utils.ball_is_static(w), "The ball is moving.")]
 
     def perform(self, comms):
-        turn_angle = (self.world.ball.angle - self.robot.angle + pi / 2) % (2 * pi) - pi
+        turn_angle = (self.world.ball.angle - self.robot.angle) % (2 * pi) - pi
         dist = math.hypot(self.robot.x - self.world.ball.x, self.robot.y - self.world.ball.y)
         tri_angle = utils.get_rotation_to_point(self.world.ball.vector, self.robot)
         dist *= math.cos(tri_angle)
@@ -238,8 +238,7 @@ class FollowBall(Action):
         else:
             logging.info("Adjusting angle by %f, distance by %f." % (turn_angle, dist))
             comms.turn_then_move(turn_angle, dist)
-
-        return 10
+        return 2
 
 
 class FaceFriendly(Action):
