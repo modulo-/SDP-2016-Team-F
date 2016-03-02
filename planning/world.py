@@ -19,7 +19,7 @@ GOAL_LENGTH = 1
 GOAL_LOWER = 286
 GOAL_HIGHER = 164
 
-MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 75
+MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 100
 
 class PitchObject(object):
     '''
@@ -227,15 +227,18 @@ class Attacker(Robot):
         assert(not possession.is_our_team)
         target = None
         if world.in_our_half(possession):
+            info("Blocking our goal which is at ({0}, {1})".format(world.our_goal.x, world.our_goal.y))
             target = world.our_goal
         else:
             # Use their other robot as target
-            target = ([r for r in world.their_robots if r != posession])[0]
-        if possession.x - target.x == 0:
+            info("Blocking opponent pass")
+            target = ([r for r in world.their_robots if r != possession])[0]
+        if (possession.x - target.x) == 0:
             error("Robot in possession in line on x!")
             return Vector(0, 0, 0, 0)
-        m =  (possession.y - target.y) / (possession.x - target.x)
-        return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
+        #m =  (possession.y - target.y) / (possession.x - target.x)
+        #return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
+        return Vector((target.x + possession.x) / 2, (target.y + possession.y) / 2, 0, 0)
 
 
 class Ball(PitchObject):
@@ -249,7 +252,7 @@ class Goal(PitchObject):
     def __init__(self, x, y, angle, lower_post, higher_post):
         self._lower_post = lower_post
         self._higher_post = higher_post
-        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH)
+        super(Goal, self).__init__(x, y + GOAL_WIDTH / 2, angle, 0, GOAL_WIDTH, GOAL_LENGTH)
 
     @property
     def lower_post(self):
