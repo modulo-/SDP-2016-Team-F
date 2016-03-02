@@ -85,6 +85,8 @@ class AttackPlanner(Planner):
                 return attacker.AttackerPass(world, robot)
             else:
                 return attacker.GetBall(world, robot)
+        elif self.current_task == 'intercept':
+            return attacker.AttackerBlock(world, robot)
 
 class DefencePlanner(Planner):
     '''
