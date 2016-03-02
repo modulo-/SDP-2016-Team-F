@@ -1,15 +1,16 @@
 #!/usr/bin/python2
 
+import getopt
+import logging
+import sys
+
 from Vision.vision import Vision
 from planning.planner import AttackPlanner, DefencePlanner
 from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
-from sys import argv
-import logging
-from logging import debug, info, warning
 from planning.predictor import Predictor
-from getopt import getopt
+from planning import utils
 from time import time
 
 PITCH_NO = 0
@@ -22,13 +23,14 @@ class Interrupt:
         self.run = run
         self.delay = delay
 
-PLANNER_DELAY = 4
+INITIAL_PLANNER_DELAY = 4
 
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_attacker._receiving_area = {'width': 25, 'height': 10, 'front_offset': 20}
-latest_world.our_defender._receiving_area = {'width': 30, 'height': 10, 'front_offset': 20}
+latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
 interrupts = []
+
 
 def get_defender(world):
     if color == 'b':
@@ -36,11 +38,13 @@ def get_defender(world):
     else:
         return world.robot_yellow_green
 
+
 def get_attacker(world):
     if color == 'b':
         return world.robot_blue_pink
     else:
         return world.robot_yellow_pink
+
 
 def get_green_opponent(world):
     if color == 'b':
@@ -48,11 +52,13 @@ def get_green_opponent(world):
     else:
         return world.robot_blue_green
 
+
 def get_pink_opponent(world):
     if color == 'b':
         return world.robot_yellow_pink
     else:
         return world.robot_blue_pink
+
 
 def new_vision(world):
     predictor.update(world)
@@ -70,54 +76,37 @@ def new_vision(world):
             interrupt.last_t = t
             interrupt.run()
     if latest_world.our_defender.can_catch_ball(latest_world.ball):
-        info('Can catch ball.')
+        logging.info('Can catch ball.')
     if latest_world.our_defender.is_missing():
-        warning("Robot is missing!")
+        logging.warning("Robot is missing!")
 
 
 def start_vision():
     Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
-    optlist, args = getopt(argv[1:], '1:2:',
-        ['info', 'warn', 'error', 'debug'])
-    attacker = None
-    defender = None
-    for (opt, arg) in optlist:
-        if opt == '-1':
-            defender = TractorCrabCommsManager(0, arg)
-        elif opt == '-2':
-            attacker = RFCommsManager(1, arg)
-        elif opt == '--debug':
-            logging.root.setLevel(logging.DEBUG)
-        elif opt == '--info':
-            logging.root.setLevel(logging.INFO)
-        elif opt == '--warn':
-            logging.root.setLevel(logging.WARNING)
-        elif opt == '--error':
-            logging.root.setLevel(logging.ERROR)
-    if len(args) != 1 or args[0] not in ['b', 'blue', 'y', 'yellow']:
-        print("Usage: ./main.py [-1PATH] [-2PATH] OPTIONS TEAM-COLOR")
-        print("")
-        print("Where -1 and -2 refer to group 11 and 12's RF devices.")
-        print("TEAM-COLOR must be either 'blue' (or 'b') or 'yellow' (or 'y').")
-        print("")
-        print("Options:")
-        print("")
-        print("--debug Set logging level to 'debug'")
-        print("--info  Set logging level to 'info'")
-        print("--warn  Set logging level to 'warn'")
-        print("--error Set logging level to 'error'")
-        exit(0)
-    if args[0] in ['b', 'blue']:
-        color = 'b'
-    else:
-        color = 'y'
+
+def help():
+    print("Usage: ./main.py --plan plan [--defender PATH | --attacker PATH] [--logging level] [--color color]")
+    print("")
+    print("Where --defender(-1) and --attacker(-2) refer to group 11 and 12's RF devices.")
+    print("")
+    print("--logging (-l) options:")
+    print("\t--debug Set logging level to 'debug'")
+    print("\t--info  Set logging level to 'info'")
+    print("\t--warn  Set logging level to 'warn'")
+    print("\t--error Set logging level to 'error'")
+    print("")
+    print("--color (-c) options:")
+    print("\t'blue' (or 'b')")
+    print("\t'yellow' (or 'y')")
+    print("")
+    exit(0)
+
+
+def usage():
     print("")
     print("Enter a task into the shell to run it. Currently supported:")
     print(" - 'move-grab'")
-    print(" - 'turn-shoot'")
     print("The following control commands are also available:")
     print(" - 'exit' to exit")
     print(" - 'debug' to set the logging level to debug")
@@ -125,6 +114,75 @@ if __name__ == '__main__':
     print(" - 'warn' to set the logging level to warnings (default)")
     print(" - 'error' to set the logging level to errors")
     print("Enter 'exit' to exit.")
+
+
+def set_logging(mode):
+    if mode == 'debug':
+        logging.root.setLevel(logging.DEBUG)
+    elif mode == 'info':
+        logging.root.setLevel(logging.INFO)
+    elif mode == 'warn':
+        logging.root.setLevel(logging.WARNING)
+    elif mode == 'error':
+        logging.root.setLevel(logging.ERROR)
+
+
+def set_plan(attack_planner, defence_planner, plan):
+    logging.info('>>> Setting the initial plan to: ' + str(plan))
+    # TODO: support seperate tasks for attacker and defender.
+    if attack_planner:
+        attack_planner.set_task(plan)
+    if defence_planner:
+        defence_planner.set_task(plan)
+
+
+def main():
+    logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:", ["help", "visible", "defender=", "attacker=", "logging=", "color=", "plan="])
+    except getopt.GetoptError as err:
+        # print help information and exit:
+        print str(err)  # will print something like "option -a not recognized"
+        usage()
+        sys.exit(2)
+    attacker = None
+    defender = None
+    plan = None
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            help()
+            sys.exit()
+        elif o in ("-z", "--visible"):
+            logger = logging.getLogger()
+            formatter = logging.Formatter("\033[95m\r%(asctime)s - %(levelname)s - %(message)s\033[0m")
+            logger.handlers[0].setFormatter(formatter)
+        elif o in ("-1", "--defender"):
+            defender = TractorCrabCommsManager(0, a)
+        elif o in ("-2", "--attacker"):
+            attacker = RFCommsManager(0, a)
+        elif o in ("-l", "--logging"):
+            logging_modes = a.split(",")
+            for mode in logging_modes:
+                set_logging(mode)
+        elif o in ("-c", "--color"):
+            if a == 'b' or a == 'blue':
+                color = 'b'
+            elif a == 'y' or a == 'yellow':
+                color = 'y'
+            else:
+                print "Unsupported color. Default is 'blue'"
+                color = 'b'
+        elif o in ("-p", "--plan"):
+            plan = a
+        else:
+            assert False, "unhandled option"
+            exit(0)
+
+    usage()
+    run(attacker=attacker, defender=defender, plan=plan)
+
+
+def run(attacker, defender, plan):
     thread = Thread(target=start_vision)
     thread.daemon = True
     thread.start()
@@ -139,20 +197,26 @@ if __name__ == '__main__':
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
+            #lambda: defender.close_grabbers(), 2))
             lambda: defence_planner.plan_and_act(latest_world), 2))
+
     def run_planners():
+        delay = None
         if attack_planner:
-            attack_planner.plan_and_act(latest_world)
+            delay = attack_planner.plan_and_act(latest_world)
         if defence_planner:
-            defence_planner.plan_and_act(latest_world)
-        timer = Timer(PLANNER_DELAY, run_planners)
+            delay = defence_planner.plan_and_act(latest_world)
+        timer = Timer(delay, run_planners)
         timer.daemon = True
         timer.start()
 
-    timer = Timer(PLANNER_DELAY, run_planners)
+    timer = Timer(INITIAL_PLANNER_DELAY, run_planners)
     timer.daemon = True
     timer.start()
-    defence_planner.set_task('m31')
+
+    # set initial plan
+    set_plan(attack_planner, defence_planner, plan)
+
     while True:
         task = None
         try:
@@ -161,17 +225,10 @@ if __name__ == '__main__':
             exit(0)
         if task == 'exit':
             exit(0)
-        elif task == 'debug':
-            logging.root.setLevel(logging.DEBUG)
-        elif task == 'info':
-            logging.root.setLevel(logging.INFO)
-        elif task == 'warn':
-            logging.root.setLevel(logging.WARNING)
-        elif task == 'error':
-            logging.root.setLevel(logging.ERROR)
+        elif task in ['debug', 'info', 'warn', 'error']:
+            set_logging(task)
         else:
-            # TODO: support seperate tasks for attacker and defender.
-            if attack_planner:
-                attack_planner.set_task(task)
-            if defence_planner:
-                defence_planner.set_task(task)
+            set_plan(attack_planner, defence_planner, task)
+
+if __name__ == "__main__":
+    main()
