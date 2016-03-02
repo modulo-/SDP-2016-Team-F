@@ -96,6 +96,8 @@ class DefencePlanner(Planner):
             return defender.GetBall(world, robot)
         elif self.current_task == 'm1':
             return defender.ReceivingPass(world, robot)
+        elif self.current_task == 'm2':
+            return defender.ReceiveAndPass(world, robot)
         elif self.current_task == 'm31':
             return defender.InterceptPass(world, robot)
         elif self.current_task == 'm32':
