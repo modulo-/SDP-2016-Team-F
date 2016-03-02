@@ -1,7 +1,11 @@
 import math
 from logging import info
 
+ROTATION_THRESHOLD = 0.1
+FACING_ROTATION_THRESHOLD = 0.4
 DISTANCE_THRESHOLD = 5
+
+DEFAULT_DELAY = 4
 
 
 def are_equivalent_positions(a, b):
@@ -53,3 +57,6 @@ class Action(object):
     # Get messages relating to action
     def get_messages(self):
         return []
+
+    def get_delay(self):
+        return DEFAULT_DELAY

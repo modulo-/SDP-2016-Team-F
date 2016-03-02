@@ -3,6 +3,7 @@ import models_defender as defender
 
 from comms import CommsManager
 from logging import info
+from models_common import DEFAULT_DELAY
 
 
 class Planner (object):
@@ -37,17 +38,19 @@ class Planner (object):
 
     def plan_and_act(self, world):
         '''
-        Make plans for each robot and perform them
+        Make plans for each robot, perform them and return delay
         '''
         robot = world.our_defender
         goal = self.get_goal(world, robot)
         if goal is None:
-            return
+            info("Planner has no goal")
+            return DEFAULT_DELAY
         action = goal.generate_action()
         if action != self.previous_action:
             action = action
         self.previous_action = action
         self.actuate(action)
+        return action.get_delay()
 
 
 class AttackPlanner(Planner):
@@ -59,16 +62,16 @@ class AttackPlanner(Planner):
         '''
         Selects a goal for robot
         '''
-        if robot.has_ball(world.ball):
+        '''        if robot.has_ball(world.ball):
             return attacker.Score(world, robot)
         else:
-            return attacker.GetBall(world, robot)
-"""        if self.current_task == 'move-grab':
+            return attacker.GetBall(world, robot)'''
+        if self.current_task == 'move-grab':
             return attacker.GetBall(world, robot)
         elif self.current_task == 'turn-move-grab':
             return attacker.GetBall(world, robot)
         elif self.current_task == 'turn-shoot':
-            return attacker.Score(world, robot)"""
+            return attacker.Score(world, robot)
 
 
 class DefencePlanner(Planner):

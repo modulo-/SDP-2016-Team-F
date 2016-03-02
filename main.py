@@ -10,7 +10,6 @@ from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
 from planning.predictor import Predictor
-from time import time
 
 PITCH_NO = 0
 color = None
@@ -23,7 +22,7 @@ class Interrupt:
         self.run = run
         self.delay = delay
 
-PLANNER_DELAY = 2
+INITIAL_PLANNER_DELAY = 4
 
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
@@ -201,15 +200,16 @@ def run(attacker, defender, plan):
             lambda: defence_planner.plan_and_act(latest_world), 2))
 
     def run_planners():
+        delay = None
         if attack_planner:
-            attack_planner.plan_and_act(latest_world)
+            delay = attack_planner.plan_and_act(latest_world)
         if defence_planner:
-            defence_planner.plan_and_act(latest_world)
-        timer = Timer(PLANNER_DELAY, run_planners)
+            delay = defence_planner.plan_and_act(latest_world)
+        timer = Timer(delay, run_planners)
         timer.daemon = True
         timer.start()
 
-    timer = Timer(PLANNER_DELAY, run_planners)
+    timer = Timer(INITIAL_PLANNER_DELAY, run_planners)
     timer.daemon = True
     timer.start()
 
