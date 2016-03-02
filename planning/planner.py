@@ -40,8 +40,8 @@ class Planner (object):
         '''
         Make plans for each robot, perform them and return delay
         '''
-        world.our_defender.catcher = self.grabber_state
-        robot = world.our_defender
+        world.our_attacker.catcher = self.grabber_state
+        robot = world.our_attacker
         goal = self.get_goal(world, robot)
         if goal is None:
             info("Planner has no goal")

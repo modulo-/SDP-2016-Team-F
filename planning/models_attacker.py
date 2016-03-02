@@ -1,6 +1,6 @@
 import utils
 import math
-from logging import info
+from logging import info, error
 
 from position import Vector
 from models_common import Goal, Action, are_equivalent_positions
@@ -61,13 +61,13 @@ class AttackerPass(Goal):
         super(AttackerPass, self).__init__(world, robot)
 
 
-class AttackBlock(Goal):
+class AttackerBlock(Goal):
     '''
     Our attacker block attacking opponent
     '''
     def __init__(self, world, robot):
         self.actions = [TurnToBlockingAngle(world, robot),
-                        GoToBlockingPoistion(world, robot),
+                        GoToBlockingPosition(world, robot),
                         TurnToFaceBlockingPosition(world, robot)]
         super(AttackBlock, self).__init__(world, robot)
 
@@ -247,11 +247,15 @@ class GoToBlockingPosition(Action):
 
 
 class TurnToBlockingAngle(Action):
-    precondtions = [(lambda w, r: are_equivalent_positions(r.vector, r.get_blocking_position(w)),
+    preconditions = [(lambda w, r: are_equivalent_positions(r.vector, r.get_blocking_position(w)),
                      "Attacker in pass blocking position")]
 
     def __init__(self, world, robot):
-        self.angle = utils.attacker_get_rotation_to_point(robot, world.robot_in_possession.vector)
+        if world.robot_in_posession:
+            self.angle = utils.attacker_get_rotation_to_point(robot, world.robot_in_possession.vector)
+        else:
+            error("Attempting to block while no robot in possession")
+            self.angle = 0
         super(TurnToBlockingAngle, self).__init__(world, robot)
 
     def perform(self, comms):

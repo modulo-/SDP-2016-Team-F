@@ -2,7 +2,7 @@ import math
 
 from Polygon.cPolygon import Polygon
 from position import Vector
-from logging import debug, info
+from logging import debug, info, error
 
 # Width measures the front and back of an object
 # Length measures along the sides of an object
@@ -221,6 +221,9 @@ class Attacker(Robot):
     def get_blocking_position(self, world):
         # Calculate blocking position
         possession = world.robot_in_possession
+        if not possession:
+            error("Attempting to find blocking position while no robot in possession")
+            return Vector(0, 0, 0 0)
         assert(not possession.is_our_team)
         target = None
         if possession.in_our_half:
@@ -363,7 +366,7 @@ class World(object):
         return not self.in_our_half(robot)
 
     @property
-    def robot_in_possession(self, robot):
+    def robot_in_possession(self):
         robots = [self.our_defender,
                   self.our_attacker] + self.their_robots
         for r in robots:
