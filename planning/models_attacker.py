@@ -6,10 +6,10 @@ from position import Vector
 from models_common import Goal, Action, are_equivalent_positions
 
 
-# TODO
+# TODO Calibrate these!
 ROTATION_THRESHOLD = 0.2
 FACING_ROTATION_THRESHOLD = 0.2
-
+ROTATION_TIME_FACTOR = 1
 
 def is_robot_facing_position(r, pos):
     return abs(utils.attacker_get_rotation_to_point(r.vector, pos)) < ROTATION_THRESHOLD
@@ -126,26 +126,44 @@ class GrabBall(Action):
 class TurnToGoal(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
 
+    def __init__(self, world, robot):
+        self.angle = utils.attacker_get_rotation_to_point(self.robot.vector, self.world.their_goal.vector)
+        super(TurnToGoal, self).__init__(world, robot)
+
     def perform(self, comms):
         # TODO find best point to shoot to
         # x = self.world.their_goal.x + self.world.their_goal.width / 2
         # x = (self.world.their_goal.higher_post -
         #     self.world.their_goal.lower_post) / 2
-        x = 0
-        y = self.world.their_goal.y
-        info("Turning to goal at ({0}, {1})".format(x, y))
-        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0)))
+        info("Turning to goal at ({0}, {1})".format(self.world.their_goal.x, self.world.their_goal.y))
+        comms.turn(self.angle)
 
+    def get_delay(self):
+        return self.angle * ROTATION_TIME_FACTOR
 
 class TurnToDefenderToGive(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
 
+    def __init__(self, world, robot):
+        self.angle = utils.attacker_get_rotation_to_point(self.robot.vector, self.our_defender.vector)
+        super(TurnToDefenderToGive, self).__init__(world, robot)
+
     def perform(self, comms):
-        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, self.our_defender.vector))
+        comms.turn(self.angle)
+
+    def get_delay(self):
+        return self.angle * ROTATION_TIME_FACTOR
 
 class TurnToBall(Action):
+    def __init__(self, world, robot):
+        self.angle = utils.attacker_get_rotation_to_point(self.robot.vector, self.world.ball.vector)
+        super(TurnToBall, self).__init__(world, robot)
+
     def perform(self, comms):
-        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, self.world.ball.vector))
+        comms.turn(self.angle)
+
+    def get_delay(self):
+        return self.angle * ROTATION_TIME_FACTOR
 
 
 class Shoot(Action):
@@ -165,10 +183,17 @@ class KickToDefender(Action):
 
 
 class TurnToScoreZone(Action):
-    def perform(self, comms):
+    def __init__(self, world, robot):
         position = self.world.score_zone
-        rotation = utils.attacker_get_rotation_to_point(self.robot.vector, position)
-        comms.turn(rotation)
+        self.angle = utils.attacker_get_rotation_to_point(self.robot.vector, position)
+        super(TurnToScoreZone, self).__init__(world, robot)
+
+    def perform(self, comms):
+        comms.turn(self.angle)
+
+    def get_delay(self):
+        return self.angle * ROTATION_TIME_FACTOR
+
 
 class GoToScoreZone(Action):
     preconditions = [(lambda w, r: is_robot_facing_position(r, w.score_zone),
@@ -180,16 +205,28 @@ class GoToScoreZone(Action):
 class TurnToDefenderToReceive(Action):
     precondtions = [(lambda w, r: r.are_equivalent_positions(r.vector, r.score_zone), "Attacker in score zone")]
 
+    def __init__(self, world, robot):
+        self.angle = utils.attacker_get_rotation_to_point(self.robot.vector, self.our_defender.vector)
+        super(TurnToDefenderToReceive, self).__init__(world, robot)
+
     def perform(self, comms):
-        comms.turn(utils.attacker_get_rotation_to_point(self.robot.vector, self.our_defender.vector))
+        comms.turn(self.angle)
+
+    def get_delay(self):
+        return self.angle * ROTATION_TIME_FACTOR
 
 
 class TurnToFaceBlockingPosition(Action):
-    def perform(self, comms):
+    def __init__(self, world, robot):
         position = self.robot.get_blocking_position(self.world)
-        rotation = utils.attacker_get_rotation_to_point(self.robot.vector, position)
-        comms.turn(rotation)
+        self.angle = utils.attacker_get_rotation_to_point(self.robot.vector, position)
+        super(TurnToFaceBlockingPosition, self).__init__(world, robot)
 
+    def perform(self, comms):
+        comms.turn(self.angle)
+
+    def get_delay(self):
+        return self.angle * ROTATION_TIME_FACTOR
 
 class GoToBlockingPosition(Action):
     preconditions = [(lambda w, r: is_robot_facing_position(r, r.get_blocking_position(w)),
@@ -207,6 +244,12 @@ class TurnToBlockingAngle(Action):
     precondtions = [(lambda w, r: are_equivalent_positions(r.vector, r.get_blocking_position(w)),
                      "Attacker in pass blocking position")]
 
+    def __init__(self, world, robot):
+        self.angle = utils.attacker_get_rotation_to_point(self.robot, self.world.robot_in_possession.vector)
+        super(TurnToBlockingAngle, self).__init__(world, robot)
+
     def perform(self, comms):
-        rotation = utils.attacker_get_rotation_to_point(self.robot, self.world.robot_in_possession.vector)
-        comms.turn(rotation)
+        comms.turn(self.angle)
+
+    def get_delay(self):
+        return self.angle * ROTATION_TIME_FACTOR
