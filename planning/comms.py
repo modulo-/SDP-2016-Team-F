@@ -119,7 +119,7 @@ class RFCommsManager (CommsManager):
 
     # move a distance in mm
     def move(self, distance):
-        mm_distance = distance / 0.1958
+        mm_distance = distance / 0.25 #0.1958
         cmd = b"m" + struct.pack(">h", mm_distance)
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).move(mm_distance)

@@ -16,8 +16,8 @@ BALL_LENGTH = 5
 GOAL_WIDTH = 140
 GOAL_LENGTH = 1
 
-GOAL_LOWER = 286
-GOAL_HIGHER = 164
+GOAL_LOWER = 170
+GOAL_HIGHER = 300
 
 MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 100
 
@@ -239,6 +239,21 @@ class Attacker(Robot):
         #m =  (possession.y - target.y) / (possession.x - target.x)
         #return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
         return Vector((target.x + possession.x) / 2, (target.y + possession.y) / 2, 0, 0)
+        """dx = target.x - possession.x
+        dy = target.y - possession.y
+        l = math.hypot(dx, dy)
+        print dx,dy, l
+        dx /= l
+        dx *= 75
+        dy /= l
+        dy *= 75
+
+        l = math.hypot(dx, dy)
+        print dx,dy, l
+	print possession.x+dx, possession.y+dy
+
+        return Vector(possession.x+dx, possession.y+dy,0,0)"""
+        
 
 
 class Ball(PitchObject):
@@ -252,7 +267,7 @@ class Goal(PitchObject):
     def __init__(self, x, y, angle, lower_post, higher_post):
         self._lower_post = lower_post
         self._higher_post = higher_post
-        super(Goal, self).__init__(x, y + GOAL_WIDTH / 2, angle, 0, GOAL_WIDTH, GOAL_LENGTH)
+        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH)
 
     @property
     def lower_post(self):

@@ -78,7 +78,7 @@ class Config:
     erode =-1
     dilate =-1
 
-    delta_angle = 45
+    delta_angle =38 
 
     def __init__(self, vision):
         cv2.namedWindow(self.FILTER_SELECTION)
