@@ -1,6 +1,7 @@
 import math
 import logging
-from position import Vector, Coordinate
+from position import Vector
+
 
 def get_rotation_to_point(vec1, vec2):
     '''
@@ -200,17 +201,27 @@ def defender_distance_to_line(axis, robot_vec, point):
     return 0
 
 
+def defender_distance_on_y(robot_vec, y_value):
+    '''
+    Calculates the moving distance on y axis.
+    '''
+    distance = abs(y_value - robot_vec.y)
+
+    target_point = Vector(robot_vec.x, y_value, 0, 0)
+    direction = get_movement_direction_from_vector(robot_vec, target_point)
+
+    return distance * direction
+
+
 def get_movement_direction_from_vector(robot_vec, point):
     '''
     Returns either
         1 - move right; or
         -1 - move left
     '''
-    # print point
     robot_vec_left = Vector(robot_vec.x, robot_vec.y, robot_vec.angle - math.pi / 2, 0)
-    # robot_vec_right = Vector(robot_vec.x, robot_vec.y, robot_vec.angle + math.pi / 2, 0)
-
     point_vec = Vector(point[0], point[1], 0, 0)
+
     rotation_for_left = get_rotation_to_point(robot_vec_left, point_vec)
     # rotation_for_right = get_rotation_to_point(robot_vec_right, direction_vec)
 

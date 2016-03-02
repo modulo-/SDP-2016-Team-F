@@ -127,7 +127,8 @@ class AlignForPassIntercept(Action):
     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
 
     def perform(self, comms):
-        distance = utils.defender_distance_to_line('y', self.world.our_defender.vector, 230)
+        # distance = utils.defender_distance_to_line('y', self.world.our_defender.vector, 230)
+        distance = utils.defender_distance_on_y(self.world.our_defender.vector, 230)
         logging.info("Wants to move by: " + str(distance))
         comms.move(distance)
 
