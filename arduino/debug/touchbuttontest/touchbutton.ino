@@ -3,8 +3,12 @@
 * Arduino
 */
 
-//#include "SDPArduino.h"
-//#include <Wire.h>
+#include "SDPArduino.h"
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include "Adafruit_9DOF.h"
+
+Adafruit_9DOF 9DOF;
 
 //analog in/digital I/O ports A0 to A3
 
@@ -14,12 +18,19 @@ const int buttonPin2 = A3;
 //const int buttonPin4 = 4;
 
 void setup() {
-  //SDPsetup();
+  SDPsetup();
   Serial.begin(9600);
   pinMode(buttonPin1, INPUT);
   pinMode(buttonPin2, INPUT);
   //pinMode(buttonPin3, INPUT);
   //pinMode(buttonPin4, INPUT);
+  
+  boolean gotSensor = 9DOF.begin();
+  
+  while(!gotSensor){
+  	Serial.println("Sensor not responding, check connection");
+  }
+  
 }
 
 void loop() {
