@@ -180,6 +180,7 @@ def defender_distance_to_line(axis, robot_vec, point):
         # Computer the intersection point
         x2 = 10 * math.sin(math.radians(robot_vec.angle))
         y2 = 10 * math.cos(math.radians(robot_vec.angle))
+        print ("POINT: " + str(x2) + " - " + str(y2))
         robot_line = ((robot_vec.x, robot_vec.y), (x2, y2))
         target_line = ((0, point), (10, point))
         intersection_point = line_intersection(robot_line, target_line)
@@ -190,21 +191,36 @@ def defender_distance_to_line(axis, robot_vec, point):
         distance = math.hypot(vector_x, vector_y)
 
         # Get movement direction
-        direction_vec = Vector(vector_x, vector_y, 0, 0)
-        direction = get_movement_direction_from_vector(robot_vec, direction_vec)
+        # direction_vec = Vector(vector_x, vector_y, 0, 0)
+        direction = get_movement_direction_from_vector(robot_vec, intersection_point)
         print("DISTANCE: " + str(distance * direction))
 
         return distance * direction
 
+    return 0
 
-def get_movement_direction_from_vector(robot_vec, direction_vec):
+
+def get_movement_direction_from_vector(robot_vec, point):
     '''
     Returns either
         1 - move right; or
         -1 - move left
     '''
+    # print point
+    robot_vec_left = Vector(robot_vec.x, robot_vec.y, robot_vec.angle - math.pi / 2, 0)
+    # robot_vec_right = Vector(robot_vec.x, robot_vec.y, robot_vec.angle + math.pi / 2, 0)
 
-    return 1
+    point_vec = Vector(point[0], point[1], 0, 0)
+    rotation_for_left = get_rotation_to_point(robot_vec_left, point_vec)
+    # rotation_for_right = get_rotation_to_point(robot_vec_right, direction_vec)
+
+    # print (math.degrees(robot_vec.angle))
+    # print (point)
+    # print ("ROTATION LEFT: " + str(math.degrees(rotation_for_left)))
+    if abs(math.degrees(rotation_for_left)) < 90:
+        return -1
+    else:
+        return 1
 
 
 def line_intersection(line1, line2):

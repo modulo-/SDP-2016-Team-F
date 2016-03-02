@@ -128,6 +128,18 @@ class AlignForPassIntercept(Action):
 
     def perform(self, comms):
         distance = utils.defender_distance_to_line('y', self.world.our_defender.vector, 230)
+        logging.info("Wants to move by: " + str(distance))
+        comms.move(distance)
+
+        if abs(distance) > 150:
+            delay = 2.5
+        elif abs(distance) > 100:
+            delay = 2
+        elif abs(distance) > 60:
+            delay = 1.5
+        else:
+            delay = 1
+        return delay
 
 
 class AlignForPassIntercept2(Action):
