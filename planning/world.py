@@ -223,7 +223,7 @@ class Attacker(Robot):
         possession = world.robot_in_possession
         if not possession:
             error("Attempting to find blocking position while no robot in possession")
-            return Vector(0, 0, 0 0)
+            return Vector(0, 0, 0, 0)
         assert(not possession.is_our_team)
         target = None
         if possession.in_our_half:
