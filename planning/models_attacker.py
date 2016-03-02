@@ -21,9 +21,9 @@ class GetBall(Goal):
 
     def __init__(self, world, robot):
         self.actions = [GrabBall(world, robot),
-                        GoToBall(world, robot),
+                        GoToGrabStaticBall(world, robot),
                         OpenGrabbers(world, robot),
-                        GoToOpeningDistanceStaticBall(world, robot),
+                        GoToBallOpeningDistance(world, robot),
                         TurnToBall(world, robot)]
         super(GetBall, self).__init__(world, robot)
 
@@ -72,8 +72,9 @@ class AttackBlock(Goal):
         super(AttackBlock, self).__init__(world, robot)
 
 
-class GoToBall(Action):
-    preconditions = [(lambda w, r: is_robot_facing_position(r, w.ball.vector), "Attacker is facing ball"),
+class GoToGrabStaticBall(Action):
+    preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
+                     (lambda w, r: is_robot_facing_position(r, w.ball.vector), "Attacker is facing ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Attacker's grabbers are open")]
 
     def perform(self, comms):
@@ -83,27 +84,32 @@ class GoToBall(Action):
             dy = self.world.ball.y - self.robot.y
             d = math.sqrt(dx**2 + dy**2)
         else:
-            # Find ball path
+            # TODO Find ball path
             dx = self.world.ball.x - self.robot.x
             dy = self.world.ball.y - self.robot.y
             d = math.sqrt(dx**2 + dy**2)
 
         # TODO grabbing area size
-        grabber_size = 30
-        comms.move(d - grabber_size)
+        comms.move(d)
 
 
-class GoToOpeningDistanceStaticBall(Action):
-    preconditions = [(lambda w, r: utils.ball_is_static(w), "Ball is static"),
-                     (lambda w, r: is_robot_facing_position(r, w.ball), "Attacker is facing ball")]
+class GoToBallOpeningDistance(Action):
+    preconditions = [(lambda w, r: is_robot_facing_position(r, w.ball), "Attacker is facing ball")]
     # lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
 
     def perform(self, comms):
-        dx = self.world.ball.x - self.robot.x
-        dy = self.world.ball.y - self.robot.y
-        d = math.sqrt(dx**2 + dy**2)
+        d = None
+        if utils.ball_is_static(self.world):
+            dx = self.world.ball.x - self.robot.x
+            dy = self.world.ball.y - self.robot.y
+            d = math.sqrt(dx**2 + dy**2)
+        else:
+            # TODO Find ball path
+            dx = self.world.ball.x - self.robot.x
+            dy = self.world.ball.y - self.robot.y
+            d = math.sqrt(dx**2 + dy**2)
         # TODO grabbing area size
-        grabber_size = 70
+        grabber_size = 30
         comms.move(d - grabber_size)
 
 
