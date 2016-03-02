@@ -43,6 +43,28 @@ class ReceivingPass(Goal):
                         FaceFriendly(world, robot)]
         super(ReceivingPass, self).__init__(world, robot)
 
+def opponent_doesnt_have_ball(w, robot):
+    return not any(math.hypot(r.x - w.ball.x, r.y - w.ball.y) < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD
+        for r in w.their_robots)
+
+class ReceiveAndPass(Goal):
+    '''
+    The second task of Milestone 3
+    '''
+
+    def __init__(self, world, robot):
+        self.actions = [Kick(world, robot, [
+                            (lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.our_attacker)) < ROTATION_BALL_THRESHOLD, "Defender is facing attacker.")]),
+                        FaceFriendly(world, robot, [
+                            (lambda w, r: r.has_ball(w.ball), "Our robot has the ball")]),
+                        GrabBall(world, robot),
+                        GoToStaticBall(world, robot, [
+                            (opponent_doesnt_have_ball, "The house robot has the ball")]),
+                        TurnToCatchPoint(world, robot, [
+                            (opponent_doesnt_have_ball, "The house robot has the ball")]),
+                        OpenGrabbers(world, robot),
+                        FaceOpponent(world, robot)]
+
 
 class InterceptPass(Goal):
     '''
@@ -122,6 +144,13 @@ class Tactical(Goal):
 > ACTIONS
 '''
 
+class Kick(Action):
+    preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has the ball.")]
+
+    def perform(self, comms):
+        logging.info("Kicking.")
+        comms.kick_full_power()
+        self.robot.catcher = 'OPEN'
 
 class AlignForPassIntercept(Action):
     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
@@ -251,6 +280,21 @@ class FollowBall(Action):
             logging.info("Adjusting angle by %f, distance by %f." % (turn_angle, dist))
             comms.turn_then_move(turn_angle, dist)
         return 2
+
+class FaceOpponent(Action):
+    preconditions = [(lambda w, r: any(not r.is_missing() for r in w.their_robots), "Enemy robot is on the pitch.")]
+
+    def perform(self, comms):
+        # takes take opponent's robot that is closer to ours
+        robots = filter(lambda r: not r.is_missing(), self.world.their_robots)
+        robots.sort(key=lambda r: math.hypot(r.x - self.robot.x, r.y - self.robot.y))
+        if len(robots) == 0:
+            logging.error("There is no enemy here. Gimme someone to destroy!")
+            return 1
+        robot = robots[0]
+        angle = utils.get_rotation_to_point(self.robot.vector, robot.vector)
+        logging.info("Facing opponent: Rotating %f" % angle)
+        comms.turn(angle) 
 
 
 class FaceFriendly(Action):

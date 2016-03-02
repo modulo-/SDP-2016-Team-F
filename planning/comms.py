@@ -90,11 +90,11 @@ class TractorCrabCommsManager(CommsManager):
 
     def kick(self, distance):
         # NOTE: currently, functions the same as a full-power kick.
-        self._run([self.CMD_KICK] + self._16_bitify(100))
+        self._run([self.CMD_GRABBER_OPEN, self.CMD_KICK] + self._16_bitify(100))
         CommsManager.kick(self, distance)
 
     def kick_full_power(self):
-        self._run([self.CMD_KICK] + self._16_bitify(100))
+        self._run([self.CMD_GRABBER_OPEN, self.CMD_KICK] + self._16_bitify(100))
         CommsManager.kick_full_power(self)
 
     def close_grabbers(self):
