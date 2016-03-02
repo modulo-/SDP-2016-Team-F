@@ -79,17 +79,9 @@ class GoToGrabStaticBall(Action):
 
     def perform(self, comms):
         d = None
-        if utils.ball_is_static(self.world):
-            dx = self.world.ball.x - self.robot.x
-            dy = self.world.ball.y - self.robot.y
-            d = math.sqrt(dx**2 + dy**2)
-        else:
-            # TODO Find ball path
-            dx = self.world.ball.x - self.robot.x
-            dy = self.world.ball.y - self.robot.y
-            d = math.sqrt(dx**2 + dy**2)
-
-        # TODO grabbing area size
+        dx = self.world.ball.x - self.robot.x
+        dy = self.world.ball.y - self.robot.y
+        d = math.sqrt(dx**2 + dy**2)
         comms.move(d)
 
 

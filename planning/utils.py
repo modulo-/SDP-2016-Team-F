@@ -140,7 +140,7 @@ def ball_is_static(world):
     '''
 
     # TODO find real threshold value
-    static_threshold = 0.5
+    static_threshold = 1
     return world.ball.velocity < static_threshold
 
 
