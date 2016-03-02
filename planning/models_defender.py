@@ -186,35 +186,11 @@ class AlignForPassIntercept(Action):
         return delay
 
 
-class AlignForPassIntercept2(Action):
+class AlignForGoalIntercept(Action):
     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
 
     def perform(self, comms):
-        # Hardcoded: The robot should face right (angle = pi/2)
-        angle = (self.robot.angle + pi / 2) % (2 * pi) - pi
-
-        dx = self.world.their_robots[1].x - self.world.their_robots[0].x
-        dy = self.world.their_robots[1].y - self.world.their_robots[0].y
-        if dx == 0:
-            logging.error("We're fucked.")
-            return
-        part = (self.robot.x - self.world.their_robots[0].x) / dx
-        y = dy * part + self.world.their_robots[0].y
-        dist = self.robot.y - y
-        if abs(angle) < ROTATION_BALL_THRESHOLD:
-            logging.info("Moving to intercept. Moving distance: %f", dist)
-            comms.move(dist)
-        else:
-            logging.info("Moving to intercept. Turning %f, moving %f", angle, dist)
-            comms.move(dist)
-            # comms.turn_then_move(angle, dist)
-
-
-class AlignForGoalIntercept(Action):
-    preconditions = [(lambda w, r: any(not r.is_missing() for r in w.their_robots), "Enemy robot is on the pitch.")]
-
-    def perform(self, comms):
-        # takes take opponent's robot that is closer to ours
+        # get robot
         robots = filter(lambda r: not r.is_missing(), self.world.their_robots)
         robots.sort(key=lambda r: math.hypot(r.x - self.robot.x, r.y - self.robot.y))
         if len(robots) == 0:
@@ -223,36 +199,102 @@ class AlignForGoalIntercept(Action):
         robot = robots[0]
 
         # Find our goal
-        target_angle = pi / 2
-        goal = (0, 200)
-        if robot.x > 300:
-            target_angle = 3 * pi / 2
-            goal = (600, 200)
+        goal = Vector(0, 225, 0, 0)
+        if self.robot.x > 300:
+            goal = Vector(600, 225, 0, 0)
 
-        # Find the goal center point
-        dx = robot.x - goal[0]
-        dy = robot.y - goal[1]
-        if dx == 0:
-            logging.error("We're fucked.")
-            return
+        # get the point
+        robots = self.world.their_robots
+        y_diff = goal.y - robot.y
+        x_diff = goal.x - robot.x
+        ratio = (self.world.our_defender.x - robot.x) / x_diff
 
-        part = (self.robot.x - goal[0]) / dx
-        target_y = dy * part + goal[1]
-        dist = self.robot.y - target_y
+        y_mean = robot.y + (y_diff * ratio)
 
-        # Go to the other side is on the other side of the pitch
-        if robot.x > 300:
-            dist *= -1
+        distance = utils.defender_distance_on_y(self.world.our_defender.vector, y_mean)
 
-        rot_angle = (self.robot.angle - target_angle + pi) % (2 * pi) - pi
+        print("DISTANCE: " + str(distance))
+        logging.info("Wants to move by: " + str(distance))
+        comms.move(distance)
 
-        if abs(rot_angle) < ROTATION_BALL_THRESHOLD:
-            logging.info("Moving to intercept goal. Moving distance: %f", dist)
-            comms.move(dist)
+        if abs(distance) > 150:
+            delay = 2.5
+        elif abs(distance) > 100:
+            delay = 2
+        elif abs(distance) > 60:
+            delay = 1.5
         else:
-            logging.info("Moving to intercept goal. Turning %f, moving %f", rot_angle, dist)
-            comms.move(dist)
-            # comms.turn_then_move(rot_angle, dist)
+            delay = 1
+        return delay
+
+
+# class AlignForPassIntercept2(Action):
+#     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
+
+#     def perform(self, comms):
+#         # Hardcoded: The robot should face right (angle = pi/2)
+#         angle = (self.robot.angle + pi / 2) % (2 * pi) - pi
+
+#         dx = self.world.their_robots[1].x - self.world.their_robots[0].x
+#         dy = self.world.their_robots[1].y - self.world.their_robots[0].y
+#         if dx == 0:
+#             logging.error("We're fucked.")
+#             return
+#         part = (self.robot.x - self.world.their_robots[0].x) / dx
+#         y = dy * part + self.world.their_robots[0].y
+#         dist = self.robot.y - y
+#         if abs(angle) < ROTATION_BALL_THRESHOLD:
+#             logging.info("Moving to intercept. Moving distance: %f", dist)
+#             comms.move(dist)
+#         else:
+#             logging.info("Moving to intercept. Turning %f, moving %f", angle, dist)
+#             comms.move(dist)
+#             # comms.turn_then_move(angle, dist)
+
+
+# class AlignForGoalIntercept2(Action):
+#     preconditions = [(lambda w, r: any(not r.is_missing() for r in w.their_robots), "Enemy robot is on the pitch.")]
+
+#     def perform(self, comms):
+#         # takes take opponent's robot that is closer to ours
+#         robots = filter(lambda r: not r.is_missing(), self.world.their_robots)
+#         robots.sort(key=lambda r: math.hypot(r.x - self.robot.x, r.y - self.robot.y))
+#         if len(robots) == 0:
+#             logging.error("There is no enemy here. Gimme someone to destroy!")
+#             return 1
+#         robot = robots[0]
+
+#         # Find our goal
+#         target_angle = pi / 2
+#         goal = (0, 200)
+#         if robot.x > 300:
+#             target_angle = 3 * pi / 2
+#             goal = (600, 200)
+
+#         # Find the goal center point
+#         dx = robot.x - goal[0]
+#         dy = robot.y - goal[1]
+#         if dx == 0:
+#             logging.error("We're fucked.")
+#             return
+
+#         part = (self.robot.x - goal[0]) / dx
+#         target_y = dy * part + goal[1]
+#         dist = self.robot.y - target_y
+
+#         # Go to the other side is on the other side of the pitch
+#         if robot.x > 300:
+#             dist *= -1
+
+#         rot_angle = (self.robot.angle - target_angle + pi) % (2 * pi) - pi
+
+#         if abs(rot_angle) < ROTATION_BALL_THRESHOLD:
+#             logging.info("Moving to intercept goal. Moving distance: %f", dist)
+#             comms.move(dist)
+#         else:
+#             logging.info("Moving to intercept goal. Turning %f, moving %f", rot_angle, dist)
+#             comms.move(dist)
+#             # comms.turn_then_move(rot_angle, dist)
 
 
 class WaitForBallToCome(Action):
