@@ -195,8 +195,9 @@ class GoToBlockingPosition(Action):
 
 
 class TurnToBlockingAngle(Action):
-    precondtions = [(lambda w, r: r.is_pass_blocking_position(w),
+    precondtions = [(lambda w, r: are_equivalent_positions(r.vector, r.get_blocking_position(w)),
                      "Attacker in pass blocking position")]
 
     def perform(self, comms):
-        raise NotImplementedError
+        rotation = utils.attacker_get_rotation_to_point(self.robot, self.world.robot_in_possession.vector)
+        comms.turn(rotation)
