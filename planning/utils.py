@@ -168,6 +168,66 @@ def robot_can_reach_ball(ball, robot):
     return True
 
 
+def defender_distance_to_line(axis, robot_vec, point):
+    '''
+    Calculates the moving distance to a point that is either on x
+    or y axis.
+    '''
+    axis = 'y'
+    distance = 0
+
+    if axis == 'y':
+        # Computer the intersection point
+        x2 = 10 * math.sin(math.radians(robot_vec.angle))
+        y2 = 10 * math.cos(math.radians(robot_vec.angle))
+        robot_line = ((robot_vec.x, robot_vec.y), (x2, y2))
+        target_line = ((0, point), (10, point))
+        intersection_point = line_intersection(robot_line, target_line)
+
+        # Compute the distnce to an intersection point
+        vector_x = intersection_point[0] - robot_vec.x
+        vector_y = intersection_point[1] - robot_vec.y
+        distance = math.hypot(vector_x, vector_y)
+
+        # Get movement direction
+        direction_vec = Vector(vector_x, vector_y, 0, 0)
+        direction = get_movement_direction_from_vector(robot_vec, direction_vec)
+        print("DISTANCE: " + str(distance * direction))
+
+        return distance * direction
+
+
+def get_movement_direction_from_vector(robot_vec, direction_vec):
+    '''
+    Returns either
+        1 - move right; or
+        -1 - move left
+    '''
+
+    return 1
+
+
+def line_intersection(line1, line2):
+    '''
+    Finds the interception point of the lines
+    Each line as this structure ((x1, y1), (x2, y2))
+    '''
+    xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+    ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+
+    def det(a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    div = det(xdiff, ydiff)
+    if div == 0:
+        logging.error('Lines do not intersect')
+
+    d = (det(*line1), det(*line2))
+    x = det(d, xdiff) / div
+    y = det(d, ydiff) / div
+    return x, y
+
+
 # Test if robot can score
 # From 2015 Group 12 behaviour/utilities.py
 def can_score(world, our_robot, their_goal, turn=0):

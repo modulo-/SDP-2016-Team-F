@@ -127,6 +127,13 @@ class AlignForPassIntercept(Action):
     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
 
     def perform(self, comms):
+        distance = utils.defender_distance_to_line('y', self.world.our_defender.vector, 230)
+
+
+class AlignForPassIntercept2(Action):
+    preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
+
+    def perform(self, comms):
         # Hardcoded: The robot should face right (angle = pi/2)
         angle = (self.robot.angle + pi / 2) % (2 * pi) - pi
 
