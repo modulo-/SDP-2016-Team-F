@@ -210,7 +210,7 @@ def defender_distance_on_y(robot_vec, y_value):
     target_point = Vector(robot_vec.x, y_value, 0, 0)
     direction = get_movement_direction_from_vector(robot_vec, target_point)
 
-    return distance * direction
+    return (distance + 5) * direction
 
 
 def get_movement_direction_from_vector(robot_vec, point_vec):

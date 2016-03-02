@@ -32,6 +32,7 @@ class ReceivingPass(Goal):
 
     def __init__(self, world, robot):
         self.start_time = time()
+
         self.actions = [GrabBall(world, robot),
                         GoToStaticBall(world, robot, [
                             (lambda w, r: math.hypot(w.our_attacker.x - w.ball.x, w.our_attacker.y - w.ball.y) > MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD, "The house robot has the ball")]),
@@ -165,8 +166,11 @@ class AlignForPassIntercept(Action):
     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
 
     def perform(self, comms):
-        # distance = utils.defender_distance_to_line('y', self.world.our_defender.vector, 230)
-        distance = utils.defender_distance_on_y(self.world.our_defender.vector, 230)
+        robots = self.world.their_robots
+        y_mean = (robots[0].y + robots[1].y) / 2
+
+        distance = utils.defender_distance_on_y(self.world.our_defender.vector, y_mean)
+
         print("DISTANCE: " + str(distance))
         logging.info("Wants to move by: " + str(distance))
         comms.move(distance)
@@ -394,7 +398,7 @@ class TurnToBall(Action):
         logging.info("Wants to rotate by: " + str(angle))
         comms.turn(angle)
 
-        return 0.5 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+        return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
 
 
 class TurnToCatchPoint(Action):
@@ -410,7 +414,7 @@ class TurnToCatchPoint(Action):
         logging.info("Wants to rotate by: " + str(angle))
         comms.turn(angle)
 
-        return 0.5 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+        return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
 
 
 class OpenGrabbers(Action):
