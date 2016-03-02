@@ -144,6 +144,7 @@ class Tactical(Goal):
 > ACTIONS
 '''
 
+
 class Kick(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has the ball.")]
 
@@ -152,12 +153,14 @@ class Kick(Action):
         comms.kick_full_power()
         self.robot.catcher = 'OPEN'
 
+
 class AlignForPassIntercept(Action):
     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
 
     def perform(self, comms):
         # distance = utils.defender_distance_to_line('y', self.world.our_defender.vector, 230)
         distance = utils.defender_distance_on_y(self.world.our_defender.vector, 230)
+        print("DISTANCE: " + str(distance))
         logging.info("Wants to move by: " + str(distance))
         comms.move(distance)
 
