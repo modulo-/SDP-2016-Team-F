@@ -43,9 +43,10 @@ class ReceivingPass(Goal):
                         FaceFriendly(world, robot)]
         super(ReceivingPass, self).__init__(world, robot)
 
+
 def opponent_doesnt_have_ball(w, robot):
-    return not any(math.hypot(r.x - w.ball.x, r.y - w.ball.y) < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD
-        for r in w.their_robots)
+    return not any(math.hypot(r.x - w.ball.x, r.y - w.ball.y) < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD for r in w.their_robots)
+
 
 class ReceiveAndPass(Goal):
     '''
@@ -53,17 +54,23 @@ class ReceiveAndPass(Goal):
     '''
 
     def __init__(self, world, robot):
-        self.actions = [Kick(world, robot, [
-                            (lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.our_attacker)) < ROTATION_BALL_THRESHOLD, "Defender is facing attacker.")]),
-                        FaceFriendly(world, robot, [
+        if robot.catched_ball:
+            print("222222222")
+            self.actions = [Kick(world, robot, [
+                                (lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.our_attacker)) < ROTATION_BALL_THRESHOLD, "Defender is facing attacker.")]),
+                            FaceFriendly(world, robot, [])]
+
+        else:
+            print("111111111")
+            self.actions = [FaceFriendly(world, robot, [
                             (lambda w, r: r.has_ball(w.ball), "Our robot has the ball")]),
-                        GrabBall(world, robot),
-                        GoToStaticBall(world, robot, [
-                            (opponent_doesnt_have_ball, "The house robot has the ball")]),
-                        TurnToCatchPoint(world, robot, [
-                            (opponent_doesnt_have_ball, "The house robot has the ball")]),
-                        OpenGrabbers(world, robot),
-                        FaceOpponent(world, robot)]
+                            GrabBall(world, robot),
+                            GoToStaticBall(world, robot, [
+                                (opponent_doesnt_have_ball, "The house robot has the ball")]),
+                            TurnToCatchPoint(world, robot, [
+                                (opponent_doesnt_have_ball, "The house robot has the ball")]),
+                            OpenGrabbers(world, robot),
+                            FaceOpponent(world, robot)]
 
 
 class InterceptPass(Goal):
@@ -285,6 +292,7 @@ class FollowBall(Action):
             comms.turn_then_move(turn_angle, dist)
         return 2
 
+
 class FaceOpponent(Action):
     preconditions = [(lambda w, r: any(not r.is_missing() for r in w.their_robots), "Enemy robot is on the pitch.")]
 
@@ -298,13 +306,14 @@ class FaceOpponent(Action):
         robot = robots[0]
         angle = utils.get_rotation_to_point(self.robot.vector, robot.vector)
         logging.info("Facing opponent: Rotating %f" % angle)
-        comms.turn(angle) 
+        comms.turn(angle)
 
 
 class FaceFriendly(Action):
     preconditions = [(lambda w, r: not w.our_attacker.is_missing(), "Friendly is on the pitch.")]
 
     def perform(self, comms):
+        self.robot._catched_ball = True
         angle = utils.get_rotation_to_point(self.robot.vector, self.world.our_attacker.vector)
         logging.info("Facing friendly: Rotating %f" % angle)
         comms.turn(angle)
