@@ -178,9 +178,9 @@ namespace llcmd {
         case STRAIT:
         case ARC:
             if(state::grabbers_open) {
-                io::backward(MOTOR_GRABBERS, 20);
+                io::backward(MOTOR_GRABBERS, 30);
             } else {
-                io::forward(MOTOR_GRABBERS, 20);
+                io::forward(MOTOR_GRABBERS, 30);
             }
             break;
         case NOP:
