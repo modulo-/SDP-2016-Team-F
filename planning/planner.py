@@ -74,7 +74,10 @@ class AttackPlanner(Planner):
         elif self.current_task == 'turn-shoot':
             return attacker.Score(world, robot)
         elif self.current_task == 'receive-pass':
-            return attacker.AttackPosition(world, robot)
+            if world.our_defender.has_ball(world.ball):
+                return attacker.AttackPosition(world, robot)
+            else:
+                return attacker.GetBall(world, robot)
         elif self.current_task == 'receive-turn-pass':
             if world.our_defender.has_ball(world.ball):
                 return attacker.AttackPosition(world, robot)
