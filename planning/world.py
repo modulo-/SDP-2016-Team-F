@@ -19,6 +19,7 @@ GOAL_LENGTH = 1
 GOAL_LOWER = 286
 GOAL_HIGHER = 164
 
+MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 75
 
 class PitchObject(object):
     '''
@@ -112,10 +113,11 @@ class PitchObject(object):
 
 class Robot(PitchObject):
 
-    def __init__(self, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
+    def __init__(self, x, y, angle, velocity, is_our_team, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
         self._catch_distance = 32
         self._catcher = 'OPEN'
+        self._is_our_team = is_our_team
 
     @property
     def catcher_area(self):
@@ -158,8 +160,13 @@ class Robot(PitchObject):
         '''
         Gets if the robot has possession of the ball
         '''
-        # TODO Make this work for opponents
-        return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
+        # TODO Make this work for opponents properly
+        if self.is_our_team:
+            return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
+        else:
+            # Milestone 3 hack
+            return (math.hypot(self.x - ball.x, self.y - ball.y)
+                    < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
 
     def get_displacement_to_point(self, x, y):
         '''
@@ -195,6 +202,9 @@ class Robot(PitchObject):
                 (self.x, self.y,
                  self.angle, self.velocity, (self.width, self.length)))
 
+    @property
+    def is_our_team(self):
+        return self._is_our_team
 
 class Defender(Robot):
     @property
@@ -207,7 +217,7 @@ class Attacker(Robot):
     def get_blocking_position(self, world):
         # Calculate blocking position
         possession = world.robot_in_possession
-        assert(possession in world.their_robots)
+        assert(not possession.is_our_team)
         target = None
         if possession.in_our_half:
             target = world.our_goal
@@ -279,11 +289,11 @@ class World(object):
     Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
-    _our_defender = Defender(0, 0, 0, 0, 0)
-    _our_attacker = Attacker(0, 0, 0, 0, 0)
+    _our_defender = Defender(0, 0, 0, 0, 0, True)
+    _our_attacker = Attacker(0, 0, 0, 0, 0, True)
     _their_robots = []
-    _their_robots.append(Robot(0, 0, 0, 0, 0))
-    _their_robots.append(Robot(0, 0, 0, 0, 0))
+    _their_robots.append(Robot(0, 0, 0, 0, 0, False))
+    _their_robots.append(Robot(0, 0, 0, 0, 0, False))
     _our_defender_index = 0
     _our_attacker_index = 1
     _their_defender_index = 2
