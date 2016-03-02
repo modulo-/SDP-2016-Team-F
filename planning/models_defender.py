@@ -34,14 +34,14 @@ class ReceivingPass(Goal):
         self.actions = [GrabBall(world, robot),
                         # FIXME: this object doesn't persist, so the 6 seconds never pass.
                         GoToStaticBall(world, robot, [
-                            (lambda w, r: time() - self.start_time > 6, "6 seconds have passed.")]),
-                        TurnToCatchPoint(world, robot, [
-                            (lambda w, r: time() - self.start_time > 6, "6 seconds have passed.")]),
+                            (lambda w, r: math.hypot(r.x - self.robot.x, r.y - self.robot.y) > 75, "6 seconds have passed.")]),
+                        TurnToCatchPoint(world, robot, []),
                         WaitForBallToCome(world, robot),
                         FollowBall(world, robot),
                         OpenGrabbers(world, robot),
                         FaceFriendly(world, robot)]
         super(ReceivingPass, self).__init__(world, robot)
+
 
 class InterceptPass(Goal):
     '''
@@ -55,6 +55,7 @@ class InterceptPass(Goal):
                         AlignForPassIntercept(world, robot)]
         super(InterceptPass, self).__init__(world, robot)
 
+
 class InterceptGoal(Goal):
     '''
     Task 3.2 of Milestone 3
@@ -66,6 +67,7 @@ class InterceptGoal(Goal):
                         OpenGrabbers(world, robot),
                         AlignForGoalIntercept(world, robot)]
         super(InterceptGoal, self).__init__(world, robot)
+
 
 class GetBall(Goal):
     '''
@@ -119,22 +121,23 @@ class Tactical(Goal):
 > ACTIONS
 '''
 
+
 class AlignForPassIntercept(Action):
     preconditions = [(lambda w, r: all(not r.is_missing() for r in w.their_robots), "Both enemies are on the pitch.")]
 
     def perform(self, comms):
         # Hardcoded: The robot should face right (angle = pi/2)
-        angle = (self.robot.angle + pi/2) % (2 * pi) - pi
+        angle = (self.robot.angle + pi / 2) % (2 * pi) - pi
 
         dx = self.world.their_robots[1].x - self.world.their_robots[0].x
         dy = self.world.their_robots[1].y - self.world.their_robots[0].y
         if dx == 0:
-            logger.error("We're fucked.")
+            logging.error("We're fucked.")
             return
         part = (self.robot.x - self.world.their_robots[0].x) / dx
         y = dy * part + self.world.their_robots[0].y
         dist = self.robot.y - y
-        if abs(angle) < ROTATION_THESHOLD:
+        if abs(angle) < ROTATION_BALL_THRESHOLD:
             logging.info("Moving to intercept. Moving distance: %f", dist)
             comms.move(dist)
         else:
@@ -151,15 +154,15 @@ class AlignForGoalIntercept(Action):
         robot = robots[0]
         # Hardcoded: The robot should face the opposite side. Our goal is that
         # on the side the robot is on.
-        target_angle = pi/2
+        target_angle = pi / 2
         goal = (0, 200)
         if robot.x > 300:
-            target_angle = 3*pi/2
+            target_angle = 3 * pi / 2
             goal = (600, 200)
         dx = robot.x - goal[0]
         dy = robot.y - goal[1]
         if dx == 0:
-            logger.error("We're fucked.")
+            logging.error("We're fucked.")
             return
         part = (self.robot.x - goal[0]) / dx
         target_y = dy * part + goal[1]
@@ -167,12 +170,13 @@ class AlignForGoalIntercept(Action):
         if robot.x > 300:
             dist *= -1
         rot_angle = (self.robot.angle - target_angle + pi) % (2 * pi) - pi
-        if abs(rot_angle) < ROTATION_THESHOLD:
+        if abs(rot_angle) < ROTATION_BALL_THRESHOLD:
             logging.info("Moving to intercept goal. Moving distance: %f", dist)
             comms.move(dist)
         else:
-            logging.info("Moving to intercept goal. Turning %f, moving %f", angle, dist)
+            logging.info("Moving to intercept goal. Turning %f, moving %f", rot_angle, dist)
             comms.turn_then_move(rot_angle, dist)
+
 
 class WaitForBallToCome(Action):
     '''
@@ -203,7 +207,7 @@ class FollowBall(Action):
                      (lambda w, r: not utils.ball_is_static(w), "The ball is moving.")]
 
     def perform(self, comms):
-        turn_angle = (self.world.ball.angle - self.robot.angle + pi/2) % (2 * pi) - pi
+        turn_angle = (self.world.ball.angle - self.robot.angle + pi / 2) % (2 * pi) - pi
         dist = math.hypot(self.robot.x - self.world.ball.x, self.robot.y - self.world.ball.y)
         tri_angle = utils.get_rotation_to_point(self.world.ball.vector, self.robot)
         dist *= math.cos(tri_angle)
@@ -213,6 +217,7 @@ class FollowBall(Action):
         else:
             logging.info("Adjusting angle by %f, distance by %f." % (turn_angle, dist))
             comms.turn_then_move(turn_angle, dist)
+
 
 class FaceFriendly(Action):
     preconditions = [(lambda w, r: not w.our_attacker.is_missing(), "Friendly is on the pitch.")]
@@ -224,7 +229,7 @@ class FaceFriendly(Action):
 
 
 class TurnToBallIfClose(Action):
-    preconditions = [(lambda w, r: math.hypot(self.robot.vector, self.world.ball.vector) < CLOSE_DISTANCE_BALL_THRESHOLD, "Defender is close to a ball"),
+    preconditions = [(lambda w, r: math.hypot(r.vector, w.ball.vector) < CLOSE_DISTANCE_BALL_THRESHOLD, "Defender is close to a ball"),
                      (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
 
     def perform(self, comms):
@@ -234,8 +239,10 @@ class TurnToBallIfClose(Action):
         logging.info("Wants to close-rotate by: " + str(angle))
         comms.turn(angle)
 
+
 class TurnToBall(Action):
     preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
@@ -286,12 +293,14 @@ class GoToStaticBall(Action):
         logging.info("Wants to move by: " + str(distance_to_move))
         comms.move(distance_to_move)
 
+
 class OpenGrabbers(Action):
     preconditions = [(lambda w, r: r.catcher == 'CLOSED', "Grabbers are closed.")]
 
     def perform(self, comms):
         comms.release_grabbers()
         self.robot.catcher = 'OPEN'
+
 
 class GrabBall(Action):
     '''
@@ -310,6 +319,7 @@ class TurnToCatchPoint(Action):
     Turn to point for catching ball
     '''
     preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+
     def perform(self, comms):
         x = self.world.ball.x
         y = self.world.ball.y
