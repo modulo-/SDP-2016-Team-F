@@ -61,7 +61,7 @@ class AttackPlanner(Planner):
         '''
         Selects a goal for robot
         '''
-'''        if robot.has_ball(world.ball):
+        '''        if robot.has_ball(world.ball):
             return attacker.Score(world, robot)
         else:
             return attacker.GetBall(world, robot)'''
