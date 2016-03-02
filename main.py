@@ -10,6 +10,7 @@ from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
 from planning.predictor import Predictor
+from time import time
 
 PITCH_NO = 0
 color = None
@@ -74,8 +75,6 @@ def new_vision(world):
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
-    if latest_world.our_defender.can_catch_ball(latest_world.ball):
-        logging.info('Can catch ball.')
     if latest_world.our_defender.is_missing():
         logging.warning("Robot is missing!")
 
