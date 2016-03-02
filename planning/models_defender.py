@@ -81,9 +81,7 @@ class InterceptPass(Goal):
     '''
 
     def __init__(self, world, robot):
-        self.actions = [FollowBall(world, robot),
-                        OpenGrabbers(world, robot),
-                        AlignForPassIntercept(world, robot)]
+        self.actions = [AlignForPassIntercept(world, robot)]
         super(InterceptPass, self).__init__(world, robot)
 
 
@@ -94,9 +92,7 @@ class InterceptGoal(Goal):
     '''
 
     def __init__(self, world, robot):
-        self.actions = [FollowBall(world, robot),
-                        OpenGrabbers(world, robot),
-                        AlignForGoalIntercept(world, robot)]
+        self.actions = [AlignForGoalIntercept(world, robot)]
         super(InterceptGoal, self).__init__(world, robot)
 
 
@@ -167,7 +163,11 @@ class AlignForPassIntercept(Action):
 
     def perform(self, comms):
         robots = self.world.their_robots
-        y_mean = (robots[0].y + robots[1].y) / 2
+        y_diff = robots[1].y - robots[0].y
+        x_diff = robots[1].x - robots[0].x
+        ratio = (self.world.our_defender.x - robots[0].x) / x_diff
+
+        y_mean = robots[0].y + (y_diff * ratio)
 
         distance = utils.defender_distance_on_y(self.world.our_defender.vector, y_mean)
 
