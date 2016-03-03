@@ -2,7 +2,7 @@ import math
 
 from Polygon.cPolygon import Polygon
 from position import Vector
-from logging import debug, info
+from logging import debug, info, error
 
 # Width measures the front and back of an object
 # Length measures along the sides of an object
@@ -16,9 +16,10 @@ BALL_LENGTH = 5
 GOAL_WIDTH = 140
 GOAL_LENGTH = 1
 
-GOAL_LOWER = 286
-GOAL_HIGHER = 164
+GOAL_LOWER = 170
+GOAL_HIGHER = 300
 
+MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 100
 
 class PitchObject(object):
     '''
@@ -112,10 +113,12 @@ class PitchObject(object):
 
 class Robot(PitchObject):
 
-    def __init__(self, x, y, angle, velocity, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
+    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
         self._catch_distance = 32
         self._catcher = 'OPEN'
+        self._is_our_team = is_our_team
+        self._is_house_robot = is_house_robot
 
     @property
     def catcher_area(self):
@@ -158,8 +161,12 @@ class Robot(PitchObject):
         '''
         Gets if the robot has possession of the ball
         '''
-        # TODO Make this work for opponents
-        return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
+        # TODO Make this work for opponents properly
+        if self.is_our_team and not self.is_house_robot:
+            return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
+        else:
+            return (math.hypot(self.x - ball.x, self.y - ball.y)
+                    < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
 
     def get_displacement_to_point(self, x, y):
         '''
@@ -190,14 +197,18 @@ class Robot(PitchObject):
     def aligned_on_goal_arc(self, attacker):
         raise NotImplementedError
 
-    def is_pass_blocking_position(self, world):
-        raise NotImplementedError
-
     def __repr__(self):
         return ('x: %s\ny: %s\nangle: %s\nvelocity: %s\ndimensions: %s\n' %
                 (self.x, self.y,
                  self.angle, self.velocity, (self.width, self.length)))
 
+    @property
+    def is_our_team(self):
+        return self._is_our_team
+
+    @property
+    def is_house_robot(self):
+        return self._is_house_robot
 
 class Defender(Robot):
     @property
@@ -209,8 +220,40 @@ class Defender(Robot):
 class Attacker(Robot):
     def get_blocking_position(self, world):
         # Calculate blocking position
-        # If opponent with ball in our half:
-        raise NotImplementedError
+        possession = world.robot_in_possession
+        if not possession:
+            error("Attempting to find blocking position while no robot in possession")
+            return Vector(0, 0, 0, 0)
+        assert(not possession.is_our_team)
+        target = None
+        if world.in_our_half(possession):
+            info("Blocking our goal which is at ({0}, {1})".format(world.our_goal.x, world.our_goal.y))
+            target = world.our_goal
+        else:
+            # Use their other robot as target
+            info("Blocking opponent pass")
+            target = ([r for r in world.their_robots if r != possession])[0]
+        if (possession.x - target.x) == 0:
+            error("Robot in possession in line on x!")
+            return Vector(0, 0, 0, 0)
+        #m =  (possession.y - target.y) / (possession.x - target.x)
+        #return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
+        return Vector((target.x + possession.x) / 2, (target.y + possession.y) / 2, 0, 0)
+        """dx = target.x - possession.x
+        dy = target.y - possession.y
+        l = math.hypot(dx, dy)
+        print dx,dy, l
+        dx /= l
+        dx *= 75
+        dy /= l
+        dy *= 75
+
+        l = math.hypot(dx, dy)
+        print dx,dy, l
+	print possession.x+dx, possession.y+dy
+
+        return Vector(possession.x+dx, possession.y+dy,0,0)"""
+        
 
 
 class Ball(PitchObject):
@@ -246,8 +289,8 @@ class Pitch(object):
 
     def __init__(self, pitch_num):
         # TODO Get real pitch size
-        self._width = 100
-        self._height = 100
+        self._width = 600
+        self._height = 400
 
     def is_within_bounds(self, robot, x, y):
         '''
@@ -274,11 +317,11 @@ class World(object):
     Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
-    _our_defender = Defender(0, 0, 0, 0, 0)
-    _our_attacker = Attacker(0, 0, 0, 0, 0)
+    _our_defender = Defender(0, 0, 0, 0, 0, True, True)
+    _our_attacker = Attacker(0, 0, 0, 0, 0, True, False)
     _their_robots = []
-    _their_robots.append(Robot(0, 0, 0, 0, 0))
-    _their_robots.append(Robot(0, 0, 0, 0, 0))
+    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
+    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
     _our_defender_index = 0
     _our_attacker_index = 1
     _their_defender_index = 2
@@ -344,7 +387,7 @@ class World(object):
         return not self.in_our_half(robot)
 
     @property
-    def robot_in_possession(self, robot):
+    def robot_in_possession(self):
         robots = [self.our_defender,
                   self.our_attacker] + self.their_robots
         for r in robots:
@@ -370,6 +413,8 @@ class World(object):
 
     @property
     def score_zone(self):
+        # TODO Temporarily use location for milestone 3 passing
+        return self.our_attacker.vector
         if not self._score_zone:
             # Calculate score zone
             raise NotImplementedError
