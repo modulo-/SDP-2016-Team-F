@@ -1,10 +1,27 @@
 \section{Vision}
+
+The vision system is aimed to be a simple and robust platform, which would provide the planner (predictor) with a world description without introducing much additional delay.
+
+The predictor will deal with smoothing the vision output and buffering object position if an object cannot be detected for a limited number of frames. The result of this will be then fed into the planner, which will control the robots.
+
 \subsection{Approach}
-Why it was designed as such
+The vision system is common for both groups in the team. Developed by Group 12 and augmented with details from Group 11's initial vision platform. The vision uses a HSV (hue, saturation, value) coded frame rather than the default BGR (blue, green, red). This enables us to have more control over the colours, rather than the intensity and brightness. The frame will be converted on capture and all future processing will take place over the HSV frame.
 
-\subsection{Calibration}
+Main approach to the vision system is to detect clusters of colour, such as yellow and blue being the robot centres and red being the ball. In case more than two robots for the same team are detected only the best two matches are taken. Colour is detected by creating a mask based on configured thresholds, and finding contours within that mask.
 
-How vision works
-Where we got ideas and code etc
+There will be endeavours to augment this approach with movement and shape detection.
 
-\subsection{Efficiency}
+\subsection{Semi-Automatic Calibration}
+
+The vision system has several calibration routines, most importantly a colour calibrator. 
+
+The colour calibration routine is run on every execution but can be skipped. The vision platform will prompt the user to click on different coloured objects. Every click will take the median of the pixels in a predefined hue range in the immediate vicinity of the click. Inappropriate values are discarded. The gathered pixels will define the saturation and value of the colour ranges, and limit the valid hue values.
+
+This makes it easy to recalibrate the whole vision system on each launch to adapt to environment changes.
+
+\subsection{Manual Calibration}
+The platform implements a manual way of determining threshold values for colour filters, as well as a pitch cropping specification routine.
+
+The vision system offers sliders to manually determine the threshold values for the colour masks. This is useful for debugging and initial calibration of the colours.
+
+The cropping calibration, which is currently disabled (trigger in the vision code is commented), has to be very rarely run (ideally once per camera after every change in the camera angle or position). This enables us to dynamically and efficiently correct the pitch area and ignore any outlying distractions.
