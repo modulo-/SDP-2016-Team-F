@@ -1,3 +1,4 @@
 \section{Planning}
-How high level and low level planning works
-How the planner avoids clashing with the world and micormanaging the robot too badly
+The planner is implemented on an extended world model, which is updated with vision/predictor data.
+
+The planner has a number of goals to select from (currently manual selection: 1 goal $\approx$ 1 milestone task). For each goal the planner will generate an action to take based on the preconditions for each of those being filled or not. From there each of the actions is compiled down to commands which are sent over to the robot.
