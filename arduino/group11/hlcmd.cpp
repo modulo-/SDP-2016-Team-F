@@ -65,9 +65,12 @@ namespace hlcmd {
             return 3;
         case GRABBER_OPEN:
         case KICK:
-            // 1. Uninterruptable timed command
-            // 2. Interruptable NOP.
-            return 4;
+            // 1. Force grabbers
+            // 2. Open grabbers partly
+            // 3. Kick
+            // 4. Open grabbers fully
+            // 5. Interruptable NOP.
+            return 13;
         case GRABBER_CLOSE:
             // 1. Uninterruptable slow close
             // 2. Uninterruptable slow open
@@ -193,9 +196,15 @@ namespace hlcmd {
             *((uint16_t *)(out + 4)) = 100;
             break;
         case KICK:
-            out[0] = llcmd::KICK | llcmd::FLAG_UNINTERRUPTABLE;
-            memcpy(out + 1, in + 1, 2);
-            out[3] = llcmd::NOP;
+            out[0] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 1)) = 100;
+            out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 4)) = 300;
+            out[6] = llcmd::KICK | llcmd::FLAG_UNINTERRUPTABLE;
+            memcpy(out + 7, in + 1, 2);
+            out[9] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 10)) = 600;
+            out[12] = llcmd::NOP;
             break;
         case HOLD_SPIN:
             out[0] = llcmd::HOLD_SPIN;
@@ -223,13 +232,13 @@ namespace hlcmd {
             break;
         case GRABBER_CLOSE:
             out[0] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 1)) = 600;
+            *((uint16_t *)(out + 1)) = 400;
             out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 4)) = 600;
+            *((uint16_t *)(out + 4)) = 100;
             out[6] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 7)) = 500;
+            *((uint16_t *)(out + 7)) = 300;
             out[9] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 10)) = 300;
+            *((uint16_t *)(out + 10)) = 200;
             out[12] = llcmd::NOP;
             break;
         }

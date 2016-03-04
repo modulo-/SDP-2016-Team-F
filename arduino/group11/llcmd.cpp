@@ -163,7 +163,7 @@ namespace llcmd {
         }
         switch(cmds[cmd_at] & 0x7f) {
         case GRABBER_OPEN:
-            io::backward(MOTOR_GRABBERS, 50);
+            io::backward(MOTOR_GRABBERS, 255);
             break;
         case GRABBER_CLOSE:
             io::forward(MOTOR_GRABBERS, 50);
