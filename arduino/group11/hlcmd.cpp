@@ -18,6 +18,8 @@ namespace hlcmd {
     const uint8_t GRABBER_OPEN  = 0x06;
     const uint8_t GRABBER_CLOSE = 0x07;
     const uint8_t HOLD_SPIN     = 0x08;
+    const uint8_t SPD_SET       = 0x09;
+    const uint8_t ARC           = 0x0a;
 
     static uint16_t kickTimeFromDist(uint16_t dist) {
         if(dist >= 1500) {
@@ -42,6 +44,10 @@ namespace hlcmd {
             return 3;
         case MV:
             return 13;
+        case SPD_SET:
+            return 2;
+        case ARC:
+            return 5;
         case GRABBER_OPEN:
         case GRABBER_CLOSE:
         default:
@@ -59,9 +65,12 @@ namespace hlcmd {
             return 3;
         case GRABBER_OPEN:
         case KICK:
-            // 1. Uninterruptable timed command
-            // 2. Interruptable NOP.
-            return 4;
+            // 1. Force grabbers
+            // 2. Open grabbers partly
+            // 3. Kick
+            // 4. Open grabbers fully
+            // 5. Interruptable NOP.
+            return 13;
         case GRABBER_CLOSE:
             // 1. Uninterruptable slow close
             // 2. Uninterruptable slow open
@@ -69,6 +78,10 @@ namespace hlcmd {
             // 4. Uninterruptable slow close
             // 5. Interruptable NOP.
             return 13;
+        case ARC:
+            // 1. LL arc (7 bytes)
+            // 2. Brake (3 bytes)
+            return 10;
         case STRAIT:
         case HOLD_SPIN:
         case SPIN:
@@ -82,6 +95,8 @@ namespace hlcmd {
             // 5. Spin
             // 6. Brake
             return 18;
+        case SPD_SET:
+            return 2;
         default:
             return 0;
         }
@@ -139,6 +154,7 @@ namespace hlcmd {
 
     // Compiles a command from in to out.
     void cmdCompile(const uint8_t *in, uint8_t *out) {
+        int16_t tmp;
         switch(*in) {
         case WAIT:
             *out = llcmd::WAIT;
@@ -148,6 +164,31 @@ namespace hlcmd {
             *out = llcmd::BRAKE;
             memcpy(out + 1, in + 1, 2);
             break;
+        case ARC:
+            out[0] = llcmd::ARC;
+            memcpy(out + 1, in + 1, 2);
+            // Wheel distance = 130mm
+            // => Moving on an arc of radius r means the forward wheels move on arc
+            // with radius r-65 and the outer on arc with radius r+65.
+            // If the total turning angle is d/r radians, the inner wheel movement is
+            // (d/r)*(r-65) and the outer (d/r)*(r+65).
+            //
+            // => The ratio of the two (inner / outer) is:
+            // ((d/r)*(r-65))/((d/r)*(r+65)) = (r-65)/(r+65)
+            tmp = *((int16_t *)(in + 3));
+            if(tmp > 65) {
+                *((uint16_t *)(out + 3)) = tmp - 65;
+                *((uint16_t *)(out + 5)) = tmp + 65;
+            } else if(tmp < -65) {
+                *((uint16_t *)(out + 3)) = -tmp + 65;
+                *((uint16_t *)(out + 5)) = -tmp - 65;
+            } else {
+                *((uint16_t *)(out + 3)) = 1;
+                *((uint16_t *)(out + 5)) = 1;
+            }
+            out[7] = llcmd::BRAKE;
+            *((uint16_t *)(out + 8)) = 100;
+            break;
         case STRAIT:
             out[0] = llcmd::STRAIT;
             memcpy(out + 1, in + 1, 2);
@@ -155,9 +196,15 @@ namespace hlcmd {
             *((uint16_t *)(out + 4)) = 100;
             break;
         case KICK:
-            out[0] = llcmd::KICK | llcmd::FLAG_UNINTERRUPTABLE;
-            memcpy(out + 1, in + 1, 2);
-            out[3] = llcmd::NOP;
+            out[0] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 1)) = 100;
+            out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 4)) = 300;
+            out[6] = llcmd::KICK | llcmd::FLAG_UNINTERRUPTABLE;
+            memcpy(out + 7, in + 1, 2);
+            out[9] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
+            *((uint16_t *)(out + 10)) = 600;
+            out[12] = llcmd::NOP;
             break;
         case HOLD_SPIN:
             out[0] = llcmd::HOLD_SPIN;
@@ -174,6 +221,10 @@ namespace hlcmd {
         case MV:
             compileMV(in, out);
             break;
+        case SPD_SET:
+            out[0] = llcmd::SPD_SET;
+            out[1] = in[1];
+            break;
         case GRABBER_OPEN:
             out[0] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
             *((uint16_t *)(out + 1)) = 600;
@@ -181,13 +232,13 @@ namespace hlcmd {
             break;
         case GRABBER_CLOSE:
             out[0] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 1)) = 600;
+            *((uint16_t *)(out + 1)) = 400;
             out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 4)) = 600;
+            *((uint16_t *)(out + 4)) = 100;
             out[6] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 7)) = 500;
+            *((uint16_t *)(out + 7)) = 300;
             out[9] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 10)) = 300;
+            *((uint16_t *)(out + 10)) = 200;
             out[12] = llcmd::NOP;
             break;
         }
