@@ -115,7 +115,8 @@ class Robot(PitchObject):
 
     def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
-        self._catch_distance = 32
+        self._catch_distance = 30
+        self._catched_ball = False
         self._catcher = 'OPEN'
         self._is_our_team = is_our_team
         self._is_house_robot = is_house_robot
@@ -141,6 +142,10 @@ class Robot(PitchObject):
     @property
     def catch_distance(self):
         return self._catch_distance
+
+    @property
+    def catched_ball(self):
+        return self._catched_ball
 
     @catcher.setter
     def catcher(self, new_position):

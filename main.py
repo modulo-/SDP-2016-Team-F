@@ -10,11 +10,11 @@ from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
 from threading import Timer, Thread
 from planning.predictor import Predictor
-from planning import utils
 from time import time
 
 PITCH_NO = 0
 color = None
+
 
 class Interrupt:
     def __init__(self, cond, run, delay):
@@ -28,7 +28,7 @@ INITIAL_PLANNER_DELAY = 4
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
-latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
+latest_world.our_defender._receiving_area = {'width': 30, 'height': 10, 'front_offset': 20}
 interrupts = []
 
 
@@ -75,11 +75,6 @@ def new_vision(world):
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
-    if latest_world.our_attacker.can_catch_ball(latest_world.ball):
-        logging.info('Can catch ball.')
-    if latest_world.our_attacker.is_missing():
-        logging.warning("Robot is missing!")
-
 
 def start_vision():
     Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
@@ -201,7 +196,6 @@ def run(attacker, defender, plan):
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-            #lambda: defender.close_grabbers(), 2))
             lambda: defence_planner.plan_and_act(latest_world), 2))
 
     def run_planners():
