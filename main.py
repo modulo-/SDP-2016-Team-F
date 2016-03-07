@@ -27,19 +27,19 @@ INITIAL_PLANNER_DELAY = 4
 
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
-latest_world.our_attacker._receiving_area = {'width': 25, 'height': 10, 'front_offset': 20}
+latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
 latest_world.our_defender._receiving_area = {'width': 40, 'height': 30, 'front_offset': 10}
 interrupts = []
 
 
-def get_defender(world):
+def get_attacker(world):
     if color == 'b':
         return world.robot_blue_green
     else:
         return world.robot_yellow_green
 
 
-def get_attacker(world):
+def get_defender(world):
     if color == 'b':
         return world.robot_blue_pink
     else:
@@ -75,9 +75,9 @@ def new_vision(world):
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
-    if latest_world.our_defender.can_catch_ball(latest_world.ball):
+    if latest_world.our_attacker.can_catch_ball(latest_world.ball):
         logging.info('Can catch ball.')
-    if latest_world.our_defender.is_missing():
+    if latest_world.our_attacker.is_missing():
         logging.warning("Robot is missing!")
 
 
@@ -137,9 +137,11 @@ def set_plan(attack_planner, defence_planner, plan):
 
 
 def main():
+    global color
+    global latest_world
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:", ["help", "visible", "defender=", "attacker=", "logging=", "color=", "plan="])
+        opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:g:", ["help", "visible", "defender=", "attacker=", "logging=", "color=", "plan=", "goal="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
@@ -174,6 +176,8 @@ def main():
                 color = 'b'
         elif o in ("-p", "--plan"):
             plan = a
+        elif o in ("-g", "--goal"):
+            latest_world = World(a, PITCH_NO)
         else:
             assert False, "unhandled option"
             exit(0)

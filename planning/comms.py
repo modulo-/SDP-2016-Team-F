@@ -66,6 +66,13 @@ class TractorCrabCommsManager(CommsManager):
     def _16_bitify(self, n):
         return [n & 0xff, (n >> 8) & 0xff]
 
+    def turn_then_move(self, angle, distance):
+        self._run(
+            [self.CMD_SPIN] +
+            self._16_bitify(self._normalize_angle(angle)) +
+            [self.CMD_STRAIT] +
+            self._16_bitify(self._normalize_dist(distance)))
+
     def move(self, distance):
         # NOTE: moves to the right, NOT forward. (We need better support for a different action set).
         # Expects input in cm.
@@ -112,7 +119,7 @@ class RFCommsManager (CommsManager):
 
     # move a distance in mm
     def move(self, distance):
-        mm_distance = distance / 0.1958
+        mm_distance = distance / 0.25 #0.1958
         cmd = b"m" + struct.pack(">h", mm_distance)
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).move(mm_distance)
