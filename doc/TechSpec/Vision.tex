@@ -1,23 +1,24 @@
 \section{Vision}
 
-The vision system is aimed to be a simple and robust platform, which would provide the planner (predictor) with a world description without introducing much additional delay.
-
-The predictor will deal with smoothing the vision output and buffering object position if an object cannot be detected for a limited number of frames. The result of this will be then fed into the planner, which will control the robots.
+The vision system is aimed to be a simple and robust platform, which would provide the planner (predictor) with a world description without introducing much additional delay. The predictor will deal with smoothing the vision output and buffering object position if an object cannot be detected for a limited number of frames. The result of this will be then fed into the planner, which will control the robots.
 
 \subsection{Approach}
-The vision system is common for both groups in the team. Developed by Group 12 and augmented with details from Group 11's initial vision platform. The vision uses a HSV (hue, saturation, value) coded frame rather than the default BGR (blue, green, red). This enables us to have more control over the colours, rather than the intensity and brightness. The frame will be converted on capture and all future processing will take place over the HSV frame.
 
-Main approach to the vision system is to detect clusters of colour, such as yellow and blue being the robot centres and red being the ball. In case more than two robots for the same team are detected only the best two matches are taken. Colour is detected by creating a mask based on configured thresholds, and finding contours within that mask.
+The vision system is common for both groups in the team. Developed by Group 12 and augmented with details from Group 11's initial vision platform. The vision uses a HSV (hue, saturation, value) coded frame rather than the default BGR (blue, green, red). This enables us to have more control over the colours, rather than the intensity and brightness. When a frame is captured, we first remove radial distortion and then blur the image so that all objects become more connected and are easier to identify. The frame is then converted to HSV and all future processing will take place over the HSV frame.
 
-There will be endeavours to augment this approach with movement and shape detection.
+Main approach to the vision system is to detect clusters of colour, such as yellow and blue being the robot centres and red being the ball. Colour is detected by creating a mask based on configured thresholds, and finding contours within that mask. In case more than two robots for the same team are detected only the best two matches are taken. To make sure a yellow or a blue cluster is indeed a robot, we also check if there are any pink or green circles around. If none are found, then this cluster is skipped and we move onto the next largest one. After a cluster is identified as a robot centre, we identify the green and pink colour clusters in a 40x40 pixel area around the centre. If we find three pink clusters, then the robots is the pink teammate, otherwise it is the green teammate. Once we find the teammate colour, we then find the centre of the circle used for orientation (pink circle for green teammate; green circle for pink teammate). A vector is then taken from the centre of the orientation circle to the centre of the robot, shifted by 45 degrees and drawn from the robot centre to indicate it’s orientation. For the ball, the largest red cluster is taken and for the orientation, we use the vector from previous position to current position. In all objects velocity is calculated relative to the movement from the previous frame. 
+
+There will be endeavours to augment this approach with movement and shape detection, since colour thresholding can become unreliable if the thresholds are not perfectly adjusted.
+
 
 \subsection{Semi-Automatic Calibration}
 
 The vision system has several calibration routines, most importantly a colour calibrator. 
 
-The colour calibration routine is run on every execution but can be skipped. The vision platform will prompt the user to click on different coloured objects. Every click will take the median of the pixels in a predefined hue range in the immediate vicinity of the click. Inappropriate values are discarded. The gathered pixels will define the saturation and value of the colour ranges, and limit the valid hue values.
+The colour calibration routine is run on every execution but can be skipped. The vision platform will prompt the user to click on different coloured objects. Every click will take a 3x3 square of pixels around the click and record those that are in a predefined hue range hard coded for each colour. Inappropriate values are discarded. The gathered pixels will define the saturation and value of the colour ranges, and limit the valid hue values.
 
 This makes it easy to recalibrate the whole vision system on each launch to adapt to environment changes.
+
 
 \subsection{Manual Calibration}
 The platform implements a manual way of determining threshold values for colour filters, as well as a pitch cropping specification routine.
