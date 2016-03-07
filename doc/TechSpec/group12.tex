@@ -7,9 +7,22 @@
 \usepackage{tabularx}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
 \usepackage{titlesec}
+\usepackage{listings}
+\lstset{language=Python, showstringspaces=false}
 
+
+\usepackage[hypcap]{caption}
+\usepackage[pdfusetitle, hidelinks]{hyperref}
+\hypersetup{ 
+    bookmarksnumbered=true,     
+    bookmarksopen=true,         
+    bookmarksopenlevel=2,         
+    pdfstartview=Fit,           
+    pdfpagemode=UseOutlines,    % this is the option you were lookin for
+    pdfpagelayout=SinglePage
+    }
+    
 \usepackage{float}
-\newcommand{\sectionbreak}{\clearpage}
 
 \author{SDP Group 12}
 \title{Technical Specification}
@@ -29,29 +42,29 @@ The aim of this project was to create a robot that would play a simplified versi
 This report will examine the decisions made in the design of each part and their impacts. Furthermore it will explain the principles our work relies on.
 
 
-\section{Work Distribution and Management}
+\subsection{Work Distribution and Management}
 Overall the group was efficiently split into subgroups working on specific tasks. As opposed to many other groups, all team members have made significant contributions to the outcome of the project.
 
 Furthermore, many tasks were shared with Group 11, and large contributions introduced by teamwork between the two halves of the team.
 
 
-\subsection{Chloe McKnight}
-Mostly worked on planning.
-
-\subsection{Joel Hutton}
-Responsible for hardware.
-
-\subsection{Hugh McGrade}
-Leader of planning development.
-
-\subsection{Margus Lind}
-All around
-
-\subsection{Sanchit Gupta}
-Mostly worked on vision.
-
-\subsection{Simeon "King of Calibration" Ivanov}
-Leader of vision development.
+%\subsection{Planning}
+%Mostly worked on planning.
+%
+%\subsection{Joel Hutton}
+%Responsible for hardware.
+%
+%\subsection{Hugh McGrade}
+%Leader of planning development.
+%
+%\subsection{Margus Lind}
+%All around
+%
+%\subsection{Sanchit Gupta}
+%Mostly worked on vision.
+%
+%\subsection{Simeon "King of Calibration" Ivanov}
+%Leader of vision development.
 
 \input{Vision}
 
@@ -60,8 +73,5 @@ Leader of vision development.
 \input{Communications}
 
 \input{Hardware}
-
-\section{Conclusion}
-And it will win all matches always everywhere forever
 
 \end{document}
