@@ -149,7 +149,7 @@ Ball free & GetBall \\
 
 \subsection{Extensibility}
 
-Extending the planner is simply a case of adding goals and actions then adding the logic to select these in \texttt{select_goal(world)}. Any new goals or actions should subclass Goal and Action respectively and override methods were stated.
+Extending the planner is simply a case of adding goals and actions then adding the logic to select these in \texttt{select\_goal(world)}. Any new goals or actions should subclass Goal and Action respectively and override methods were stated.
 
 In actions, the logic for performing should be placed in \texttt{perform(comms)}. This method is passed a \texttt{CommsManager} object through which the robot can be sent instructions. No more than one call should be made to this object in any given action. A new action should also override \texttt{get\_delay} giving an appropriate delay (in seconds) before the planner should run again. New actions can also have preconditions defined in a variable \texttt{preconditions}.
 
