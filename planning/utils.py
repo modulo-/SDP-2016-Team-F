@@ -139,7 +139,6 @@ def ball_is_static(world):
     Returns true if the ball has lower velovity then defined threshold.
     '''
 
-    # TODO find real threshold value
     static_threshold = 1
     return world.ball.velocity < static_threshold
 
@@ -169,6 +168,91 @@ def robot_can_reach_ball(ball, robot):
     # threshold = 30
     return True
 
+
+def defender_distance_to_line(axis, robot_vec, point):
+    '''
+    Calculates the moving distance to a point that is either on x
+    or y axis.
+    '''
+    axis = 'y'
+    distance = 0
+
+    if axis == 'y':
+        # Computer the intersection point
+        x2 = 10 * math.sin(math.radians(robot_vec.angle))
+        y2 = 10 * math.cos(math.radians(robot_vec.angle))
+        print ("POINT: " + str(x2) + " - " + str(y2))
+        robot_line = ((robot_vec.x, robot_vec.y), (x2, y2))
+        target_line = ((0, point), (10, point))
+        intersection_point = line_intersection(robot_line, target_line)
+
+        # Compute the distnce to an intersection point
+        vector_x = intersection_point[0] - robot_vec.x
+        vector_y = intersection_point[1] - robot_vec.y
+        distance = math.hypot(vector_x, vector_y)
+
+        # Get movement direction
+        # direction_vec = Vector(vector_x, vector_y, 0, 0)
+        direction = get_movement_direction_from_vector(robot_vec, intersection_point)
+        print("DISTANCE: " + str(distance * direction))
+
+        return distance * direction
+
+    return 0
+
+
+def defender_distance_on_y(robot_vec, y_value):
+    '''
+    Calculates the moving distance on y axis.
+    '''
+    distance = abs(y_value - robot_vec.y)
+
+    target_point = Vector(robot_vec.x, y_value, 0, 0)
+    direction = get_movement_direction_from_vector(robot_vec, target_point)
+
+    return (distance + 2) * direction
+
+
+def get_movement_direction_from_vector(robot_vec, point_vec):
+    '''
+    Returns either
+        1 - move right; or
+        -1 - move left
+    '''
+    robot_vec_left = Vector(robot_vec.x, robot_vec.y, robot_vec.angle - math.pi / 2, 0)
+    # point_vec = Vector(point[0], point[1], 0, 0)
+
+    rotation_for_left = get_rotation_to_point(robot_vec_left, point_vec)
+    # rotation_for_right = get_rotation_to_point(robot_vec_right, direction_vec)
+
+    # print (math.degrees(robot_vec.angle))
+    # print (point)
+    # print ("ROTATION LEFT: " + str(math.degrees(rotation_for_left)))
+    if abs(math.degrees(rotation_for_left)) < 90:
+        return -1
+    else:
+        return 1
+
+
+def line_intersection(line1, line2):
+    '''
+    Finds the interception point of the lines
+    Each line as this structure ((x1, y1), (x2, y2))
+    '''
+    xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+    ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+
+    def det(a, b):
+        return a[0] * b[1] - a[1] * b[0]
+
+    div = det(xdiff, ydiff)
+    if div == 0:
+        logging.error('Lines do not intersect')
+
+    d = (det(*line1), det(*line2))
+    x = det(d, xdiff) / div
+    y = det(d, ydiff) / div
+    return x, y
 
 # Test if robot can score
 # From 2015 Group 12 behaviour/utilities.py

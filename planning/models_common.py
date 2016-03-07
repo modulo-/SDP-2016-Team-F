@@ -1,12 +1,12 @@
 import math
 from logging import info
 
-# TODO
 ROTATION_THRESHOLD = 0.1
 FACING_ROTATION_THRESHOLD = 0.4
 DISTANCE_THRESHOLD = 10
 
 DEFAULT_DELAY = 4
+
 
 def are_equivalent_positions(a, b):
     return math.sqrt((a.x - b.x)**2 + (a.y - b.y)**2) < DISTANCE_THRESHOLD
@@ -35,9 +35,10 @@ class Action(object):
     '''
     preconditions = []
 
-    def __init__(self, world, robot):
+    def __init__(self, world, robot, additional_preconds=[]):
         self.world = world
         self.robot = robot
+        self.preconditions = self.__class__.preconditions + additional_preconds
 
     # Test the action's preconditions
     def is_possible(self):

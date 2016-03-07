@@ -28,7 +28,9 @@ class Planner (object):
 
     def actuate(self, action):
         '''Perform actions'''
-        action.perform(self.comms)
+        if action is None:
+            return 1
+        delay = action.perform(self.comms)
         if isinstance(action, defender.GrabBall) or isinstance(action, attacker.GrabBall):
             info("Did grab")
             self.grabber_state = 'CLOSED'
@@ -36,12 +38,13 @@ class Planner (object):
             info("Did open")
             self.grabber_state = 'OPEN'
 
+        return delay
+
     def plan_and_act(self, world):
         '''
         Make plans for each robot, perform them and return delay
         '''
-        world.our_attacker.catcher = self.grabber_state
-        robot = world.our_attacker
+        robot = self.robot(world)
         goal = self.get_goal(world, robot)
         if goal is None:
             info("Planner has no goal")
@@ -50,14 +53,26 @@ class Planner (object):
         if action != self.previous_action:
             action = action
         self.previous_action = action
-        self.actuate(action)
-        return action.get_delay()
+        delay = self.actuate(action)
+        print ("GONNA WAIT >>>: " + str(delay))
+        if delay:
+            return delay
+        else:
+            return DEFAULT_DELAY
+        # return action.get_delay()
 
 
 class AttackPlanner(Planner):
     '''
     Planner for attacking robot
     '''
+
+    def robot(self, world):
+        return world.our_attacker
+
+    def plan_and_act(self, world):
+        world.our_attacker.catcher = self.grabber_state
+        super(AttackPlanner, self).plan_and_act(world)
 
     def get_goal(self, world, robot):
         '''
@@ -98,11 +113,20 @@ class DefencePlanner(Planner):
     Planner for defending robot
     '''
 
+    def robot(self, world):
+        return world.our_defender
+
     def get_goal(self, world, robot):
         '''
         Selects a goal for robot
         '''
         if self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
-        if self.current_task == 'm31':
+        elif self.current_task == 'm1':
             return defender.ReceivingPass(world, robot)
+        elif self.current_task == 'm2':
+            return defender.ReceiveAndPass(world, robot)
+        elif self.current_task == 'm31':
+            return defender.InterceptPass(world, robot)
+        elif self.current_task == 'm32':
+            return defender.InterceptGoal(world, robot)
