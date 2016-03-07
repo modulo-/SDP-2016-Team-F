@@ -58,12 +58,11 @@ class Predictor:
             return c[-1][0]
         weights = [1/math.sqrt(i) for i in range(1, len(c))][::-1]
         deltas = (
-            sum(((c[i][0].x - c[i-1][0].x)*weights[i-1]) for i in range(1, len(c))),
-            sum(((c[i][0].y - c[i-1][0].y)*weights[i-1]) for i in range(1, len(c))),
-            sum(((c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
+            sum(((c[i][0].x - c[i-1][0].x)/(c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
+            sum(((c[i][0].y - c[i-1][0].y)/(c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
         )
         weight = sum(weights)
-        vec = (deltas[0] / (deltas[2] * weight), deltas[1] / (deltas[2] * weight))
+        vec = (deltas[0] / weight, deltas[1] / weight)
         t = time()
         tdelta = t + Predictor._VISION_DELAY - c[-1][1]
         angle = None
