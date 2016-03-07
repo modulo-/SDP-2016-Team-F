@@ -148,6 +148,7 @@ class Tactical(Goal):
 class ReactiveGrabGoal(Goal):
     def __init__(self, world, robot):
         self.actions = [AlignForGrab(world, robot),
+                        RotateAndAlignForGrab(world, robot),
                         ReactiveGrabAction(world, robot)]
         super(ReactiveGrabGoal, self).__init__(world, robot)
 
@@ -156,30 +157,30 @@ class ReactiveGrabGoal(Goal):
 > ACTIONS
 '''
 
+class RotateAndAlignForGrab(Action):
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
+                     (lambda w, r: abs((r.angle - w.ball.angle + pi/2) % pi - pi/2) >= 0.6, "Ball vector and robot vector not within 35 degrees."),
+                     (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
+    def perform(self, comms):
+        target_rotation = (self.robot.angle - self.ball.angle + pi/2) % pi - pi/2
+        dist = utils.defender_get_ball_alignment_offset(self.robot, self.world.ball, target_rotation)
+        logging.info("Aligning with ball. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
+        if abs(dist) > MOVEMENT_THRESHOLD:
+            comms.turn_then_move(target_rotation, dist)
+        else:
+            comms.turn(target_rotation)
+
+
 class AlignForGrab(Action):
     preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
                      (lambda w, r: abs((r.angle - w.ball.angle + pi/2) % pi - pi/2) < 0.6, "Ball vector and robot vector within 35 degrees."),
                      (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
 
     def perform(self, comms):
-        ball0 = np.array([self.world.ball.x, self.world.ball.y])
-        ballv = np.array([math.sin(self.world.ball.angle), math.cos(self.world.ball.angle)])
-        robot0 = np.array([self.robot.x, self.robot.y])
-        robotv = np.array([math.sin(self.robot.angle + pi/2), math.cos(self.robot.angle + pi/2)])
-        coefficients = np.array([ballv, -robotv]).T
-        constants = robot0 - ball0
-        try:
-            distances = np.linalg.solve
-        except np.linalg.LinAlgError:
-            # Well shit.
-            pass
-        if distances[0] < 0:
-            # TODO: We are behind the ball! Panic!
-            # Or rather, switch to a different plan.
-            pass
-        logging.info("Aligning with ball. (Move %f right)", distances[1])
-        if abs(distances[1]) > MOVEMENT_THRESHOLD:
-            comms.move(distances[1])
+        dist = utils.defender_get_ball_alignment_offset(self.robot, self.world.ball)
+        logging.info("Aligning with ball. (Move %f right)", dist)
+        if abs(dist) > MOVEMENT_THRESHOLD:
+            comms.move(dist)
 
 
 class ReactiveGrabAction(Action):

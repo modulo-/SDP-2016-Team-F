@@ -1,6 +1,9 @@
 import math
 import logging
+import numpy as np
 from position import Vector, Coordinate
+
+from math import pi
 
 
 def get_rotation_to_point(vec1, vec2):
@@ -67,6 +70,25 @@ def is_angle_between_angles(a, b, c):
         return b > c or b < a
     else:
         return b > a and b < c
+
+def defender_get_ball_alignment_offset(robot, ball, robot_angle_delta=0):
+    ball0 = np.array([ball.x, ball.y])
+    ballv = np.array([math.sin(ball.angle), math.cos(ball.angle)])
+    robot0 = np.array([robot.x, robot.y])
+    angle = robot.angle + robot_angle_delta + pi/2
+    robotv = np.array([math.sin(angle), math.cos(angle)])
+    coefficients = np.array([ballv, -robotv]).T
+    constants = robot0 - ball0
+    try:
+        distances = np.linalg.solve(coefficients, constants)
+    except np.linalg.LinAlgError:
+        # Well shit.
+        return 0
+    if distances[0] < 0:
+        # TODO: We are behind the ball! Panic!
+        # Or rather, switch to a different plan.
+        pass
+    return distances[1]
 
 
 def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
