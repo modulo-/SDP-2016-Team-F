@@ -155,4 +155,12 @@ Linux this is likely to be something of the form `\verb$/dev/ttyACMx$'.
 
 \input{Vision}
 
+Spinning and moving tends to move the grabbers about. To avoid this, the
+grabbers are powered slightly during both of these actions. If the grabbers are
+open, they are constantly opening while the robot is moving, albeit very
+slowly. Likewise, the grabbers keep closing if they are already closed. For
+this purpose, the robot maintains a local state variable for the grabber. It is
+worth stating that this is not measured or sensed, so manually moving the
+grabbers will confuse the robot.
+
 \end{document}
