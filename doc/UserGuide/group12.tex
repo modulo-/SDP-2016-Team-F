@@ -4,7 +4,25 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+
+\usepackage{blindtext}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\newcommand{\shellcmd}[1]{\indent\indent\texttt{\footnotesize\# #1}}
+
+
+\usepackage[hypcap]{caption}
+\usepackage[pdfusetitle, hidelinks]{hyperref}
+\hypersetup{ 
+    bookmarksnumbered=true,     
+    bookmarksopen=true,         
+    bookmarksopenlevel=2,         
+    pdfstartview=Fit,           
+    pdfpagemode=UseOutlines,    % this is the option you were lookin for
+    pdfpagelayout=SinglePage
+    }
+    
+
 \author{SDP Group 12}
 \title{User Guide}
 
