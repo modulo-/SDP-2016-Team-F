@@ -1,2 +1,103 @@
 \section{Hardware}
-Will submit this section in the next few days
+
+\subsection{Wheelbase}
+\subsubsection{Dimensions}
+'Drive' wheelbase:		15cm \newline
+Radius of 'turn' wheel: 11cm
+\subsubsection{Origin}
+The origin is directly between the 'Drive' wheels
+\subsubsection{Arrangement}
+The robot uses a 3 wheeled 'T' design with 2 parallel 'drive' wheels along one axis of rotation (capable of rotating independently) and a third unpowered 'turn' wheel rotating perpendicular to these 2 (figure 1.1.1). The 'origin' of the robot should be 
+directly between the 2 drive wheels which are 15cm apart. The 'turn' wheel 
+is 11cm back from the origin, the left wheel 7.5cm to the left and the right
+7.5cm to the right. 
+
+\subsubsection{Motors}
+The 2 drive motors are lego NXT motors and have rotational encoders built in, this is used to turn and move accurately. 
+
+\subsubsection{Parts and Costs}
+holonomic wheel * 3 @ £6 \newline
+NXT motor       * 2 @ £5 \newline
+
+\begin{figure}[!ht]
+\caption{figure 1.1.1}
+\centering
+\includegraphics[width=\textwidth, angle=270]{DSC_0036.jpg}
+\end{figure}
+
+\subsection{Front Assembly}
+\subsubsection{Parts and Costs}
+2* 43362 Electric Technic Mini-Motor 9v @ £0.50 
+
+\subsubsection{Description}
+The robot Has a 2 motor assembly mounted on 4 vertical bars coming up from the struts joining the left and right NXT drive motors. These are symmetrically mounted and linked by a chain in order to keep them synchronised. The right grabber is lower than the left one so that they do not hit into each other. On one of the centre axles there is a rotary encoder to give the position of the grabbers to the arduino, through the rotary encoder board. position 0 is open, 10 is closed with ball and 13 is closed without ball.
+
+The grabber assembly is fully detachable and can be clipped on and off. 
+\begin{figure}[!ht]
+\caption{figure 1.2.1}
+\centering
+\includegraphics[width=\textwidth]{DSC_0031.jpg}
+\end{figure}
+
+\subsection{Kicker}
+\subsubsection{Position}
+The kicker is a solenoid mounted on the underside of the robot (see figure 1.1.1) connected through a relay to the battery packs, with the relay signal going to the power shield and being controlled directly by the arduino. on the end of the solenoid is a curved kicker designed to keep the ball straight.
+
+\subsubsection{Power}
+The kicker is capable of kicking a distance of 3.2m at full power with an approx error of 15 percent
+
+\subsubsection{Parts and costs}
+1 * PED 	121-420-610-540  SOLENOID, TUBULAR, PULL, 6V @ £10.91
+\footnote{part is out of production, equivalent part: \url{http://uk.farnell.com/multicomp/mcsmt-1325s12std/solenoid-tubular-push-12v/dp/2008785?CMP=ADV-CRUK-LF}}
+
+\subsection{Board and Battery Assembly}
+\subsubsection{Structure}
+The boards are mounted on a platform between the 3 wheels. The arduino and power
+shield are mounted in the centre with 2 battery packs of 2 18650 Li-Ion batteries mounted sideways on either
+side. The rotary encoder board is
+mounted on the back of the right battery pack and the motor driver board is mounted
+on the left battery pack. As the batteries face in the packs must be detached to
+replace them. Both packs clip onto the platform with lego connectors.
+
+\subsubsection{Batteries}
+The batteries are 4* 18650 Canwelum Li-Ion cells wired in series in 2 battery packs. They can be removed and charged individually in the Li-Ion charger.
+	Voltage (per cell):2.65(min) - 4.2(max)
+    Voltage (total)   :10.6(min) - 16.8(max)
+    Max Current: 7A
+    Internal Resistance (per cell): 0.150 Ohms
+    Internal Resistance (total)   : 0.6   Ohms
+    Capacity: 2250mAh
+	Protection: overvolt and undervolt
+    
+\subsubsection{Connections}
+The batteries are connected in series and must be connected to the power board through the yellow switch, with the splitters on the line powering the solenoid relay (orange wires)
+\subsubsection{Switch}
+A yellow switch turns the robot on and off
+
+\subsubsection{Parts and costs}
+8* Canwelum 18650 protected cells @ £5
+1* Nitecore charger               @ £14.99 (between 2 teams)
+2* Battery holders                @ £3.88
+
+\section{Arduino Software}
+\subsection{Main Loop}
+The main loop listens on the serial port and executes any command received in a non-blocking manner. 
+\subsection{Command Set}
+The commands are as follows:
+kick(distance)
+grab()
+release()
+turn(angle)
+move(distance)
+\subsection{Command Response}
+In response to a command the robot immediately drops what it is doing and runs that command. 
+\subsection{Kicking}
+The robot releases the grabbers until they are at position 0 then kicks a time dependent on the distance required. It then closes the grabbers to position 13 (fully closed) for continued movement.
+\subsection{Grabbing}
+The robot closes the grabbers until they are fully closed or 800ms whichever is sooner, if the grabbers only close to position 10 the grab is considered a success and this is sent to the planner. 
+\subsection{Release}
+The grabbers are released to position 0.
+\subsection{Turn}
+The robot accelerates up to a calibrated turning speed, then maintains that speed until it has just enough time to decelerate to the required position. The wheels are kept turning the same distance using the distance from the rotary encoders by powering down a motor if it has gone too far and powering it up if it has not gone far enough. The turn is considered finished when the averaged distance from the left and right wheels matches the calculated distance required to rotate the desired angle (by using radius of wheels:2.5cm, radius from origin:7.5cm). 
+\subsection{Move}
+The robot accelerates up to the calibrated speed and then maintains that speed until it has just enough time to decelerate to the desired distance. It keeps the wheels going the same distance using the rotary encoders by reducing power to a wheel that has gone too far. The distance is determined by $/texttt{radius of the wheels} \times \pi \times \texttt{rotation}$. 
