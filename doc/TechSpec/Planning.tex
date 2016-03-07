@@ -1,3 +1,145 @@
+\documentclass{article}
+\usepackage{listings}
+\begin{document}
+\lstset{language=Python, showstringspaces=false}
+
 \section{Planning}
-How high level and low level planning works
-How the planner avoids clashing with the world and micormanaging the robot too badly
+
+\subsection{Design}
+
+The planner uses a system of goals and actions. Goals define an overall strategy in a given situation leading to a particular aim. Actions define one instruction given to the robot with preconditions for its execution. Goals are composed of a sequence of actions. A goal object selects the next action required to achieve its aim by traversing its ordered list of actions and evaluating their preconditions.
+
+In the implementation, all goals and actions are derived from their respective super classes. These are defined as follows:
+
+\begin{lstlisting}
+class Goal(object):
+    '''
+    Base class for goals
+    '''
+    def __init__(self, world, robot):
+        self.world = world
+        self.robot = robot
+
+    # Return the next action necesary to achieve the goal
+    def generate_action(self):
+        info("Generating action for goal: {0}".format(self.__class__.__name__))
+        for a in self.actions:
+            if a.is_possible():
+                return a
+        return None
+
+
+class Action(object):
+    '''
+    Base class for actions
+    '''
+    preconditions = []
+
+    def __init__(self, world, robot, additional_preconds=[]):
+        self.world = world
+        self.robot = robot
+        self.preconditions = self.__class__.preconditions + additional_preconds
+
+    # Test the action's preconditions
+    def is_possible(self):
+        info("Testing action : {0}".format(self.__class__.__name__))
+        for (condition, name) in self.preconditions:
+            if not condition(self.world, self.robot):
+                info("Precondition is false: {0}".format(name))
+                return False
+        info("Action possible: {0}".format(self.__class__.__name__))
+        return True
+
+    # Do comms to perform action
+    def perform(self, comms):
+        raise NotImplementedError
+
+    # Get messages relating to action
+    def get_messages(self):
+        return []
+
+    def get_delay(self):
+        return DEFAULT_DELAY
+
+\end{lstlisting}
+
+The planner makes its decision based on only on the world state passed to it. This is described by an instance of the \lstinline|World| class passed to the planner. This object's state is updated by passing a new set of positions (as a dictionary of vectors) to the \lstinline|update_positions| method of \lstinline|World|. The \lstinline|World| class describes the state of the world from the vision, including position vectors for the robots, the ball and the goals. The \lstinline|World| class and its associated classes also provide methods on their data providing the planner with information about the world. Further utility functionality can be found in ``utils.py''
+
+The overall planner is used by calling \lstinline{plan_and_act(world)}. This selects a goal based on the given world state  using its \lstinline|get_goal()| method. From this goal an action is generated using \lstinline|generate_action()|. The method then runs (using \lstinline|actuate(action)|) and returns a delay giving the time until the planner should be run again.
+
+\subsection{Implementation}
+
+Our attacker robot's goals and their respective actions are as follows:
+
+AttackPosition
+
+\begin{tabular}{ | l | l | }
+\hline
+Action & Preconditions \\ \hline
+TurnToDefenderToReceive & Attacker in score zone \\ \hline
+GoToScoreZone & Attacker is facing score zone  \\ \hline
+TurnToScoreZone & None \\
+\hline
+\end{tabular}
+
+Score
+
+\begin{tabular}{ | l | l | }
+\hline
+Action & Preconditions \\ \hline
+Shoot & Attacker has ball and attacker can score \\ \hline
+TurnToGoal & Attacker has ball \\
+\hline
+\end{tabular}
+
+GetBall
+
+\begin{tabular}{ | l | l | }
+\hline
+Action & Preconditions \\ \hline
+GrabBall & Attacker can catch ball and attacker's grabbers are open \\ \hline
+GoToGrabStaticBall & Ball is static, attacker is facing ball and attacker's grabbers are open \\ \hline
+OpenGrabbers & Ball is in attacker's grab range and attacker's grabbers are closed \\ \hline
+GoToBallOpeningDistance & Attacker is facing ball \\ \hline
+TurnToBall & None \\
+\hline
+\end{tabular}
+
+AttackerBlock
+
+\begin{tabular}{ | l | l | }
+\hline
+Action & Preconditions \\ \hline
+TurnToBlockingAngle & Attacker in blocking position \\ \hline
+GoToBlockingPosition & Attacker is facing blocking position \\ \hline
+TurnToFaceBlockingPosition & None \\
+\hline
+\end{tabular}
+
+The planner chooses a goal based for certain situations, as described in following table:
+
+\begin{tabular}{ | l | l | }
+\hline
+Robot in possession & Goal \\ \hline
+Our attacker & Score \\
+Our defender & AttackPosition \\
+Their attacker & AttackPosition \\
+Their defender & AttackerBlock \\
+Ball free & GetBall \\
+\hline
+\end{tabular}
+
+
+\subsection{Extensability}
+
+Extending the planner is simply a case of adding goals and actions then adding the logic to select these in \lstinline{select_goal(world)}. Any new goals or actions should subclass Goal and Action respectively and override methods were stated.
+
+In actions, the logic for performing should be placed in \lstinline{perform(comms)}. This method is passed a \lstinline{CommsManager} object through which the robot can be sent instructions. No more than one call should be made to this object in any given action. A new action should also override \lstinline{get_delay} giving an appropriate delay (in seconds) before the planner should run again. New actions can also have preconditions defined in a variable \lstinline{preconditions}.
+
+In goals, it may only be neccessary to write a Goal subclass with an ordered list of actions (from last to first). Otherwise the \lstinline{generate_action()} method can be overriden but similar logic should be followed.
+
+\subsection{Integration}
+
+An instance of the \lstinline{Planner} is kept by the ``main.py'' script. Based on the delays given by the planner, it calls the planner at varying intervals, passing it the latest world model provided by the vision. The planner uses a \lstinline{CommsManager} object to make control the robot.
+
+\end{document}

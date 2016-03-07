@@ -1,30 +1,57 @@
-\documentclass[12pt,a4paper]{article}
+\documentclass[12pt,a4paper,titlepage]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{tabularx}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{titlesec}
+
+\usepackage{float}
+\newcommand{\sectionbreak}{\clearpage}
+
 \author{SDP Group 12}
 \title{Technical Specification}
 
 \begin{document}
 \maketitle
+
+%Group final report No more than 12 pages, worth 16 (out of 50) marks
+
+%Reports have three purposes: to provide sufficient information to assess your work; to document for the group and yourself your design and what you have done; and to provide useful information for anyone who wants to build on what you have done in future. Reports may contain detailed appendices beyond the page limit, particularly in aid of the last two goals; but markers are not required to read these appendices. A common mistake is to overuse the appendices— figures, tables, or other material that explains your work belongs in the main report, not an appendix. Large illustrations will not count towards the page limits.
+
+
 \section{Introduction}
-We built a robot and taught it to dance.
 
-Group final report No more than 12 pages, worth 16 (out of 50) marks
+The aim of this project was to create a robot that would play a simplified version of 2-a-side football. We were recommended to use the provided Arduino Uno (Xino RF) board and LEGO pieces, a vision feed of the testing area (pitch), and computers to connect the two and implement any further logic.
 
-Reports have three purposes: to provide sufficient information to assess your work; to
-document for the group and yourself your design and what you have done; and to provide
-useful information for anyone who wants to build on what you have done in future.
-Reports may contain detailed appendices beyond the page limit, particularly in aid of the
-last two goals; but markers are not required to read these appendices. A common mistake
-is to overuse the appendices— figures, tables, or other material that explains your work
-belongs in the main report, not an appendix. Large illustrations will not count towards
-the page limits.
+This report will examine the decisions made in the design of each part and their impacts. Furthermore it will explain the principles our work relies on.
+
 
 \section{Work Distribution and Management}
+Overall the group was efficiently split into subgroups working on specific tasks. As opposed to many other groups, all team members have made significant contributions to the outcome of the project.
+
+Furthermore, many tasks were shared with Group 11, and large contributions introduced by teamwork between the two halves of the team.
+
+
+\subsection{Chloe McKnight}
+Mostly worked on planning.
+
+\subsection{Joel Hutton}
+Responsible for hardware.
+
+\subsection{Hugh McGrade}
+Leader of planning development.
+
+\subsection{Margus Lind}
+All around
+
+\subsection{Sanchit Gupta}
+Mostly worked on vision.
+
+\subsection{Simeon "King of Calibration" Ivanov}
+Leader of vision development.
 
 \input{Vision}
 
@@ -35,6 +62,6 @@ the page limits.
 \input{Hardware}
 
 \section{Conclusion}
-And it will win all matches always everywhere etc
+And it will win all matches always everywhere forever
 
 \end{document}

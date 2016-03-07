@@ -138,16 +138,17 @@ class Vision:
             frame = preprocessed['frame']
             
             height, width, dim = frame.shape
+            frame_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             
             q = Queue()
 
             # note hte potential to detect in threads and then join back!
             #print("track ball")
-            self.tracker_ball.find(frame, q)
+            self.tracker_ball.find(frame_hsv, q)
             #print("track blue")
-            self.tracker_blue.find(frame, q)
+            self.tracker_blue.find(frame_hsv, q)
             #print("track yellow")
-            self.tracker_yellow.find(frame, q)
+            self.tracker_yellow.find(frame_hsv, q)
 
             while not q.empty():
                 item = q.get_nowait()

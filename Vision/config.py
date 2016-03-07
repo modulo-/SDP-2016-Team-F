@@ -61,7 +61,7 @@ class Config:
     dot_areas = {
         'blue': 2,
         'yellow': 2,
-        'red': 5
+        'red': 2
     }
     
     filters = OrderedDict()
@@ -78,7 +78,7 @@ class Config:
     erode =-1
     dilate =-1
 
-    delta_angle = 45
+    delta_angle =38 
 
     def __init__(self, vision):
         cv2.namedWindow(self.FILTER_SELECTION)
@@ -108,7 +108,7 @@ class Config:
 
 
         cv2.createTrackbar("delta_angle", self.FILTER_PARAMS, self.delta_angle, 360,
-                           lambda x: self.set("delta_angle", x))
+                           lambda x: setattr(self, "delta_angle", x))
 
         cv2.createTrackbar("open", self.FILTER_PARAMS, 0, 10,
                            lambda x: self.set("open", x*2-1))

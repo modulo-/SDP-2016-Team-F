@@ -1,7 +1,9 @@
-from comms import CommsManager
 import models_attacker as attacker
 import models_defender as defender
-from logging import info
+
+from comms import CommsManager
+from logging import info, error
+from models_common import DEFAULT_DELAY
 
 
 class Planner (object):
@@ -26,28 +28,38 @@ class Planner (object):
 
     def actuate(self, action):
         '''Perform actions'''
-        action.perform(self.comms)
+        if action is None:
+            return 1
+        delay = action.perform(self.comms)
         if isinstance(action, defender.GrabBall) or isinstance(action, attacker.GrabBall):
             info("Did grab")
             self.grabber_state = 'CLOSED'
-        elif isinstance(action, attacker.Shoot) or isinstance(action, attacker.OpenGrabbers):
+        elif isinstance(action, attacker.OpenGrabbers):
             info("Did open")
             self.grabber_state = 'OPEN'
 
+        return delay
+
     def plan_and_act(self, world):
         '''
-        Make plans for each robot and perform them
+        Make plans for each robot, perform them and return delay
         '''
-        world.our_defender.catcher = self.grabber_state
-        robot = world.our_defender
+        robot = self.robot(world)
         goal = self.get_goal(world, robot)
         if goal is None:
-            return
+            info("Planner has no goal")
+            return DEFAULT_DELAY
         action = goal.generate_action()
         if action != self.previous_action:
             action = action
         self.previous_action = action
-        self.actuate(action)
+        delay = self.actuate(action)
+        print ("GONNA WAIT >>>: " + str(delay))
+        if delay:
+            return delay
+        else:
+            return DEFAULT_DELAY
+        # return action.get_delay()
 
 
 class AttackPlanner(Planner):
@@ -55,16 +67,45 @@ class AttackPlanner(Planner):
     Planner for attacking robot
     '''
 
+    def robot(self, world):
+        return world.our_attacker
+
+    def plan_and_act(self, world):
+        world.our_attacker.catcher = self.grabber_state
+        super(AttackPlanner, self).plan_and_act(world)
+
     def get_goal(self, world, robot):
         '''
         Selects a goal for robot
         '''
+        '''        if robot.has_ball(world.ball):
+            return attacker.Score(world, robot)
+        else:
+            return attacker.GetBall(world, robot)'''
         if self.current_task == 'move-grab':
             return attacker.GetBall(world, robot)
         elif self.current_task == 'turn-move-grab':
             return attacker.GetBall(world, robot)
         elif self.current_task == 'turn-shoot':
-            return attacker.Score(world, robot)
+            if robot.has_ball(world.ball):
+                return attacker.Score(world, robot)
+            else:
+                info("Trying to turn-shoot without ball. Using GetBall instead.")
+                return attacker.GetBall(world, robot)
+        elif self.current_task == 'receive-pass':
+            if world.our_defender.has_ball(world.ball):
+                return attacker.AttackPosition(world, robot)
+            else:
+                return attacker.GetBall(world, robot)
+        elif self.current_task == 'receive-turn-pass':
+            if world.their_robots[0].has_ball(world.ball) or world.their_robots[1].has_ball(world.ball):
+                return attacker.AttackPosition(world, robot)
+            elif robot.has_ball(world.ball):
+                return attacker.AttackerPass(world, robot)
+            else:
+                return attacker.GetBall(world, robot)
+        elif self.current_task == 'intercept':
+            return attacker.AttackerBlock(world, robot)
 
 
 class DefencePlanner(Planner):
@@ -72,9 +113,20 @@ class DefencePlanner(Planner):
     Planner for defending robot
     '''
 
+    def robot(self, world):
+        return world.our_defender
+
     def get_goal(self, world, robot):
         '''
         Selects a goal for robot
         '''
         if self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
+        elif self.current_task == 'm1':
+            return defender.ReceivingPass(world, robot)
+        elif self.current_task == 'm2':
+            return defender.ReceiveAndPass(world, robot)
+        elif self.current_task == 'm31':
+            return defender.InterceptPass(world, robot)
+        elif self.current_task == 'm32':
+            return defender.InterceptGoal(world, robot)

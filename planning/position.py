@@ -69,7 +69,6 @@ class Vector(Coordinate):
             while (new_angle_converted >= 2 * math.pi):
                 new_angle_converted -= 2 * math.pi
 
-            logging.info('The angle was converted from ' + str(new_angle) + ' to ' + str(new_angle_converted))
             self._angle = new_angle_converted
         else:
             self._angle = new_angle

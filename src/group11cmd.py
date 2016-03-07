@@ -13,9 +13,11 @@ CMD_STRAIT        = 0x02
 CMD_SPIN          = 0x03
 CMD_KICK          = 0x04
 CMD_MV            = 0x05
-CMD_GRABBER_OPEN  = 0x06;
-CMD_GRABBER_CLOSE = 0x07;
-CMD_HOLD_SPIN     = 0x08;
+CMD_GRABBER_OPEN  = 0x06
+CMD_GRABBER_CLOSE = 0x07
+CMD_HOLD_SPIN     = 0x08
+CMD_SPD_SET       = 0x09
+CMD_ARC           = 0x0a
 
 class TractorCrabException(Exception):
     def __init__(self, s):
@@ -38,6 +40,8 @@ cmd_kick = i16fn(CMD_KICK)
 cmd_grabber_open = lambda: [CMD_GRABBER_OPEN]
 cmd_grabber_close = lambda: [CMD_GRABBER_CLOSE]
 cmd_hold_spin = i16fn(CMD_HOLD_SPIN)
+cmd_spd_set = lambda x: [CMD_SPD_SET, x & 0xff]
+cmd_arc = lambda x, y: [CMD_ARC, x & 0xff, (x >> 8) & 0xff, y & 0xff, (y >> 8) & 0xff]
 
 def cmd_mv(x0, y0, angle0, x1, y1, angle1):
     return [CMD_MV,
@@ -68,6 +72,12 @@ def parse_angle(s):
         raise TractorCrabException('Angle out of range!')
     return d
 
+def parse_spd(s):
+    d = int(s)
+    if d < 0 or d > 0xff:
+        raise TractorCrabException('Speed out of range!')
+    return d
+
 commands = {
     'wait': Command(cmd_wait, 'waits for the specified time',
         [('time', parse_t)]),
@@ -90,6 +100,12 @@ commands = {
     'grabber_open': Command(cmd_grabber_open,
         'Opens the grabbers',
         []),
+    'spd_set': Command(cmd_spd_set,
+        'Set the speed',
+        [('speed', parse_spd)]),
+    'arc': Command(cmd_arc,
+        'Moves in an arc',
+        [('dist', parse_dist), ('radius', parse_dist)]),
     'grabber_close': Command(cmd_grabber_close,
         'Closes the grabbers',
         []),

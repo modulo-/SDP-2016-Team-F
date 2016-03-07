@@ -50,14 +50,14 @@ class TractorCrabCommsManager(CommsManager):
     def _normalize_angle(self, angle):
         # Expects inputs in radians counter-clockwise.
         # Returns output in minutes clockwise.
-        angle = int(math.degrees(-angle) * 60)
+        angle = int(math.degrees(angle) * 60)
         if angle < -10800 or angle > 10800:
             angle = (angle + 10800) % 21600 - 10800
         return angle
 
     def _normalize_dist(self, distance):
-        # Expects inputs in cm. Returns output in mm.
-        dist = int(distance * 10)
+        # Expects inputs in px (1px ~= 0.5cm. Returns output in mm.
+        dist = int(distance * 5)
         # Ensure that dist is always in range. Set to 0 else.
         if dist < -0x8000 or dist > 0x7fff:
             dist = 0
@@ -65,6 +65,13 @@ class TractorCrabCommsManager(CommsManager):
 
     def _16_bitify(self, n):
         return [n & 0xff, (n >> 8) & 0xff]
+
+    def turn_then_move(self, angle, distance):
+        self._run(
+            [self.CMD_SPIN] +
+            self._16_bitify(self._normalize_angle(angle)) +
+            [self.CMD_STRAIT] +
+            self._16_bitify(self._normalize_dist(distance)))
 
     def move(self, distance):
         # NOTE: moves to the right, NOT forward. (We need better support for a different action set).
@@ -83,11 +90,11 @@ class TractorCrabCommsManager(CommsManager):
 
     def kick(self, distance):
         # NOTE: currently, functions the same as a full-power kick.
-        self._run([self.CMD_KICK] + self._16_bitify(100))
+        self._run([self.CMD_GRABBER_OPEN, self.CMD_KICK] + self._16_bitify(100))
         CommsManager.kick(self, distance)
 
     def kick_full_power(self):
-        self._run([self.CMD_KICK] + self._16_bitify(100))
+        self._run([self.CMD_GRABBER_OPEN, self.CMD_KICK] + self._16_bitify(100))
         CommsManager.kick_full_power(self)
 
     def close_grabbers(self):
@@ -112,7 +119,7 @@ class RFCommsManager (CommsManager):
 
     # move a distance in mm
     def move(self, distance):
-        mm_distance = distance / 0.1958
+        mm_distance = distance / 0.25 #0.1958
         cmd = b"m" + struct.pack(">h", mm_distance)
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).move(mm_distance)
