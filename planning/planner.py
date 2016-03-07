@@ -14,7 +14,7 @@ class Planner (object):
     def __init__(self, comms=CommsManager(0)):
         self.comms = comms
         self.previous_action = None
-        self.current_task = 'move-grab'
+        self.current_task = 'reactive-grab'
         self.grabber_state = 'CLOSED'
 
     def set_task(self, task):
@@ -122,6 +122,8 @@ class DefencePlanner(Planner):
         '''
         if self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
+        elif self.current_task == 'reactive-grab':
+            return defender.ReactiveGrabGoal(world, robot)
         elif self.current_task == 'm1':
             return defender.ReceivingPass(world, robot)
         elif self.current_task == 'm2':

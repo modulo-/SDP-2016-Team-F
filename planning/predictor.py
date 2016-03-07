@@ -22,7 +22,7 @@ class Predictor:
     # Given in pixels (1px ~ 0.5cm). Set to 3m/s
     _DELTA_THRESHOLD = 360000
     _HIST_LEN = 50
-    _VISION_DELAY = 1
+    _VISION_DELAY = .1
 
     def __init__(self):
         self._robot_blue_pink_history = []
@@ -58,14 +58,12 @@ class Predictor:
             return c[-1][0]
         weights = [1/math.sqrt(i) for i in range(1, len(c))][::-1]
         deltas = (
-            sum(((c[i][0].x - c[i-1][0].x)*weights[i-1]) for i in range(1, len(c))),
-            sum(((c[i][0].y - c[i-1][0].y)*weights[i-1]) for i in range(1, len(c))),
-            sum(((c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
+            sum(((c[i][0].x - c[i-1][0].x)/(c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
+            sum(((c[i][0].y - c[i-1][0].y)/(c[i][1] - c[i-1][1])*weights[i-1]) for i in range(1, len(c))),
         )
         weight = sum(weights)
-        vec = (deltas[0] / (deltas[2] * weight), deltas[1] / (deltas[2] * weight))
-        t = time()
-        tdelta = t + Predictor._VISION_DELAY - c[-1][1]
+        vec = (deltas[0] / weight, deltas[1] / weight)
+        tdelta = Predictor._VISION_DELAY
         angle = None
         if is_ball:
             angle = math.atan2(vec[0], vec[1])
