@@ -1,6 +1,7 @@
 import utils
 import math
 import logging
+import numpy as np
 
 from position import Vector
 from models_common import Goal, Action, are_equivalent_positions
@@ -15,6 +16,7 @@ from time import time
 
 ROTATION_BALL_THRESHOLD = 0.2
 ROTATION_THRESHOLD = 0.2
+MOVEMENT_THRESHOLD = 10
 FACING_ROTATION_THRESHOLD = 0.2
 CLOSE_DISTANCE_BALL_THRESHOLD = 50
 MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 75
@@ -145,13 +147,40 @@ class Tactical(Goal):
 
 class ReactiveGrabGoal(Goal):
     def __init__(self, world, robot):
-        self.actions = [ReactiveGrabAction(world, robot)]
+        self.actions = [AlignForGrab(world, robot),
+                        ReactiveGrabAction(world, robot)]
         super(ReactiveGrabGoal, self).__init__(world, robot)
 
 
 '''
 > ACTIONS
 '''
+
+class AlignForGrab(Action):
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
+                     (lambda w, r: abs((r.angle - w.ball.angle + pi/2) % pi - pi/2) < 0.6, "Ball vector and robot vector within 35 degrees."),
+                     (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
+
+    def perform(self, comms):
+        ball0 = np.array([self.world.ball.x, self.world.ball.y])
+        ballv = np.array([math.sin(self.world.ball.angle), math.cos(self.world.ball.angle)])
+        robot0 = np.array([self.robot.x, self.robot.y])
+        robotv = np.array([math.sin(self.robot.angle + pi/2), math.cos(self.robot.angle + pi/2)])
+        coefficients = np.array([ballv, -robotv]).T
+        constants = robot0 - ball0
+        try:
+            distances = np.linalg.solve
+        except np.linalg.LinAlgError:
+            # Well shit.
+            pass
+        if distances[0] < 0:
+            # TODO: We are behind the ball! Panic!
+            # Or rather, switch to a different plan.
+            pass
+        logging.info("Aligning with ball. (Move %f right)", distances[1])
+        if abs(distances[1]) > MOVEMENT_THRESHOLD:
+            comms.move(distances[1])
+
 
 class ReactiveGrabAction(Action):
     preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Robot can catch the ball."),
