@@ -65,6 +65,45 @@ A small number of plans are available to run:
     \item `\texttt{m32}', to do milestone 3, task 3.2.
 \end{itemize}
 
-\input{Vision}
+% This is broken.
+%\input{Vision}
+
+\section{Troubleshooting}
+
+Below are the actions to take for various common problems which may occur to
+attempt to fix them.
+
+\subsection{The Robot Doesn't Move}
+
+If the robot is not moving, the first thing to do is to check the batteries.
+Ensure that they are present, and charged. Next, disconnect the battery packs,
+wait for a few seconds, then reconnect them.
+
+\subsection{The Control Program Doesn't Start}
+
+The control program not starting is likely due to the RF control signals
+blocking. To test this, run the control program without the argument for the RF
+stick. If it runs, then try waiting for five seconds, then re-running with the
+normal arguments. If after a few attempts, this also does not work, then double
+check the guard characters set on the RF stick. They should be three tilde
+characters (`\verb$~~~$'). Use the proprietary CISCO tools located in the
+`tools' folder to do this. If needed, reset the guard characters or change them
+in the source.
+
+\subsection{The Vision is Misdetecting Objects}
+
+The vision misdetecting objects is likely due to miscalibration. Close the
+controller, restart and recalibrate. Take care to select a wide range of colour
+samples, including the fringes of the circles to detect.
+
+\subsection{The Robot is Very Slow}
+
+The batteries are low. Recharge or replace them.
+
+\subsection{The Kicker Doesn't Work}
+
+Check the connections between the two 4-packs of batteries, as well as the I/O
+port kicker connection. Ensure that the kicker is pressed in, but has not
+fallen out in the back. Check the battery level of the two 4-packs.
 
 \end{document}
