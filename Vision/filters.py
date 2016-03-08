@@ -108,9 +108,30 @@ def filter_colour(colour, frame, config):
     # Threshold the HSV image to get only blue colors
     # mask = cv2.inRange(hsv, lower_green, upper_green)
     # mask_bgr = cv2.inRange(bgr, bgr_low, bgr_high)
-    mask_hsv = cv2.inRange(hsv, hsv_low, hsv_high)
+    # mask_hsv = cv2.inRange(hsv, hsv_low, hsv_high)
     # Bitwise-AND mask and original image
-    frame_mask = mask_hsv
+    # frame_mask = mask_hsv
+    
+    if config.colours[colour]['max'][0] < 180:
+        frame_mask = cv2.inRange(hsv,
+                                 config.colours[colour]['min'],
+                                 config.colours[colour]['max'])
+    else:
+        lower = copy.deepcopy(config.colours[colour]['min'])
+        lower[0] = max(180, lower[0]) - 180
+        upper = copy.deepcopy(config.colours[colour]['max'])
+        upper[0] = upper[0] - 180
+        frame_mask = cv2.inRange(hsv,
+                                 lower,
+                                 upper)
+                
+        if config.colours[colour]['min'][0] < 180:
+            upper = copy.deepcopy(config.colours[colour]['max'])
+            upper[0] = 179
+            frame_mask1 = cv2.inRange(hsv,
+                                      config.colours[colour]['min'],
+                                      upper)
+            frame_mask = cv2.bitwise_or(frame_mask, frame_mask1)
 
     adjustments = {
         "open":config.open,

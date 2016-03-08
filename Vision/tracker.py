@@ -256,20 +256,38 @@ class DotTracker(Tracker):
             #print 'Only {} {} {} found.'.format(len(contours), self.colour_name, self.item)
 
         if self.item == 'ball' or corner:
-            cnt = self.get_largest_contour(contours)
-            if cv2.contourArea(cnt) < self.config.dot_areas[self.colour_name]:
-                return
+            while(1):
+                if len(contours) < 1:
+                    break
+                
+                cnt_index = self.get_largest_contour_index(contours)
+                cnt = contours.pop(cnt_index)
+                if cv2.contourArea(cnt) < self.config.dot_areas[self.colour_name]:
+                    return
+                    
+                corners = self.get_contour_corners(cnt)
+                if (abs(corners[0][0] - corners[1][0]) > 20 or
+                    abs(corners[1][0] - corners[2][0]) > 20 or
+                    abs(corners[2][0] - corners[3][0]) > 20 or
+                    abs(corners[0][1] - corners[1][1]) > 20 or
+                    abs(corners[1][1] - corners[2][1]) > 20 or
+                    abs(corners[2][1] - corners[3][1]) > 20):
+                    continue
 
-            # Get center
-            (x, y), radius = cv2.minEnclosingCircle(cnt)
+                # Get center
+                (x, y), radius = cv2.minEnclosingCircle(cnt)
+                
+                # print "ball", x, y, cv2.contourArea(cnt), frame_hsv[y,x]
 
-            queue.put({
-                'name': self.item,
-                'x': x,
-                'y': y,
-                'area': cv2.contourArea(cnt),
-                'colour': self.colour_name
-            })
+                queue.put({
+                    'name': self.item,
+                    'x': x,
+                    'y': y,
+                    'area': cv2.contourArea(cnt),
+                    'colour': self.colour_name
+                })
+                
+                break;
         else:
             robots_found = 0
             
@@ -294,12 +312,12 @@ class DotTracker(Tracker):
                     continue
                 
                 corners = self.get_contour_corners(cnt)
-                if (abs(corners[0][0] - corners[1][0]) > 30 or
-                    abs(corners[1][0] - corners[2][0]) > 30 or
-                    abs(corners[2][0] - corners[3][0]) > 30 or
-                    abs(corners[0][1] - corners[1][1]) > 30 or
-                    abs(corners[1][1] - corners[2][1]) > 30 or
-                    abs(corners[2][1] - corners[3][1]) > 30):
+                if (abs(corners[0][0] - corners[1][0]) > 20 or
+                    abs(corners[1][0] - corners[2][0]) > 20 or
+                    abs(corners[2][0] - corners[3][0]) > 20 or
+                    abs(corners[0][1] - corners[1][1]) > 20 or
+                    abs(corners[1][1] - corners[2][1]) > 20 or
+                    abs(corners[2][1] - corners[3][1]) > 20):
                     continue
                 
                 robots_found += 1
@@ -333,16 +351,19 @@ class DotTracker(Tracker):
 
         pinkedness = np.sum(pinkMask)
         greenness = np.sum(greenMask)
+        
+        # print pinkedness, greenness
 
-        minimum = 10
-        if pinkedness < minimum or greenness < minimum:
+        smallThresh = 10
+        bigThresh = 30
+        if max(pinkedness, greenness) < bigThresh or min(pinkedness, greenness) < smallThresh:
             return None
     
         h, w, d = section_hsv.shape
         
         contours, _, _ = self.get_contours(section_hsv, (0, w, 0, h), self.config.colours['pink'])
 
-        if(len(contours) >= 3):
+        if len(contours) >= 3 and pinkedness > bigThresh:
             return "pink"
         
         return "green"
