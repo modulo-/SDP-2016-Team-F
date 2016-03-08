@@ -284,9 +284,6 @@ def defender_can_pass_to_position(world, position):
 
 # Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
-<<<<<<< HEAD
-    raise NotImplementedError
-=======
     our_position = position
     their_goal = world.their_goal
 
@@ -299,7 +296,7 @@ def attacker_can_score_from_position(world, position):
         return True
     else:
         return False
->>>>>>> group12-roundrobin1
+
 
 # From 2015 Group 12 behaviour/utilities.py
 def predict_y_intersection(world, predict_for_x, robot, full_width=False, bounce=False):
