@@ -12,13 +12,13 @@
 
 
 // Motor mapping
-#define MOTOR_LEFT 2 // polarity reversed
-#define MOTOR_RIGHT 1 // polarity reversed
+#define MOTOR_LEFT 3 // polarity reversed
+#define MOTOR_RIGHT 0 // polarity reversed
 #define MOTOR_MIDDLE 0 // forward is anticlockwise
 #define MOTOR_KICKER 5 // forward is kick
-#define MOTOR_GRABBER 3 // forward is grab
+#define MOTOR_GRABBER 2 // forward is grab
 
-#define ENCODER_LEFT 2
+#define ENCODER_LEFT 5
 #define ENCODER_RIGHT 1
 #define ENCODER_MIDDLE 5 //+ve is clockwise
 #define ENCODER_GRABBER 4
