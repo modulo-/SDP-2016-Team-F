@@ -28,22 +28,22 @@ INITIAL_PLANNER_DELAY = 4
 predictor = Predictor()
 latest_world = World('left', PITCH_NO)
 latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
-latest_world.our_defender._receiving_area = {'width': 30, 'height': 10, 'front_offset': 20}
+latest_world.our_defender._receiving_area = {'width': 50, 'height': 35, 'front_offset': 0}
 interrupts = []
 
 
 def get_attacker(world):
     if color == 'b':
-        return world.robot_blue_green
+        return world.robot_blue_pink
     else:
-        return world.robot_yellow_green
+        return world.robot_yellow_pink
 
 
 def get_defender(world):
     if color == 'b':
-        return world.robot_blue_pink
+        return world.robot_blue_green
     else:
-        return world.robot_yellow_pink
+        return world.robot_yellow_green
 
 
 def get_green_opponent(world):

@@ -143,11 +143,24 @@ class Tactical(Goal):
                         MoveToTacticalDefencePosition(world, robot)]
         super(Tactical, self).__init__(world, robot)
 
+class ReactiveGrabGoal(Goal):
+    def __init__(self, world, robot):
+        self.actions = [ReactiveGrabAction(world, robot)]
+        super(ReactiveGrabGoal, self).__init__(world, robot)
+
 
 '''
 > ACTIONS
 '''
 
+class ReactiveGrabAction(Action):
+    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Robot can catch the ball."),
+                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+
+    def perform(self, comms):
+        logging.info("Grabbing.")
+        self.robot.catcher = 'CLOSED'
+        comms.close_grabbers()
 
 class Kick(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has the ball.")]
