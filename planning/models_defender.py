@@ -157,13 +157,41 @@ class ReactiveGrabGoal(Goal):
 > ACTIONS
 '''
 
+class RotateAndAlignForBlock(Action):
+    def perform(self, comms):
+        goal = self.world.our_goal
+        robots = filter(lambda r: not r.is_missing(), self.world.their_robots)
+        robots.sort(key=lambda r: math.hypot(r.x - goal.x, r.y - goal.y))
+        if len(robots) == 0:
+            logging.error("There is no enemy here. Gimme someone to destroy!")
+            return 1
+        robot = robots[0]
+        cone_upper = math.atan2(goal.higher_post.x - robot.x, goal.higher_post.y - robot.y)
+        cone_lower = math.atan2(goal.lower_post.x - robot.x, goal.lower_post.y - robot.y)
+        if robot.angle < cone_upper or robot.angle > cone_lower:
+            critical_angle = (cone_upper + cone_lower) / 2
+        else:
+            critical_angle = robot.angle
+
+        target_rotation = (critical_angle - self.robot.angle + pi/2) % pi - pi/2
+        if (critical_angle - self.robot.angle + pi/2) % pi - pi/2 <= 0.6:
+            target_rotation = 0
+        dist = utils.defender_get_alignment_offset(self.robot, robot, critical_angle, target_rotation)
+        logging.info("Aligning with enemy. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
+        if abs(dist) > MOVEMENT_THRESHOLD and abs(target_rotation) > ROTATION_THRESHOLD:
+            comms.turn_then_move(target_rotation, dist)
+        elif abs(dist) > MOVEMENT_THRESHOLD:
+            comms.move(dist)
+        elif abs(dist) > ROTATION_THRESHOLD:
+            comms.turn(target_rotation)
+
 class RotateAndAlignForGrab(Action):
     preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
                      (lambda w, r: abs((r.angle - w.ball.angle + pi/2) % pi - pi/2) >= 0.6, "Ball vector and robot vector not within 35 degrees."),
                      (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
     def perform(self, comms):
         target_rotation = (self.world.ball.angle - self.robot.angle + pi/2) % pi - pi/2
-        dist = utils.defender_get_ball_alignment_offset(self.robot, self.world.ball, target_rotation)
+        dist = utils.defender_get_alignment_offset(self.robot, self.world.ball, self.world.ball.angle, target_rotation)
         logging.info("Aligning with ball. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
         if abs(dist) > MOVEMENT_THRESHOLD:
             comms.turn_then_move(target_rotation, dist)
@@ -177,7 +205,7 @@ class AlignForGrab(Action):
                      (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
 
     def perform(self, comms):
-        dist = utils.defender_get_ball_alignment_offset(self.robot, self.world.ball)
+        dist = utils.defender_get_alignment_offset(self.robot, self.world.ball, self.world.ball.angle)
         logging.info("Aligning with ball. (Move %f right)", dist)
         if abs(dist) > MOVEMENT_THRESHOLD:
             comms.move(dist)

@@ -370,6 +370,10 @@ class World(object):
         return self._ball
 
     @property
+    def our_side(self):
+        return self._our_side
+
+    @property
     def our_goal(self):
         return self._goals[0] if self._our_side == 'left' else self._goals[1]
 

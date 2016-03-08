@@ -71,21 +71,21 @@ def is_angle_between_angles(a, b, c):
     else:
         return b > a and b < c
 
-def defender_get_ball_alignment_offset(robot, ball, robot_angle_delta=0):
-    ball0 = np.array([ball.x, ball.y])
-    ballv = np.array([math.sin(ball.angle), math.cos(ball.angle)])
+def defender_get_alignment_offset(robot, obj, obj_angle, robot_angle_delta=0):
+    obj0 = np.array([obj.x, obj.y])
+    objv = np.array([math.sin(obj_angle), math.cos(obj_angle)])
     robot0 = np.array([robot.x, robot.y])
     angle = robot.angle + robot_angle_delta + pi/2
     robotv = np.array([math.sin(angle), math.cos(angle)])
-    coefficients = np.array([ballv, -robotv]).T
-    constants = robot0 - ball0
+    coefficients = np.array([objv, -robotv]).T
+    constants = robot0 - obj0
     try:
         distances = np.linalg.solve(coefficients, constants)
     except np.linalg.LinAlgError:
         # Well shit.
         return 0
     if distances[0] < 0:
-        # TODO: We are behind the ball! Panic!
+        # TODO: We are behind the ball/object! Panic!
         # Or rather, switch to a different plan.
         pass
     return distances[1]
