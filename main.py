@@ -72,7 +72,7 @@ def new_vision(world):
         ball=world.ball,
     )
     latest_world.ball._vector.velocity = 20
-    latest_world.ball._vector.angle = pi/2
+    latest_world.ball._vector.angle = 3*pi/4
     t = time()
     for interrupt in interrupts:
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():

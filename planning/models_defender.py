@@ -162,7 +162,7 @@ class RotateAndAlignForGrab(Action):
                      (lambda w, r: abs((r.angle - w.ball.angle + pi/2) % pi - pi/2) >= 0.6, "Ball vector and robot vector not within 35 degrees."),
                      (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
     def perform(self, comms):
-        target_rotation = (self.robot.angle - self.world.ball.angle + pi/2) % pi - pi/2
+        target_rotation = (self.world.ball.angle - self.robot.angle + pi/2) % pi - pi/2
         dist = utils.defender_get_ball_alignment_offset(self.robot, self.world.ball, target_rotation)
         logging.info("Aligning with ball. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
         if abs(dist) > MOVEMENT_THRESHOLD:
