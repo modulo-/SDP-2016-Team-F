@@ -11,6 +11,7 @@ from planning.world import World
 from threading import Timer, Thread
 from planning.predictor import Predictor
 from time import time
+from math import pi
 
 PITCH_NO = 0
 color = None
@@ -70,6 +71,8 @@ def new_vision(world):
         their_robot_1=get_pink_opponent(world),
         ball=world.ball,
     )
+    latest_world.ball._vector.velocity = 20
+    latest_world.ball._vector.angle = pi/2
     t = time()
     for interrupt in interrupts:
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
