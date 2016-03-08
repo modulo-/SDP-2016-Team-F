@@ -1,0 +1,23 @@
+
+\section{Arduino Software}
+\subsection{Main Loop}
+The main loop listens on the serial port and executes any command received in a non-blocking manner. 
+\subsection{Command Set}
+The commands are as follows:
+kick(distance)
+grab()
+release()
+turn(angle)
+move(distance)
+\subsection{Command Response}
+In response to a command the robot immediately drops what it is doing and runs that command. 
+\subsection{Kicking}
+The robot releases the grabbers until they are at position 0 then kicks a time dependent on the distance required. It then closes the grabbers to position 13 (fully closed) for continued movement.
+\subsection{Grabbing}
+The robot closes the grabbers until they are fully closed or 800ms whichever is sooner, if the grabbers only close to position 10 the grab is considered a success and this is sent to the planner. 
+\subsection{Release}
+The grabbers are released to position 0.
+\subsection{Turn}
+The robot accelerates up to a calibrated turning speed, then maintains that speed until it has just enough time to decelerate to the required position. The wheels are kept turning the same distance using the distance from the rotary encoders by powering down a motor if it has gone too far and powering it up if it has not gone far enough. The turn is considered finished when the averaged distance from the left and right wheels matches the calculated distance required to rotate the desired angle (by using radius of wheels:2.5cm, radius from origin: 7.5cm). 
+\subsection{Move}
+The robot accelerates up to the calibrated speed and then maintains that speed until it has just enough time to decelerate to the desired distance. It keeps the wheels going the same distance using the rotary encoders by reducing power to a wheel that has gone too far. The distance is determined by $/texttt{radius of the wheels} \times \pi \times \texttt{rotation}$. 
