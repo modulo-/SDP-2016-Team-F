@@ -1,11 +1,24 @@
 \documentclass[a4paper]{scrartcl}
-\usepackage{tabularx}
-\author{Thomas Kerber}
+\author{Thomas Kerber, Marek Strelec}
 \title{Technical Specification}
 \subtitle{Group 11}
 
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{paralist,array}
+\usepackage{listings}
+\usepackage{float}
+\lstset{language=Python, showstringspaces=false}
+
 \begin{document}
 \maketitle
+
+\section{Introduction}
+
+The aim of this project was to create a robot that would play a simplified version of 2-a-side football. We were recommended to use the provided Arduino Uno (Xino RF) board and LEGO pieces, a vision feed of the testing area (pitch), and computers to connect the two and implement any further logic.
+
+This report will examine the decisions made in the design of each part and their impacts. Furthermore it will explain the principles our work relies on.
+
 \section{Communications}
 
 Communications between the arduino and computer are done over the supplied RF
@@ -15,9 +28,11 @@ optional encryption was enabled and the PAN ID set to 6810.
 Data is send to and from the devices in packets, the basic form of a packet is
 `\verb$<target><source><data><checksum>\r\n$'. \texttt{<target>} and
 \texttt{<source>} are the ASCII character `1' for the group11 robot, and the
-ASCII character `c' for the computer. \texttt{<data>} is the base64 encoded
-binary message, and \texttt{<checksum>} a checksum of the preceding message.
-The base64 encoding does not use padding bytes, but is otherwise standard.
+ASCII character `c' for the computer. For robot to computer messages, the
+targets `d' and `e' are also valid, used to send debug and error messages
+respectively. \texttt{<data>} is the base64 encoded binary message, and
+\texttt{<checksum>} a checksum of the preceding message.  The base64 encoding
+does not use padding bytes, but is otherwise standard.
 
 The checksum consists of 2 characters, which are calculated as the checksum of
 all characters at even (starting 0) and odd indicies respectively, including
@@ -35,9 +50,10 @@ acknowledged.
 
 The computer side will resend packets which have not recieved an
 acknowledgement. The arduino side does not, and discards packets which are
-longer than the internal buffer (60 bytes). As of the time of writing, no
-precautions are in place to prevent flooding, and care must be taken to avoid
-this.
+longer than the internal buffer (60 bytes). To prevent flooding, only the
+previously sent packet is resent. This suits the application well, as
+previously sent packets contain intructions to the robot which are supersceded
+by the more recent one.
 
 \section{Bytecode}
 
@@ -51,106 +67,200 @@ single \verb$uint16_t$ argument will take 2 bytes for its arguments).
 \begin{tabularx}{\textwidth}{rlX}
     Opcode & Arguments & Description \\
     \hline
-    \texttt{0x00} & time (\verb$uint16_t$) & Waits for
-        the given time \\
+    \texttt{0x00} & time (\verb$uint16_t$) &
+        Waits for the given time \\
     \texttt{0x01} & time (\verb$uint16_t$) &
-        Retracts the kicker for the given time \\
-    \texttt{0x02} & time (\verb$uint16_t$) &
-        Extends the kicker for the given time \\
-    \texttt{0x03} & time (\verb$uint16_t$) &
-        Moves rights for the given time \\
+        Brakes for the given time \\
+    \texttt{0x02} & distance (\verb$int16_t$) &
+        Moves the given (possibly negative) distance to the right \\
+    \texttt{0x03} & angle (\verb$int16_t$) &
+        Spins the given (possibly negative) angle clockwise \\
     \texttt{0x04} & time (\verb$uint16_t$) &
-        Moves left for the given time \\
-    \texttt{0x05} & time (\verb$uint16_t$) &
-        Spins counter-clockwise for the given time \\
-    \texttt{0x06} & time (\verb$uint16_t$) &
-        Spins clockwise for the given time \\
-    \texttt{0xf0} & length (\verb$uint8_t$) &
-        Sets the length of the comms buffer \\
-    \texttt{0xf1} & time (\verb$uint16_t$) &
-        Sets the time between each byte sent \\
-    \texttt{0xf2} & \textit{none} &
-        Writes the comms buffer to the I$^2$C port byte by byte with the given
-        delay \\
-    \texttt{0x8i} & buf (\verb$uint8_t[25]$) &
-        Sets 25 consecutive buffer bytes from the index $25i$ ($0 \le i < 10$)
-        \\ 
+        Activates the kicker for the given time \\
+    \texttt{0x06} & \textit{none} &
+        Opens the grabbers \\
+    \texttt{0x07} & \textit{none} &
+        Closes the grabbers \\
+    \texttt{0x09} & speed (\verb$uint8_t$) &
+        Sets the global speed modifier (value from 0-255) \\
+%    \texttt{0x0a} & distance (\verb$int16_t$), radius (\verb$int16_t$) &
+%        Moves the specified distance on an arc with the given radius in front
+%        of the robot \\
 \end{tabularx}
 
-All times are given in milliseconds. The arguments are read directly from
-instruction sequence as the given type, and the next command starts after the
-current one finishes. For example, the command byte sequence \texttt{02 ee 02
-00 64 00 01 0e 01} is interpreted as the following sequence of instructions:
+Times are given in milliseconds, distances in mm and angles in minutes.  The
+arguments are read directly from instruction sequence memory as the given type,
+and the next command starts after the current one finishes. Numbers are encoded
+in little-endian.
 
-\begin{enumerate}
-\item Extend the kicker for 750ms.
-\item Wait for 100ms.
-\item Retract the kicker for 270ms.
-\end{enumerate}
+The instructions, when recieved, are compiled by the arduino into low-level
+commands, and inserted at the earliest possible point in the low-level command
+queue.
+
+\section{Low-Level Commands}
+
+The arduino internally maintains a queue of low-level commands which capture
+what the robot is currently doing. Once a command finishes, the arduino
+immediately moves on to the next. Structurally, low-level commands work
+similarly to high-level ones. They start with an opcode, depending on which
+some arguments may follow. The available low-level commands are:
+
+\begin{tabularx}{\textwidth}{rlX}
+    Opcode & Arguments & Description \\
+    \texttt{0x00} & time (\verb$uint16_t$) &
+        Waits for the given time \\
+    \texttt{0x01} & time (\verb$uint16_t$) &
+        Brakes for the given time \\
+    \texttt{0x02} & time (\verb$uint16_t$) &
+        Opens the grabbers for the given time \\
+    \texttt{0x03} & time (\verb$uint16_t$) &
+        Closes the grabbers slowly for the given time \\
+    \texttt{0x04} & time (\verb$uint16_t$) &
+        Closes the grabbers quickly for the given time \\
+    \texttt{0x05} & time (\verb$uint16_t$) &
+        Activates the kicker for the given time \\
+    \texttt{0x08} & distance (\verb$int16_t$) &
+        Moves right by the given distance \\
+    \texttt{0x09} & angle (\verb$int16_t$) &
+        Spins clockwise by the given angle \\
+    \texttt{0x0b} & speed (\verb$uint8_t$) &
+        Sets the global speed modifier to the given value \\
+%    \texttt{0x0c} & distance (\verb$int16_t$), front wheel weight (\verb$uint16_t$), back wheel weight (\verb$uint16_t$) &
+%        Moves the given distance, with the speed of the front and back wheels being in the specified proportion (used for arc movement) \\
+    \texttt{0x7f} & \textit{none} & Does nothing \\
+\end{tabularx}
+
+Further, the most significant bit of a low-level commands opcode signifies if this command is interruptable or not. If it is 1, the command is not interruptable.
 
 The arduino periodically updates the instruction list to decrease the time
 argument of the current instruction by the time passed, or, if the instruction
-is finished, moving onto the next one.
+is finished, moving onto the next one. If a new command sequence arrives, it is
+inserted in place of the first interruptable command in the sequence, with
+this, and all later commands being discarded. This ensures that
+non-interruptable commands are always run, and are run even if they consist of
+complex sequences which should not be interrupted. This is also the main reason
+for a no-op existing; it allows seperating multiple sequences of
+uninterruptable commands.
 
 Instructions setting values relating to the comms test are set immediately,
 and the arduino moves on to the next instruction. The send instruction
 \texttt{0xf2} suspends normal operation and executes a writing the buffer to
 the I$^2$C port with the previously set delay.
 
-\section{Command Shell}
+\section{Hardware Notes}
 
-The command shell is a small computer-side shell allowing inputting of commands
-which are then converted into a sequence of bytecode instructions. Some of
-these map directly to opcodes sent (useful for testing and calibrating, but not
-for typical useage), others are converted to the more low-level opcodes. A list
-of available commands:
+Grabbing the ball effectively is a fine balance of speed. Moving the grabbers
+too quickly kicks the ball away. On the other hand, moving too slowly may lead
+to missing the ball. Further, the design of the robot means that the ball must
+be pushed in sharply to reset the kicker. The balance between these that was
+found, is to close the grabbers at a moderate speed, then rapidly open them
+part way and rapidly close them again. This resets the kicker, does not kick the ball away in most cases, and is fast enough to be usable.
 
-\begin{tabularx}{\textwidth}{llX}
-    Name & Arguments & Description \\
-    \hline
-    \verb$led_on$ & time & Puts the led on (waits) for the given time \\
-    \verb$kicker_fwd$ & time & Retracts the kicker for the given time \\
-    \verb$kicker_bwd$ & time & Extends the kicker for the given time \\
-    \verb$left_t$ & time & Moves left for the given time \\
-    \verb$right_t$ & time & Moves right for the given time \\
-    \verb$spin_cw_t$ & time & Spins clockwise for the given time \\
-    \verb$spin_cc_t$ & time & Spins counter-clockwise for the given time \\
-    \verb$kick_t$ & time & Kicks, extending for the given time \\
-    \verb$left$ & dist & Moves left the given distance \\
-    \verb$right$ & dist & Moves right the given distance \\
-    \verb$kick$ & dist & Kicks to the given distance \\
-    \verb$spin_cw$ & angle & Spins clockwise the given angle \\
-    \verb$spin_cc$ & angle & Spins counter-clockwise the given angle \\
-    \verb$mv$ & $x$, $y$, angle & Moves to the displacement, as specified in
-        the milestone 1 specifications. \\
-    \verb$send_file$ & delay, file & Sends the file to be written over I$^2$C,
-        as specified in the milestone 1 specifications. \\
-    \verb$exit$ & \textit{none} & Exits the shell \\
-\end{tabularx}
+Kicking the ball is a matter of speed, the faster we can kick, the less time
+our opponents have to react. However, in order to kick, the ball must also be
+positioned precicely in front of the kicker. To achieve this, the grabbers
+rapidly push the ball into position again, correcting any drift from movement.
+They open part-way, just enough for the kicker to kick without the ball
+hitting the grabbers. Finally, the grabbers finish opening.
 
-A command may look like `\verb$kick 150$'. With the exception of
-`\verb$send_file$' and `\verb$exit$', commands can be chained by writing them
-in sequence. E.g.  `\texttt{left 100 led\_on 100 right 100}' would move left a
-meter, wait 100ms, and move right a meter again. Distances are given in cm,
-times in ms and angles in degrees.
+Spinning and moving tends to move the grabbers about. To avoid this, the
+grabbers are powered slightly during both of these actions. If the grabbers are
+open, they are constantly opening while the robot is moving, albeit very
+slowly. Likewise, the grabbers keep closing if they are already closed. For
+this purpose, the robot maintains a local state variable for the grabber. It is
+worth stating that this is not measured or sensed, so manually moving the
+grabbers will confuse the robot.
 
-The non-time variants of time-based commands (e.g. \verb$left$), calculate a
-time using a linear function to convert the distance or angle into a time. The
-\verb$mv$ command is move complex, the movement is split into a rotation, a
-left/right movement and a second rotation. The values for these three movements
-are calculated using basic trigonometry. In order to ensure that motors come to
-a rest, a 100ms wait is inserted between each part.
+\section{Planning}
 
-The \verb$send_file$ first reads the given file. It then sends a packet setting
-the buffer length, and one setting the delay as specified. Then, the file is
-split into chunks of 25 bytes, each sent over in a single packet. The last
-chunk is padded with zero-bytes if needed. Between sending each packet, and
-acknowledgement is waited for before continuing. This is to ensure that the
-comms system is not flooded. The splitting of the file into 25-byte chunks is
-to make sure that the packets fit into the arduino's 60-byte RF buffer.
-Finally, the command initiating the writing of the buffer is sent.
+\subsection{Design}
 
-The shell takes the address of the serial bus as a command-line argument, under
-Linux this is likely to be something of the form `\verb$/dev/ttyACMx$'.
+The planner uses a system of goals and actions. Goals define an overall strategy in a given situation leading to a particular aim. Actions define one instruction given to the robot with preconditions for its execution. Goals are composed of a sequence of actions. A goal object selects the next action required to achieve its aim by traversing its ordered list of actions and evaluating their preconditions.
+
+The planner makes its decision based only on the world state passed to it. This is described by an instance of the \emph{World} class passed to the planner. This object's state is updated by passing a new set of positions (as a dictionary of vectors) to the \texttt{update\_positions} method of \emph{World}. The \emph{World} class describes the state of the world from the vision, including position vectors for the robots, the ball and the goals. The \emph{World} class and its associated classes also provide methods on their data providing the planner with information about the world. Further utility functionality can be found in \emph{utils.py}.
+
+The overall planner is used by calling \texttt{plan\_and\_act(world)}. This selects a goal based on the given world state  using its \texttt{get\_goal()} method. From this goal an action is generated using \texttt{generate\_action()}. The method then runs (using \texttt{actuate(action)} and returns a delay giving the time until the planner should be run again.
+
+\subsection{Implementation}
+
+
+Figure \ref{fig:receiveandpass} shows an example of Defender's goal \emph{ReceivingPass}. It shows a list of actions that are in a queue starting from the top. When action's preconditions are met, the action is executed and the process finishes. If any of the precondition is false, the next action in the queue is processed.
+
+\begin{center}
+
+\begin{figure}[H]
+\centering
+\begin{tabular}{ | l | p{110mm} | }
+\hline
+\textbf{Action} & \textbf{Preconditions} \\ \hline
+GrabBall &
+\begin{compactitem}
+\item Defender can catch ball
+\item Defender's grabbers are open
+\end{compactitem}  \\ \hline
+
+GoToStaticBall &
+\begin{compactitem}
+\item Defender is facing the catch point
+\item Defender's grabbers are open
+\item Ball is static
+\end{compactitem}  \\ \hline
+
+TurnToCatchPoint & 
+\begin{compactitem}
+\item Defender's grabbers are open
+\end{compactitem}  \\ \hline
+
+WaitForBallToCome &
+\begin{compactitem}
+\item Defender is facing ball
+\item The ball can reach the robot
+\item Defender can reach the ball
+\item Grabbers are open
+\item The ball is moving
+\end{compactitem}  \\ \hline
+
+FollowBall &
+\begin{compactitem}
+\item Defender's grabbers are open
+\item The ball is moving
+\end{compactitem}  \\ \hline
+
+OpenGrabbers & 
+\begin{compactitem}
+\item Defender's grabbers are closed
+\end{compactitem}  \\ \hline
+
+FaceFriendly & 
+\begin{compactitem}
+\item Friendly is on the pitch
+\end{compactitem}  \\ \hline
+\end{tabular}
+\par
+\bigskip
+
+\caption{ReceivingAndPass goal in the defender's planner. Shows actions and their corresponding preconditions that have to be satisfied.}
+
+	\label{fig:receiveandpass}
+\end{figure}
+
+
+
+\end{center}
+
+\subsection{Extensability}
+
+Extending the planner is simply a case of adding goals and actions then adding the logic to select these in \texttt{select\_goal(world)}. Any new goals or actions should subclass Goal and Action respectively and override methods were stated.
+
+In actions, the logic for performing should be placed in \texttt{perform(comms)}. This method is passed a \texttt{CommsManager} object through which the robot can be sent instructions. No more than one call should be made to this object in any given action. A new action should also override \texttt{get\_delay} giving an appropriate delay (in seconds) before the planner should run again. New actions can also have preconditions defined in a variable \texttt{preconditions}.
+
+In goals, it may only be neccessary to write a Goal subclass with an ordered list of actions (from last to first). Otherwise the \texttt{generate\_action()} method can be overriden but similar logic should be followed.
+
+\subsection{Integration}
+
+An instance of the \texttt{Planner} is kept by the ``main.py'' script. Based on the delays given by the planner, it calls the planner at varying intervals, passing it the latest world model provided by the vision. The planner uses a \texttt{CommsManager} object to make control the robot.
+
+
+
 
 \end{document}

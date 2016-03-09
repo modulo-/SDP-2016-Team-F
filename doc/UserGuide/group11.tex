@@ -1,41 +1,98 @@
 \documentclass[a4paper]{scrartcl}
-\usepackage{tabularx}
-\author{Thomas Kerber}
+\author{Thomas Kerber, Marek Strelec}
 \title{User Guide}
 \subtitle{Group 11}
+
+\newcommand{\shellcmd}[1]{\indent\indent\texttt{\footnotesize\# #1}}
+
+\usepackage[pdfusetitle, hidelinks]{hyperref}
+\usepackage{tabularx}
 
 \begin{document}
 \maketitle
 \section{Setup}
+\subsection{requirements}
+You'll need the following python packages to successfully run on DICE machine:
 
-To setup on DiCE, run `\texttt{pip install --user pyserial}'. Connect the
-arduino to a USB port and run the \texttt{arduino} program. Open the file
-\verb$arduino/group11/group11.ino$, and ensure that the libraries in
+\begin{itemize}
+\item \texttt{Polygon2} Polygon is a python package that handles polygonal shapes in 2D. 
+\item \texttt{argparse} Python command-line parsing library
+\item \texttt{pyserial} Python Serial Port Extension
+\item \texttt{numpy} Array processing for numbers, strings, records, and objects.
+\item \texttt{openCV} OpenCV-Python is the Python API of OpenCV. It combines the best qualities of OpenCV C++ API and Python language.
+\end{itemize}
+
+To install them run these commands in the terminal:
+
+\shellcmd{pip install --user Polygon2==2.0.6} \\
+\shellcmd{pip install --user argparse==1.3.0} \\
+\shellcmd{pip install --user pyserial==2.7} \\
+\shellcmd{pip install --user numpy}  
+
+You can also learn how to install openCV from the following link:
+\url{http://docs.opencv.org/2.4/doc/tutorials/introduction/linux_install/linux_install.html}
+
+\subsection{arduino}
+Connect the arduino to a USB port and run the \texttt{arduino} program. Open the file \verb$arduino/group11/group11.ino$, and ensure that the libraries in
 \verb$arduino/libraries/$ are loaded. Compile and upload the code to the
 arduino. Remove the USB cable.
 
-\section{Calibration}
-
-The robot currently needs manual calibration. This involves tweaking the
-scalars in the \texttt{rotation\_time\_from\_angle},
-\texttt{move\_time\_from\_distance}, and \texttt{kick\_time\_from\_distance}
-functions in \verb$src/group11cmd.py$, until they behave as expected. E.g. if
-the `\texttt{spin\_cc 90}' makes the robot spin only 70 degrees, the scalar in
-\texttt{rotation\_time\_from\_angle} has to be increased.
 
 \section{Usage}
 
-Once ready to use, attach the battery cable. Then calibrate the robot for the
-battery change (this may be done beforehand, assuming the battery change does
-not vary greatly).
+Once ready to use, place a charged 8-pack of batteries in the back holder, and
+connect it to the arduino power cable. Place 2 charges 4-packs of batteries in
+the other two back holders, and attack the remaining power cables to them.
+These two packs power the kicker.
 
-Plug the RF stick in the computer, enter the `\verb$src/$' directory, and
-execute `\texttt{./group11cmd.py <device path>}', where `\texttt{<device
-path>}' is the device identified of the RF stick (e.g. `\verb$/dev/ttyACM0$').
+Plug the RF stick in the computer, ensure top plates of all types, as well as
+the ball, are on the pitch, and execute
+`\texttt{./main -p <PLAN> -1 <PATH> -c <COLOR>}', there \texttt{<PLAN>} is the
+plan to run (see section below), \texttt{<PATH>} is the device path of the RF
+stick (e.g. `\verb$/dev/ttyACM0$'), and \texttt{<COLOR>} is the team color,
+which must be one of `\texttt{blue}', `\texttt{b}', `\texttt{yellow}', or
+`\texttt{y}' respectively. Further options notably include the `\texttt{-l}'
+option, which sets the logging level. E.g. `\texttt{-l info}' enables info
+messages in the logger.
 
-A list of available commands will be shown. When entered, these are sent to the
-robot, which executes them. For the most part these should be self-descriptive,
-if more information is required, see the technical specifications section on
-the command shell.
+\subsection{Calibration}
+
+Before using the vision system, you can have a look at the vision feed by typing \emph{xawtv} in the command prompt. This will launch only the vision feed, where you can experiment with the different settings.
+
+When the vision starts, it will enter calibration mode. In this mode, a still
+of the pitch is displayed. In turn, red, blue, yellow, green, and pink will be
+calibrated for. For each of these, click multiple times on parts of the still
+which should be recognised as the specified color. When done with a color,
+press `\texttt{q}' to move on to the next.
+
+The calibrations will be saved locally, and can be loaded by pressing escape
+when the calibration mode starts.
+
+\subsection{Online Usage}
+
+After the vision is lunched, there will be a window named \texttt{Filter} output, where you can see the vision feed with objects drawn on it representing the robots and the ball (if they are found).
+Robots will be represented by an inner circle for the team colour (\texttt{yellow} or \texttt{blue}), an outer circle identifying which of the two team mates it is (\texttt{pink} or \texttt{green}) and an arrow giving the direction of the robot. The red ball is simply shown by drawing a red circle around it. You'll also notice two other windows containing several trackbars.
+These trackbars are for filters that you can add to the output feed. There are filters to show only specific colours, or to different effects to the frame.
+
+While the control program is running, the overall strategy and logging can be
+modified. Entering `\texttt{debug}', `\texttt{info}', `\texttt{warn}', or
+`\texttt{error}', and pressing enter, sets the logging level appropriately.
+Likewise, entering a plan name and pressing enter switches the running plan to
+what was entered. Entering `\texttt{stop}' unsets the active plan and leaves
+the robot idle.
+
+\pagebreak
+
+\subsection{Plans}
+
+A small number of plans are available to run:
+
+\begin{itemize}
+    \item `\texttt{move-grab}', to move to the ball and grab it.
+    \item `\texttt{m1}', to do milestone 3, task 1.
+    \item `\texttt{m2}', to do milestone 3, task 2.
+    \item `\texttt{m31}', to do milestone 3, task 3.1.
+    \item `\texttt{m32}', to do milestone 3, task 3.2.
+\end{itemize}
 
 \end{document}

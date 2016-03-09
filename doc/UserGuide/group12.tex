@@ -4,7 +4,25 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+
+\usepackage{listings}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\newcommand{\shellcmd}[1]{\indent\indent\texttt{\footnotesize\# #1}}
+
+
+\usepackage[hypcap]{caption}
+\usepackage[pdfusetitle, hidelinks]{hyperref}
+\hypersetup{ 
+    bookmarksnumbered=true,     
+    bookmarksopen=true,         
+    bookmarksopenlevel=2,         
+    pdfstartview=Fit,           
+    pdfpagemode=UseOutlines,    % this is the option you were lookin for
+    pdfpagelayout=SinglePage
+    }
+    
+
 \author{SDP Group 12}
 \title{User Guide}
 
@@ -17,7 +35,38 @@
 %Reports have three purposes: to provide sufficient information to assess your work; to document for the group and yourself your design and what you have done; and to provide useful information for anyone who wants to build on what you have done in future. Reports may contain detailed appendices beyond the page limit, particularly in aid of the last two goals; but markers are not required to read these appendices. A common mistake is to overuse the appendices— figures, tables, or other material that explains your work belongs in the main report, not an appendix. Large illustrations will not count towards the page limits.
 
 \section{Introduction}
-How to bring each part to life
+
+Once ready to use, place a charged batteries in the back holder, and
+connect it to the arduino power cable.
+
+Plug the RF stick in the computer, ensure top plates of all types, as well as
+the ball, are on the pitch, and execute
+`\texttt{./main -p <PLAN> -1 <PATH> -c <COLOR>}', there \texttt{<PLAN>} is the
+plan to run (see section below), \texttt{<PATH>} is the device path of the RF
+stick (e.g. `\verb$/dev/ttyACM0$'), and \texttt{<COLOR>} is the team color,
+which must be one of `\texttt{blue}', `\texttt{b}', `\texttt{yellow}', or
+`\texttt{y}' respectively. Further options notably include the `\texttt{-l}'
+option, which sets the logging level. E.g. `\texttt{-l info}' enables info
+messages in the logger.
+
+While the control program is running, the overall strategy and logging can be
+modified. Entering `\texttt{debug}', `\texttt{info}', `\texttt{warn}', or
+`\texttt{error}', and pressing enter, sets the logging level appropriately.
+Likewise, entering a plan name and pressing enter switches the running plan to
+what was entered. Entering `\texttt{stop}' unsets the active plan and leaves
+the robot idle.
+
+\subsection{Plans}
+
+A small number of plans are available to run:
+
+\begin{itemize}
+    \item `\texttt{move-grab}', to move to the ball and grab it.
+    \item `\texttt{m1}', to do milestone 3, task 1.
+    \item `\texttt{m2}', to do milestone 3, task 2.
+    \item `\texttt{m31}', to do milestone 3, task 3.1.
+    \item `\texttt{m32}', to do milestone 3, task 3.2.
+\end{itemize}
 
 
 
@@ -27,6 +76,5 @@ How to bring each part to life
 
 \input{Hardware}
 
-\section{Conclusion}
 
 \end{document}

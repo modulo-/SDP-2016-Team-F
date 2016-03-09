@@ -1,4 +1,17 @@
 \section{Planning}
-How to launch the planner and tie it to both the data feed from vision and to the robot.
-All configurable options 
-How to alter strategies
+\lstset{language=Bash, showstringspaces=false}
+
+\subsection{Running the planner}
+
+The planner can be run as part of the system from the command line. This is done using:
+
+\begin{lstlisting}
+python main.py [-2PATH] OPTIONS TEAM-COLOUR -g GOAL-END
+\end{lstlisting}
+
+where TEAM-COLOUR refers to the colour of the controlled team's top plate and can be either -y or -b (yellow or blue)
+and OPTIONS can be --debug Set logging level to 'debug'
+	   	   --info  Set logging level to 'info'
+		   --warn  Set logging level to 'warn'
+		   --error Set logging level to 'error'
+and GOAL-END refers to the controlled team's goal end, either 'left' or 'right'

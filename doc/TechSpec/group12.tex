@@ -4,9 +4,49 @@
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{graphicx}
+\usepackage{tabularx}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
 \usepackage{titlesec}
-\newcommand{\sectionbreak}{\clearpage}
+\usepackage{listings}
+
+
+\newcommand{\footlabel}[2]{%
+    \addtocounter{footnote}{1}%
+    \footnotetext[\thefootnote]{%
+        \addtocounter{footnote}{-1}%
+        \refstepcounter{footnote}\label{#1}%
+        #2%
+    }%
+    % $^{\ref{#1}}$%
+}
+
+\newcommand{\footref}[1]{%
+    $^{\ref{#1}}$%
+}
+
+\newcounter{normalfootc}
+\renewcommand{\footnote}[1]{%
+    \footlabel{footsaferefiwontuse\thenormalfootc}{#1}%
+    \addtocounter{normalfootc}{1}%
+}
+
+\graphicspath{{images/}}
+
+\usepackage[hypcap]{caption}
+\usepackage[
+	pdfusetitle, 
+	hidelinks
+]{hyperref}
+\hypersetup{ 
+    bookmarksnumbered=true,     
+    bookmarksopen=true,         
+    bookmarksopenlevel=2,         
+    pdfstartview=Fit,           
+    pdfpagemode=UseOutlines,    % this is the option you were lookin for
+    pdfpagelayout=SinglePage
+    }
+    
+\usepackage{float}
 
 \author{SDP Group 12}
 \title{Technical Specification}
@@ -26,29 +66,29 @@ The aim of this project was to create a robot that would play a simplified versi
 This report will examine the decisions made in the design of each part and their impacts. Furthermore it will explain the principles our work relies on.
 
 
-\section{Work Distribution and Management}
+\subsection{Work Distribution and Management}
 Overall the group was efficiently split into subgroups working on specific tasks. As opposed to many other groups, all team members have made significant contributions to the outcome of the project.
 
 Furthermore, many tasks were shared with Group 11, and large contributions introduced by teamwork between the two halves of the team.
 
 
-\subsection{Chloe McKnight}
-Mostly worked on planning.
-
-\subsection{Joel Hutton}
-Responsible for hardware.
-
-\subsection{Hugh McGrade}
-Leader of planning development.
-
-\subsection{Margus Lind}
-All around
-
-\subsection{Sanchit Gupta}
-Mostly worked on vision.
-
-\subsection{Simeon "King of Calibration" Ivanov}
-Leader of vision development.
+%\subsection{Planning}
+%Mostly worked on planning.
+%
+%\subsection{Joel Hutton}
+%Responsible for hardware.
+%
+%\subsection{Hugh McGrade}
+%Leader of planning development.
+%
+%\subsection{Margus Lind}
+%All around
+%
+%\subsection{Sanchit Gupta}
+%Mostly worked on vision.
+%
+%\subsection{Simeon "King of Calibration" Ivanov}
+%Leader of vision development.
 
 \input{Vision}
 
@@ -58,7 +98,27 @@ Leader of vision development.
 
 \input{Hardware}
 
-\section{Conclusion}
-And it will win all matches always everywhere forever
+\input{Arduino}
+
+\section{Parts and Costs}
+
+\begin{table}[H]
+\caption{Parts and costs}
+\begin{tabular}{ l c c c }
+Item & Count & Price Each & Total Price \\ \hline
+Duplicate keys & 2 & £2.50 & £5 \\
+holonomic wheel & 3 & £6 & £18 \\
+NXT motor       & 2 & £5 & £10 \\
+43362 Electric Technic Mini-Motor 9v & 2 & £0.50 & £1 \\
+PED	121-420-610-540, solenoid, tubular, pull, 6V \footref{fnt:solenoid} & 1 & £10.91 & £10.91 \\
+Canwelum 18650 protected cells & 8 & £5 & £40 \\
+Nitecore charger & 0.5 \footref{fnt:charger} & £14.99 & £7.50 \\
+Battery holders & 2 & £3.88 & £7.76 \\
+TOTAL & & & £91.17
+\end{tabular}
+\end{table}
+
+\footlabel{fnt:solenoid}{part is out of production, equivalent part: \url{http://uk.farnell.com/multicomp/mcsmt-1325s12std/solenoid-tubular-push-12v/dp/2008785?CMP=ADV-CRUK-LF}}
+\footlabel{fnt:charger}{split between the 2 groups in Team F}
 
 \end{document}

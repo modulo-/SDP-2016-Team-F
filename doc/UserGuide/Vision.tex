@@ -1,10 +1,31 @@
 \section{Vision}
-\subsection{Requirements}
-What and how to install
 
-\subsection{Calibration}
-By default the vision platform will launch a calibration routine for getting the most correct colour thresholds. Click as requested.
+\subsection{Requirements}
+You'll need the following python packages to successfully run the vision:
+
+\begin{description}
+\item \texttt{Polygon2} Polygon is a python package that handles polygonal shapes in 2D. 
+\item \texttt{argparse} Python command-line parsing library
+\item \texttt{pyserial} Python Serial Port Extension
+\item \texttt{numpy} Array processing for numbers, strings, records, and objects.
+\item \texttt{openCV} OpenCV-Python is the Python API of OpenCV. It combines the best qualities of OpenCV C++ API and Python language.
+\end{description}
+
+To install them run these commands in the terminal:
+
+\shellcmd{pip install --user Polygon2==2.0.6} \\
+\shellcmd{pip install --user argparse==1.3.0} \\
+\shellcmd{pip install --user pyserial==2.7} \\
+\shellcmd{pip install --user numpy}  
+
+You can also learn how to install openCV from the following link:
+\url{http://docs.opencv.org/2.4/doc/tutorials/introduction/linux_install/linux_install.html}
 
 \subsection{Usage}
-How to launch the vision portion and how to interface with it to get the world representation
-Planner callback, getworldmodel method
+Before using the vision system, you can have a look at the vision feed by typing \texttt{xawtv} in the command prompt. This will launch only the vision feed, where you can experiment with the different settings.
+
+In order to launch our vision system, you'll need to run the main vision file (python vision.py). At first, a window for the automatic colour calibration will pop out. You'll need to follow the instructions as printed in the terminal. The calibration goes through all the colours that are used for the vision (texttt{red}, texttt{yellow}, texttt{blue}, texttt{green}, texttt{pink}) and requires multiple clicks for each one of them to get their thresholds. You need to press the texttt{q} button after each calibrated colour. If you want to skip the calibration you can simply press the texttt{Esc} key and the vision will use the previously saved calibrations.
+
+After this, the vision will be launched. There will be a window named texttt{Filter output}, where you can see the vision feed with objects drawn on it representing the robots and the ball (if they are found). Robots will be represented by an inner circle for the team colour (texttt{yellow} or texttt{blue}), an outer circle identifying which of the two team mates it is (texttt{pink} or texttt{green}) and an arrow giving the direction of the robot.  The red ball is simply shown by drawing a red circle around it. You'll also notice two other windows containing several trackbars. These trackbars are for filters that you can add to the output feed. There are filters to show only specific colours, or to different effects to the frame.
+
+When the vision is running, it will provide the coordinates of all found objects, their orientation and velocity relative to the previous taken frame. These objects are returned as a dictionary and are passed onto the planner. This is achieved by passing a method for updating the planner world model when initialising the vision module. This is then called on every vision update, and it ensures the planner has the latest data.
