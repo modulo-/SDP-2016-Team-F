@@ -207,7 +207,7 @@ class Vision:
 
             cv2.imshow(self.config.OUTPUT_TITLE, frame)
             cv2.setMouseCallback(self.config.OUTPUT_TITLE,
-                                 lambda event, x, y, flags, param: self.p(event, x, y, flags, param, frame))
+                                 lambda event, x, y, flags, param: self.p(event, x, y, flags, param, frame_hsv))
 
             c = cv2.waitKey(50) & 0xFF
             
@@ -233,11 +233,11 @@ class Vision:
         else:
             cv2.destroyAllWindows()
 
-    def p(self, event, x, y, flags, param, frame):
+    def p(self, event, x, y, flags, param, frame_hsv):
         
         if event == cv2.EVENT_LBUTTONDOWN:
             print y, x
-            print frame[y][x]
+            print frame_hsv[y][x]
 
 
 if __name__ == "__main__":

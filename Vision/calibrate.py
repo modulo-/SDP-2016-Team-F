@@ -169,10 +169,10 @@ class Calibrate(object):
                 if len(l) > 0:
                     minp = np.min(np.asarray(l), axis=0)
                     maxp = np.max(np.asarray(l), axis=0)
-                    if colour == 'red' and self.config.pitch_room.selected == 1:
-                        minp[0] -= 5
-                        maxp[0] += 5
-
+                    
+                    maxp[1] = 255;
+                    maxp[2] = 255;
+                    
                     colours[colour] = {
                         "min":minp,
                         "max":maxp,
