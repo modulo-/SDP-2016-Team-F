@@ -18,10 +18,10 @@
 // Defines the forward/backward combinations for a movement command.
 // The least significant 4 bits store this, with 0 being backward and 1 being
 // forward for the corresponding motor ID.
-#define MOVE_RIGHT ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
-#define MOVE_LEFT  ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
-#define MOVE_CC    ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_RIGHT))
-#define MOVE_CW    ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_LEFT))
+#define MOVE_LEFT  ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
+#define MOVE_RIGHT ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
+#define MOVE_CW    ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_RIGHT))
+#define MOVE_CC    ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_LEFT))
 
 #define cmdArg(offset, type) ((type *)(cmds + cmd_at + (offset)))
 
