@@ -114,5 +114,4 @@ class Predictor:
             self._predict(self._robot_yellow_green_history),
             self._predict(self._ball_history, True)
         )
-        debug("Predition: " + str(ret))
         return ret
