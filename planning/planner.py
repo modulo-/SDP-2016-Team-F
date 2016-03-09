@@ -37,7 +37,6 @@ class Planner (object):
         elif isinstance(action, attacker.OpenGrabbers):
             info("Did open")
             self.grabber_state = 'OPEN'
-
         return delay
 
     def plan_and_act(self, world):
@@ -54,12 +53,13 @@ class Planner (object):
             action = action
         self.previous_action = action
         delay = self.actuate(action)
+        if not delay:
+            try:
+                delay = action.get_delay()
+            except AttributeError:
+                delay = DEFAULT_DELAY
         print ("GONNA WAIT >>>: " + str(delay))
-        if delay:
-            return delay
-        else:
-            return DEFAULT_DELAY
-        # return action.get_delay()
+        return delay
 
 
 class AttackPlanner(Planner):
@@ -72,7 +72,7 @@ class AttackPlanner(Planner):
 
     def plan_and_act(self, world):
         world.our_attacker.catcher = self.grabber_state
-        super(AttackPlanner, self).plan_and_act(world)
+        return super(AttackPlanner, self).plan_and_act(world)
 
     def get_goal(self, world, robot):
         '''
@@ -106,6 +106,17 @@ class AttackPlanner(Planner):
                 return attacker.GetBall(world, robot)
         elif self.current_task == 'intercept':
             return attacker.AttackerBlock(world, robot)
+        elif self.current_task == 'game':
+            if world.our_attacker.has_ball(world.ball):
+                return attacker.Score(world, robot)
+            elif world.our_defender.has_ball(world.ball):
+                return attacker.AttackPosition(world, robot)
+            elif any([r.has_ball(world.ball) for r in world.their_attackers]):
+                return attacker.AttackPosition(world, robot)
+            elif any([r.has_ball(world.ball) for r in world.their_defenders]):
+                return attacker.AttackerBlock(world, robot)
+            else:
+                return attacker.GetBall(world, robot)
 
 
 class DefencePlanner(Planner):
