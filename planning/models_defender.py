@@ -147,6 +147,7 @@ class Tactical(Goal):
 
 class ReactiveGrabGoal(Goal):
     def __init__(self, world, robot):
+        #self.actions = [RotateAndAlignForBlock(world, robot)]
         self.actions = [AlignForGrab(world, robot),
                         RotateAndAlignForGrab(world, robot),
                         ReactiveGrabAction(world, robot)]
@@ -166,9 +167,9 @@ class RotateAndAlignForBlock(Action):
             logging.error("There is no enemy here. Gimme someone to destroy!")
             return 1
         robot = robots[0]
-        cone_upper = math.atan2(goal.higher_post.x - robot.x, goal.higher_post.y - robot.y)
-        cone_lower = math.atan2(goal.lower_post.x - robot.x, goal.lower_post.y - robot.y)
-        if robot.angle < cone_upper or robot.angle > cone_lower:
+        cone_upper = math.atan2(goal.x - robot.x, goal.higher_post - robot.y) % (2 * pi)
+        cone_lower = math.atan2(goal.x - robot.x, goal.lower_post - robot.y) % (2 * pi)
+        if robot.angle < min(cone_upper, cone_lower) or robot.angle > max(cone_upper, cone_lower):
             critical_angle = (cone_upper + cone_lower) / 2
         else:
             critical_angle = robot.angle
@@ -182,7 +183,7 @@ class RotateAndAlignForBlock(Action):
             comms.turn_then_move(target_rotation, dist)
         elif abs(dist) > MOVEMENT_THRESHOLD:
             comms.move(dist)
-        elif abs(dist) > ROTATION_THRESHOLD:
+        elif abs(target_rotation) > ROTATION_THRESHOLD:
             comms.turn(target_rotation)
 
 class RotateAndAlignForGrab(Action):
