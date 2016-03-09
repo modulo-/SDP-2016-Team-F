@@ -259,7 +259,7 @@ def line_intersection(line1, line2):
 def can_score(world, our_robot, their_goal, turn=0):
     predicted_y = predict_y_intersection(world, our_robot, their_goal.x)
 
-    logging.info("Predicted goal intersection ({0}, {1})".format(goal_x, predicted_y))
+    logging.info("Predicted goal intersection ({0}, {1})".format(their_goal.x, predicted_y))
 
     # return goal_posts[0][1] < predicted_y < goal_posts[1][1]
     return their_goal.lower_post < predicted_y < their_goal.higher_post
