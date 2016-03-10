@@ -134,7 +134,6 @@ def set_plan(attack_planner, defence_planner, plan):
 
 def main():
     global color
-    global latest_world
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:g:", ["help", "visible", "defender=", "attacker=", "logging=", "color=", "plan=", "goal="])
@@ -173,7 +172,7 @@ def main():
         elif o in ("-p", "--plan"):
             plan = a
         elif o in ("-g", "--goal"):
-            latest_world = World(a, PITCH_NO)
+            latest_world.our_side = a
         else:
             assert False, "unhandled option"
             exit(0)

@@ -338,9 +338,8 @@ class World(object):
         '''
         Sets the sides and goals
         '''
-        assert our_side in ['left', 'right']
+        self.our_side = our_side
         self._pitch = Pitch(pitch_num)
-        self._our_side = our_side
         self._their_side = 'left' if our_side == 'right' else 'right'
         self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
         self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
@@ -372,6 +371,11 @@ class World(object):
     @property
     def our_side(self):
         return self._our_side
+
+    @our_side.setter
+    def our_side(self, side):
+        assert our_side in ['left', 'right']
+        self._our_side = our_side
 
     @property
     def our_goal(self):
