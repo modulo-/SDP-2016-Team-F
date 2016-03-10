@@ -13,7 +13,6 @@ from planning.predictor import Predictor
 from time import time
 from math import pi
 
-PITCH_NO = 0
 color = None
 
 
@@ -27,7 +26,9 @@ class Interrupt:
 INITIAL_PLANNER_DELAY = 4
 
 predictor = Predictor()
-latest_world = World('left', PITCH_NO)
+# TODO: formally, the 0 should be the command-line set pitch number.
+# But, since it isn't used, it doesn't really matter.
+latest_world = World('left', 0)
 latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
 latest_world.our_defender._receiving_area = {'width': 50, 'height': 35, 'front_offset': 0}
 interrupts = []
@@ -77,12 +78,12 @@ def new_vision(world):
             interrupt.last_t = t
             interrupt.run()
 
-def start_vision():
-    Vision(video_port=0, pitch=PITCH_NO, planner_callback=new_vision)
+def start_vision(pitch_no):
+    Vision(video_port=0, pitch=pitch_no, planner_callback=new_vision)
 
 
 def help():
-    print("Usage: ./main.py --plan plan [--defender PATH | --attacker PATH] [--logging level] [--color color]")
+    print("Usage: ./main.py --plan plan --pitch {0|1} --goal {left|right} [--defender PATH | --attacker PATH] [--logging level] [--color color]")
     print("")
     print("Where --defender(-1) and --attacker(-2) refer to group 11 and 12's RF devices.")
     print("")
@@ -134,10 +135,12 @@ def set_plan(attack_planner, defence_planner, plan):
 
 def main():
     global color
-    global latest_world
+    pitch_no = 0
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:g:", ["help", "visible", "defender=", "attacker=", "logging=", "color=", "plan=", "goal="])
+        opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:g:", ["help",
+            "visible", "defender=", "attacker=", "logging=", "color=", "plan=",
+            "goal=", "pitch="])
     except getopt.GetoptError as err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
@@ -173,17 +176,19 @@ def main():
         elif o in ("-p", "--plan"):
             plan = a
         elif o in ("-g", "--goal"):
-            latest_world = World(a, PITCH_NO)
+            latest_world.our_side = a
+        elif o == "--pitch":
+            pitch_no = int(a)
         else:
             assert False, "unhandled option"
             exit(0)
 
     usage()
-    run(attacker=attacker, defender=defender, plan=plan)
+    run(attacker=attacker, defender=defender, plan=plan, pitch_no=pitch_no)
 
 
-def run(attacker, defender, plan):
-    thread = Thread(target=start_vision)
+def run(attacker, defender, plan, pitch_no):
+    thread = Thread(target=start_vision, args=(pitch_no,))
     thread.daemon = True
     thread.start()
     attack_planner = None
