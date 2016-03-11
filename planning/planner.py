@@ -34,9 +34,11 @@ class Planner (object):
         if isinstance(action, defender.GrabBall) or isinstance(action, attacker.GrabBall):
             info("Did grab")
             self.grabber_state = 'CLOSED'
+            self.has_grabbed = True
         elif isinstance(action, attacker.OpenGrabbers):
             info("Did open")
             self.grabber_state = 'OPEN'
+            self.has_grabbed = False
         return delay
 
     def plan_and_act(self, world):

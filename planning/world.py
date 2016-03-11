@@ -19,7 +19,7 @@ GOAL_LENGTH = 1
 GOAL_LOWER = 170
 GOAL_HIGHER = 300
 
-MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 100
+MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 30
 
 class PitchObject(object):
     '''
@@ -118,6 +118,7 @@ class Robot(PitchObject):
         self._catch_distance = 30
         self._catched_ball = False
         self._catcher = 'OPEN'
+        self._has_grabbed = False
         self._is_our_team = is_our_team
         self._is_house_robot = is_house_robot
 
@@ -152,6 +153,14 @@ class Robot(PitchObject):
         assert new_position in ['OPEN', 'CLOSED']
         self._catcher = new_position
 
+    @property
+    def has_grabbed(self):
+        return self._has_grabbed
+
+    @has_grabbed.setter
+    def has_grabbed(self, value):
+        self._has_grabbed = value
+
     def can_catch_ball(self, ball):
         '''
         Get if the ball is in the catcher zone but may not have possession
@@ -168,7 +177,7 @@ class Robot(PitchObject):
         '''
         # TODO Make this work for opponents properly
         if self.is_our_team and not self.is_house_robot:
-            return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
+            return (self.catcher == 'CLOSED') and self.has_grabbed and self.can_catch_ball(ball)
         else:
             return (math.hypot(self.x - ball.x, self.y - ball.y)
                     < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
