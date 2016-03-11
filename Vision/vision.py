@@ -76,6 +76,7 @@ class Vision:
             for i in range(0,5):
             	self.config.colours[all_color_names[i]]['max'] = all_colors[i*2]
             	self.config.colours[all_color_names[i]]['min'] = all_colors[i*2+1]
+            	# print all_color_names[i], all_colors[i*2+1], all_colors[i*2]
 
         self.config.addFilter("overlay", filters.filter_overlay,
                               default=1)

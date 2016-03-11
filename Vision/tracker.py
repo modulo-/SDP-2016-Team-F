@@ -266,12 +266,12 @@ class DotTracker(Tracker):
                     return
                     
                 corners = self.get_contour_corners(cnt)
-                if (abs(corners[0][0] - corners[1][0]) > 20 or
-                    abs(corners[1][0] - corners[2][0]) > 20 or
-                    abs(corners[2][0] - corners[3][0]) > 20 or
-                    abs(corners[0][1] - corners[1][1]) > 20 or
-                    abs(corners[1][1] - corners[2][1]) > 20 or
-                    abs(corners[2][1] - corners[3][1]) > 20):
+                if (abs(corners[0][0] - corners[1][0]) > 30 or
+                    abs(corners[1][0] - corners[2][0]) > 30 or
+                    abs(corners[2][0] - corners[3][0]) > 30 or
+                    abs(corners[0][1] - corners[1][1]) > 30 or
+                    abs(corners[1][1] - corners[2][1]) > 30 or
+                    abs(corners[2][1] - corners[3][1]) > 30):
                     continue
 
                 # Get center
