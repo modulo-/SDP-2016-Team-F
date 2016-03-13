@@ -288,12 +288,55 @@ def can_score(world, our_robot, their_goal, turn=0):
 
 # Test if a robot at 'position' could be passed to
 def defender_can_pass_to_position(world, position):
-    raise NotImplementedError
+    # get defender position
+    our_defender = world.our_defender
+
+    # get opposing teams positions
+    their_defender = world.their_defenders
+    their_attacker = world.their_attackers
+
+    # work out if any opposing team robots are near the line
+    # need to work out a good value for this
+    threshold = 10
+
+    # distance from their_defender to the line
+    y2 = our_defender.y
+    y1 = our_position.y
+    y0 = their_defender.y
+    x2 = our_defender.x
+    x1 = our_position.x
+    x0 = their_defender.x
+    dist1 = math.abs(((y2 - y1)*x0) - ((x2 - x1)*y0) + x2*y1 - y2*x1) / math.sqrt(math.pow((y2 - y1),2) + math.pow((x2 - x1),2))
+
+    # distance from their_attacker to the line
+    y3 = their_attacker.y
+    x3 = their_attacker.x
+    dist2 = math.abs(((y2 - y1)*x3) - ((x2 - x1)*y3) + x2*y1 - y2*x1) / math.sqrt(math.pow((y2 - y1),2) + math.pow((x2 - x1),2))
+
+    # if one or both of the opposing robots are too close to the line then we cannot pass to the postion
+    if dist1 or dist2 < threshold:
+        return False
+    # otherwise we can pass to the postion
+    else:
+        return True
 
 
 # Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
-    raise NotImplementedError
+    our_position = position
+    our_goal = world.our_goal
+    their_attacker = world.their_attackers
+
+    # need to work this out
+    can_we_score = False
+    # work out area between position and top two points of the goal
+    # if their attacker is not in this area we can score from this position
+
+    if (can_we_score == True):
+        return True
+    else:
+        return False
+
 
 # Predict y-intersection of robot's direction and goal line at predict_for_x
 def predict_y_intersection(world, robot, predict_for_x):

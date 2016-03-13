@@ -305,6 +305,7 @@ class Pitch(object):
         # TODO Get real pitch size
         self._width = 600
         self._height = 400
+        self._goal_box_x_offset = 150
 
     def is_within_bounds(self, robot, x, y):
         '''
@@ -320,6 +321,10 @@ class Pitch(object):
     @property
     def height(self):
         return self._height
+
+    @property
+    def goal_box_x_offset(self):
+        return self._goal_box_x_offset
 
     def __repr__(self):
         return str((self._width, self._height))
@@ -433,11 +438,17 @@ class World(object):
             else:
                 obj.vector = kwargs[name]
 
+    def get_new_score_zone(self):
+        halway = self.pitch.width / 2
+        x = halway + self.pitch.goal_box_x_offset / 2 if self._our_side == 'left'\
+            else halway - self.pitch.goal_box_x_offset / 2
+        y_step = self.pitch.width / 5
+        centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
+        filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(world, v) and
+                                    utils.attacker_can_score_from_position(world, v), centroids)
+        sorted_centroids = sorted(filtered_centroids, key=lambda v: (v.x)**2 + (v.y)**2, reverse=True)
+        return sorted_centroids
+
     @property
     def score_zone(self):
-        # TODO Temporarily use location for milestone 3 passing
-        return self.our_attacker.vector
-        if not self._score_zone:
-            # Calculate score zone
-            raise NotImplementedError
         return self._score_zone
