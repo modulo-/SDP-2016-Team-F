@@ -121,6 +121,8 @@ class Robot(PitchObject):
         self._has_grabbed = False
         self._is_our_team = is_our_team
         self._is_house_robot = is_house_robot
+        self._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
+        self._catch_distance = 32
 
     @property
     def catcher_area(self):
