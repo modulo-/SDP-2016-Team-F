@@ -8,117 +8,51 @@ import math
 from threading import Timer
 from position import Vector
 from world import World
-from planner import DefencePlanner
+from planner import DefencePlanner, AttackPlanner
 from comms import CommsManager
 
 import logging
 
-
-class Test:
+class Game:
 
     def __init__(self, scene):
         self.scene = scene
+        self.our_defender = self.scene.add_robot("defender", Vector(20, 200, math.radians(90), 0))
+        self.our_attacker = self.scene.add_robot("attacker", Vector(150, 200, math.radians(90), 0))
+        self.their_defender = self.scene.add_robot("defender", Vector(580, 200, math.radians(270), 0))
+        self.their_attacker = self.scene.add_robot("attacker", Vector(450, 200, math.radians(270), 0))
+        self.ball = self.scene.add_ball(Vector(300, 200, 0, 0))
+        self.odp = DefencePlanner(comms=SimulatorComms(self.our_defender, self.ball))
+        self.oap = AttackPlanner(comms=SimulatorComms(self.our_attacker, self.ball))
+        self.tdp = DefencePlanner(comms=SimulatorComms(self.their_defender, self.ball))
+        self.tap = AttackPlanner(comms=SimulatorComms(self.their_attacker, self.ball))
+        self.odp.set_task('game')
+        self.oap.set_task('game')
+        self.tdp.set_task('game')
+        self.tap.set_task('game')
+        self.world = World('left', 0)
 
-    def initialise(self, initial_state):
-        self.our_defender = None
-        self.our_attacker = None
-        if initial_state['our_defender']:
-            self.our_defender = self.scene.add_robot("defender", initial_state['our_defender'])
-        if initial_state['our_attacker']:
-            self.our_attacker = self.scene.add_robot("attacker", initial_state['our_attacker'])
-
-        self.ball = self.scene.add_ball(initial_state['ball'])
-        self.p = DefencePlanner(comms=SimulatorComms(self.our_defender, self.ball, self.wait_and_next_step))
-        self.p.set_task(initial_state['task'])
-        self.w = World('left', 0)
-        self.w.our_defender._receiving_area = {'width': 40, 'height': 50, 'front_offset': 20}
-        self.w.our_defender._catch_distance = 32
-        self.steps = 0
-        self.max_steps = initial_state['max_steps']
-
-    def run(self, initial_state, test_name):
-        logging.info(">> " + test_name + " started")
-        self.initialise(initial_state)
+    def run(self):
         self.step()
 
     def step(self):
-        print("\nStep: " + str(self.steps))
-        if self.steps >= self.max_steps:
-            print "Finished"
-            return
-
-        # update & act
-        self.w.update_positions(our_attacker=self.our_attacker.get_vec() if self.our_attacker is not None else None, our_defender=self.our_defender.get_vec() if self.our_defender is not None else None, ball=self.ball.get_vec())
-        self.p.plan_and_act(self.w)
-
-        self.steps += 1
-
-    def wait_and_next_step(self, delay):
-        print("Waiting for " + str(delay) + " seconds...")
-        t = Timer(delay, self.step)
-        t.start()
-
-    def test1(self):
-        initial_state = {
-            'task': 'move-grab',
-            'max_steps': 2,
-            'our_defender': Vector(100, 100, math.radians(270), 0),
-            'our_attacker': None,
-            'ball': Vector(200, 170, 0, 0),
-        }
-
-        self.run(initial_state, "Test 1")
-
-    def test2(self):
-        initial_state = {
-            'task': 'move-grab',
-            'max_steps': 2,
-            'our_defender': Vector(100, 100, math.radians(315), 0),
-            'our_attacker': None,
-            'ball': Vector(200, 170, 0, 0),
-        }
-
-        self.run(initial_state, "Test 2")
-
-    def test3(self):
-        initial_state = {
-            'task': 'move-grab',
-            'max_steps': 2,
-            'our_defender': Vector(250, 220, math.radians(200), 0),
-            'our_attacker': None,
-            'ball': Vector(200, 170, 0, 0),
-        }
-
-        self.run(initial_state, "Test 3")
-
-    def testm3_1(self):
-        initial_state = {
-            'task': 'm31',
-            'max_steps': 2,
-            'our_defender': Vector(400, 300, math.radians(90), 0),
-            'our_attacker': Vector(50, 200, math.radians(45), 0),
-            'ball': Vector(100, 200, 0, 0),
-        }
-
-        self.run(initial_state, "Test M3 - Receiving a pass")
-
+        self.world.update_positions(our_attacker=self.our_attacker.get_vec(),
+                                        our_defender=self.our_defender.get_vec(),
+                                        their_robot_0=self.their_attacker.get_vec(),
+                                        their_robot_1=self.their_defender.get_vec(),
+                                        ball=self.ball.get_vec())
+        Timer(max([self.odp.plan_and_act(self.world),
+                   self.oap.plan_and_act(self.world),
+                   self.tdp.plan_and_act(self.world),
+                   self.tap.plan_and_act(self.world)
+                   ]), self.step).start()
 
 class Scene(cocos.layer.ColorLayer):
 
-    def __init__(self, test):
+    def __init__(self):
         super(Scene, self).__init__(100, 255, 100, 255)
-        t = Test(self)
-
-        if(test == "1"):
-            t.test1()
-        elif(test == "2"):
-            t.test2()
-        elif(test == "3"):
-            t.test3()
-        elif(test == "m31"):
-            t.testm3_1()
-        else:
-            print("NO TEST ASSOCIATED!")
+        g = Game(self)
+        g.run()
 
     def add_robot(self, robot_type, vec):
         if (robot_type == "defender"):
@@ -137,10 +71,9 @@ class Scene(cocos.layer.ColorLayer):
 
 class SimulatorComms(CommsManager):
 
-    def __init__(self, robot, ball, wait_and_next_step):
+    def __init__(self, robot, ball):
         self.robot = robot
         self.ball = ball
-        self.wait_and_next_step = wait_and_next_step
         super(SimulatorComms, self).__init__(0)
 
     def move(self, d):
@@ -154,7 +87,7 @@ class SimulatorComms(CommsManager):
         delay = self.robot.move_to(
             self.robot.position[0] + dx,
             self.robot.position[1] + dy)
-        self.wait_and_next_step(delay)
+        return delay
 
     def turn(self, angle):
         '''
@@ -165,20 +98,20 @@ class SimulatorComms(CommsManager):
         print("Robot rotation: {0}".format(self.robot.rotation))
         super(SimulatorComms, self).turn(angle)
         delay = self.robot.rotate_by(angle)
-        self.wait_and_next_step(delay)
+        return delay
 
     def close_grabbers(self):
         super(SimulatorComms, self).close_grabbers()
         # TODO Fix assumption that we can grab ball
         self.ball.grab(self.robot)
 
-        self.wait_and_next_step(1)
+        return 1
 
     def release_grabbers(self):
         super(SimulatorComms, self).release_grabbers()
         self.ball.release()
 
-        self.wait_and_next_step(1)
+        return 1
 
 
 class Sprite (cocos.sprite.Sprite):
@@ -250,13 +183,16 @@ class Ball(Sprite):
 
 
 class Environment():
-    def __init__(self, width, height, verbose, test):
+    def __init__(self, width, height, verbose):
 
-        logging.basicConfig(level=logging.INFO, format="\033[95m\r%(asctime)s - %(levelname)s - %(message)s\033[0m")
+        if verbose:
+            logging.basicConfig(level=logging.DEBUG, format="\033[95m\r%(asctime)s - %(levelname)s - %(message)s\033[0m")
+        else:
+            logging.basicConfig(level=logging.INFO, format="\033[95m\r%(asctime)s - %(levelname)s - %(message)s\033[0m")
 
         # director init takes the same arguments as pyglet.window
         cocos.director.director.init(width=width, height=height, resizable=False)
-        world = Scene(test)
+        world = Scene()
 
         # A scene that contains the layer hello_layer
         main_scene = cocos.scene.Scene(world)
@@ -271,7 +207,7 @@ def usage():
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hvrt:", ["help", "verbose", "run", "test="])
+        opts, args = getopt.getopt(sys.argv[1:], "v:", ["verbose"])
     except getopt.GetoptError as err:
         # print help information and exit:
         print str(err)  # will print something like "option -a not recognized"
@@ -281,15 +217,10 @@ def main():
     for o, a in opts:
         if o == "-v":
             verbose = True
-        elif o in ("-h", "--help"):
-            usage()
-            sys.exit()
-        elif o in ("-r", "--run"):
-            Environment(width=600, height=400, verbose=verbose)
-        elif o in ("-t", "--test"):
-            Environment(width=600, height=400, verbose=verbose, test=a)
         else:
             assert False, "unhandled option"
+
+    Environment(width=600, height=400, verbose=verbose)
 
 
 if __name__ == "__main__":
