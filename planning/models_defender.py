@@ -145,9 +145,12 @@ class Tactical(Goal):
                         MoveToTacticalDefencePosition(world, robot)]
         super(Tactical, self).__init__(world, robot)
 
+class Block(Goal):
+    def __init__(self, world, robot):
+        self.actions = [RotateAndAlignForBlock(world, robot)]
+
 class ReactiveGrabGoal(Goal):
     def __init__(self, world, robot):
-        #self.actions = [RotateAndAlignForBlock(world, robot)]
         self.actions = [AlignForGrab(world, robot),
                         RotateAndAlignForGrab(world, robot),
                         ReactiveGrabAction(world, robot)]

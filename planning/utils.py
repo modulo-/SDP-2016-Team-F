@@ -156,6 +156,18 @@ def defender_get_rotation_to_catch_point_helper(robot_vec, ball_vec, catch_dista
     return (robot_vec.angle, theta, alpha)
 
 
+def ball_heading_to_our_goal(world):
+    '''
+    Returns true if the ball is heading toward our goal (the side, not the
+    object itself).
+    '''
+    if ball_is_static(world):
+        return False
+    if world.our_side == 'left':
+        return world.ball.angle >= math.pi
+    else:
+        return world.ball.angle < math.pi
+
 def ball_is_static(world):
     '''
     Returns true if the ball has lower velovity then defined threshold.
