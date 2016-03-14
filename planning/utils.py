@@ -1,5 +1,6 @@
 import math
 import logging
+import random
 import numpy as np
 from position import Vector, Coordinate
 
@@ -310,3 +311,84 @@ def attacker_can_score_from_position(world, position):
 # Predict y-intersection of robot's direction and goal line at predict_for_x
 def predict_y_intersection(world, robot, predict_for_x):
     return robot.y + math.tan(math.pi / 2 - robot.angle) * (predict_for_x - robot.x)
+
+
+def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
+    """
+    Calculates the angle for defender to pass to attacker or, if not possible,
+    angle to kick upfield which is least contested by enemy robots.
+
+    :param world: World object
+    :param defender_robot: The robot who is trying to kick
+    :param enemy_zone_radius: The radius of the circle around enemy robots in which the ball should not pass
+    :return: The calculated angle
+    """
+
+    def can_pass_to_attacker(defender_vec, attacker_vec, their_robots_vecs):
+        can_pass = True
+        defender_attacker_line = ((defender_vec.x, defender_vec.y), (attacker_vec.x, attacker_vec.y))
+        for t in their_robots_vecs:
+            if line_intersects_circle(defender_attacker_line, ((t.x, t.y), enemy_zone_radius)):
+                can_pass = False
+                break
+        return can_pass
+
+    aim_vector = world.our_attacker.vector
+    if world.our_attacker.is_missing:
+        aim_vector = world.their_goal.vector
+
+    their_vecs = [t.vector for t in world.their_robots if not t.is_missing]
+
+    if can_pass_to_attacker(defender_robot.vector, aim_vector, their_vecs):
+        return get_rotation_to_point(defender_robot.vector, aim_vector)
+    else:
+        # TODO possibly improve this to be less brute force
+        y = aim_vector.y
+        num_of_iterations = 100
+        step = world.pitch.height / num_of_iterations
+        for x in range(0, world.pitch.height, step):
+            new_vec = Vector(x, y, 0, 0)
+            # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
+            if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
+                return get_rotation_to_point(defender_robot.vector, new_vec)
+
+        # Could not find an angle, choose a random one within the cone between the defender and their corners
+
+        top_corner = Vector(0, 0, 0, 0)
+        bottom_corner = Vector(0, world.pitch.height, 0, 0)
+        if world.our_side == 'left':
+            top_corner = Vector(world.pitch.width, 0, 0, 0)
+            bottom_corner = Vector(world.pitch.width, world.pitch.height, 0, 0)
+
+        top_angle = get_rotation_to_point(defender_robot.vector, top_corner)
+        bottom_angle = get_rotation_to_point(defender_robot.vector, bottom_corner)
+
+        return random.uniform(min(top_angle, bottom_angle), max(top_angle, bottom_angle))
+
+
+
+def line_intersects_circle(line, circle):
+    """
+    Does line intersect circle?
+
+    Algorithm adapted from http://www.mathematik.tu-darmstadt.de/~ehartmann/cdgen0104.pdf page 17
+
+    :param line: A line in format ((x1, y1), (x2, y2))
+    :param circle: A circle in format ((x1, y1), r)
+    :return: True if line intersects circle, false otherwise
+    """
+
+    xm = circle[0][0]
+    ym = circle[0][1]
+    r = circle[1]
+    a = line[1][1] - line[0][1]
+    b = line[1][0] - line[0][0]
+    c = line[0][0]*line[1][1] - line[1][0]*line[0][1]
+
+    # Check variables are in range
+    if a == 0 or b == 0 or r < 0:
+        return False
+
+    c_prime = c - a * xm - b * ym
+
+    return r**2 * (a**2 + b**2) - c_prime**2 >= 0
