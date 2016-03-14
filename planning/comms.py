@@ -115,23 +115,24 @@ class TractorCrabCommsManager(CommsManager):
 
 class RFCommsManager (CommsManager):
 
-    def __init__(self, robot, serial_device):
+    def __init__(self, robot, serial_device, grab_callback):
         # group 11 - 1, group 12 - 2
         self.robot_id = 2
         # hex
         rf_channel = "67"
         guard_chars = "~~~"
         self._handle = SerialHandle(serial_device, rf_channel, guard_chars)
-        self._handle.registercb(self.changeTheWorld)
+        self._handle.registercb(self.update_grabbers)
+        self.grab_callback = grab_callback
         super(RFCommsManager, self).__init__(robot)
 
-    def changeTheWorld(data):
+    def update_grabbers(data):
         if data=="NC":
-            world.our_attacker.ballInGrabbers=False
-            print "ball not caught"
+            self.grab_callback(False)
+            info("Ball not caught")
         elif data=="BC":
-            world.our_attacker.ballInGrabbers=True
-            print "ball caught"
+            self.grab_callback(True)
+            info("Ball caught")
 
     # move a distance in mm
     def move(self, distance):
