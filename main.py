@@ -241,7 +241,7 @@ def run(attacker, defender, plan, pitch_no):
                 latest_world.our_side = 'right'
             else:
                 latest_world.our_side = 'left'
-        elif task in ['kickoff-them', 'kickoff-us', 'play', 'penalty-defend',
+        elif task in ['kickoff-them', 'kickoff-us', 'normal-play', 'penalty-defend',
                 'penalty-shoot']:
             latest_world.game_state = task
         elif task == 'game-stop':

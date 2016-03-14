@@ -363,7 +363,7 @@ class World(object):
 
     @game_state.setter
     def game_state(self, state):
-        assert state in [None, 'kickoff-them', 'kickoff-us', 'play',
+        assert state in [None, 'kickoff-them', 'kickoff-us', 'normal-play',
                 'penalty-defend', 'penalty-shoot']
         self._game_state = state
 
