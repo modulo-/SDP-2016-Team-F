@@ -231,6 +231,11 @@ def run(attacker, defender, plan, pitch_no):
             exit(0)
         elif task in ['debug', 'info', 'warn', 'error']:
             set_logging(task)
+        elif task == 'switch':
+            if latest_world.our_side == 'left':
+                latest_world.our_side = 'right'
+            else:
+                latest_world.our_side = 'left'
         else:
             set_plan(attack_planner, defence_planner, task)
 
