@@ -1,6 +1,7 @@
 import utils
 import math
 import logging
+import numpy as np
 
 from position import Vector
 from models_common import Goal, Action, are_equivalent_positions
@@ -15,6 +16,7 @@ from time import time
 
 ROTATION_BALL_THRESHOLD = 0.2
 ROTATION_THRESHOLD = 0.2
+MOVEMENT_THRESHOLD = 15
 FACING_ROTATION_THRESHOLD = 0.2
 CLOSE_DISTANCE_BALL_THRESHOLD = 50
 MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 75
@@ -143,11 +145,81 @@ class Tactical(Goal):
                         MoveToTacticalDefencePosition(world, robot)]
         super(Tactical, self).__init__(world, robot)
 
+class ReactiveGrabGoal(Goal):
+    def __init__(self, world, robot):
+        #self.actions = [RotateAndAlignForBlock(world, robot)]
+        self.actions = [AlignForGrab(world, robot),
+                        RotateAndAlignForGrab(world, robot),
+                        ReactiveGrabAction(world, robot)]
+        super(ReactiveGrabGoal, self).__init__(world, robot)
+
 
 '''
 > ACTIONS
 '''
 
+class RotateAndAlignForBlock(Action):
+    def perform(self, comms):
+        goal = self.world.our_goal
+        robots = filter(lambda r: not r.is_missing(), self.world.their_robots)
+        robots.sort(key=lambda r: math.hypot(r.x - goal.x, r.y - goal.y))
+        if len(robots) == 0:
+            logging.error("There is no enemy here. Gimme someone to destroy!")
+            return 1
+        robot = robots[0]
+        cone_upper = math.atan2(goal.x - robot.x, goal.higher_post - robot.y) % (2 * pi)
+        cone_lower = math.atan2(goal.x - robot.x, goal.lower_post - robot.y) % (2 * pi)
+        if robot.angle < min(cone_upper, cone_lower) or robot.angle > max(cone_upper, cone_lower):
+            critical_angle = (cone_upper + cone_lower) / 2
+        else:
+            critical_angle = robot.angle
+
+        target_rotation = (critical_angle - self.robot.angle + pi/2) % pi - pi/2
+        if (critical_angle - self.robot.angle + pi/2) % pi - pi/2 <= 0.6:
+            target_rotation = 0
+        dist = utils.defender_get_alignment_offset(self.robot, robot, critical_angle, target_rotation)
+        logging.info("Aligning with enemy. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
+        if abs(dist) > MOVEMENT_THRESHOLD and abs(target_rotation) > ROTATION_THRESHOLD:
+            comms.turn_then_move(target_rotation, dist)
+        elif abs(dist) > MOVEMENT_THRESHOLD:
+            comms.move(dist)
+        elif abs(target_rotation) > ROTATION_THRESHOLD:
+            comms.turn(target_rotation)
+
+class RotateAndAlignForGrab(Action):
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
+                     (lambda w, r: abs((r.angle - w.ball.angle + pi/2) % pi - pi/2) >= 0.6, "Ball vector and robot vector not within 35 degrees."),
+                     (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
+    def perform(self, comms):
+        target_rotation = (self.world.ball.angle - self.robot.angle + pi/2) % pi - pi/2
+        dist = utils.defender_get_alignment_offset(self.robot, self.world.ball, self.world.ball.angle, target_rotation)
+        logging.info("Aligning with ball. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
+        if abs(dist) > MOVEMENT_THRESHOLD:
+            comms.turn_then_move(target_rotation, dist)
+        else:
+            comms.turn(target_rotation)
+
+
+class AlignForGrab(Action):
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
+                     (lambda w, r: abs((r.angle - w.ball.angle + pi/2) % pi - pi/2) < 0.6, "Ball vector and robot vector within 35 degrees."),
+                     (lambda w, r: not utils.ball_is_static(w), "The ball is moving")]
+
+    def perform(self, comms):
+        dist = utils.defender_get_alignment_offset(self.robot, self.world.ball, self.world.ball.angle)
+        logging.info("Aligning with ball. (Move %f right)", dist)
+        if abs(dist) > MOVEMENT_THRESHOLD:
+            comms.move(dist)
+
+
+class ReactiveGrabAction(Action):
+    preconditions = [(lambda w, r: r.can_catch_ball(w.ball), "Robot can catch the ball."),
+                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+
+    def perform(self, comms):
+        logging.info("Grabbing.")
+        self.robot.catcher = 'CLOSED'
+        comms.close_grabbers()
 
 class Kick(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has the ball.")]

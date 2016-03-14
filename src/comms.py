@@ -16,29 +16,32 @@ class SerialHandle:
         self._callbacks = []
         self._packetlist = []
         self._packetcond = Condition()
-        self._serial = serial.Serial(fname)
-        self._serial.flushInput()
-        self._serial.flushOutput()
-        cmds = [
-            control,
-            'ATEE1\r',
-            'ATAC\r',
-            'ATEK' + ENCKEY + '\r',
-            'ATID' + PANID + '\r',
-            'ATCN' + str(chan) + '\r',
-            'ATAC\r',
-            'ATWR\r',
-            'ATDN\r',
-        ]
+        if fname == '/dev/null':
+            self._serial = open(fname, 'w')
+        else:
+            self._serial = serial.Serial(fname)
+            self._serial.flushInput()
+            self._serial.flushOutput()
+            cmds = [
+                control,
+                'ATEE1\r',
+                'ATAC\r',
+                'ATEK' + ENCKEY + '\r',
+                'ATID' + PANID + '\r',
+                'ATCN' + str(chan) + '\r',
+                'ATAC\r',
+                'ATWR\r',
+                'ATDN\r',
+            ]
 
-        for cmd in cmds:
-            self._lock.acquire()
-            self._serial.write(cmd)
-            self._lock.release()
-            debug('Comm command sent: %r', cmd)
-            self._waitok()
-        if listen:
-            thread.start_new_thread(self._monitor, ())
+            for cmd in cmds:
+                self._lock.acquire()
+                self._serial.write(cmd)
+                self._lock.release()
+                debug('Comm command sent: %r', cmd)
+                self._waitok()
+            if listen:
+                thread.start_new_thread(self._monitor, ())
 
     def _monitor(self):
         while True:

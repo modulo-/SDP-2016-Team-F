@@ -266,12 +266,12 @@ class DotTracker(Tracker):
                     return
                     
                 corners = self.get_contour_corners(cnt)
-                if (abs(corners[0][0] - corners[1][0]) > 20 or
-                    abs(corners[1][0] - corners[2][0]) > 20 or
-                    abs(corners[2][0] - corners[3][0]) > 20 or
-                    abs(corners[0][1] - corners[1][1]) > 20 or
-                    abs(corners[1][1] - corners[2][1]) > 20 or
-                    abs(corners[2][1] - corners[3][1]) > 20):
+                if (abs(corners[0][0] - corners[1][0]) > 30 or
+                    abs(corners[1][0] - corners[2][0]) > 30 or
+                    abs(corners[2][0] - corners[3][0]) > 30 or
+                    abs(corners[0][1] - corners[1][1]) > 30 or
+                    abs(corners[1][1] - corners[2][1]) > 30 or
+                    abs(corners[2][1] - corners[3][1]) > 30):
                     continue
 
                 # Get center
@@ -293,7 +293,7 @@ class DotTracker(Tracker):
             
             while(1):
                 # Trim contours matrix
-                if len(contours) < 1 or robots_found == 2:
+                if len(contours) < 1 or robots_found == 3:
                     break
 
                 cnt_index = self.get_largest_contour_index(contours)
@@ -319,8 +319,6 @@ class DotTracker(Tracker):
                     abs(corners[1][1] - corners[2][1]) > 20 or
                     abs(corners[2][1] - corners[3][1]) > 20):
                     continue
-                
-                robots_found += 1
 
                 assert identification in ['pink', 'green']
                 corner = self.getCorner(section_hsv, (x,y), identification)
@@ -331,6 +329,17 @@ class DotTracker(Tracker):
                     orientation = -math.degrees(math.atan2((y-corner['y']), (x-corner['x']))) + self.config.delta_angle
                 else:
                     orientation = None
+                    
+                if identification == 'pink':
+                    if robots_found == 1:
+                        continue
+                    robots_found = robots_found | 1
+                
+                if identification == 'green':
+                    if robots_found == 2:
+                        continue
+                    robots_found = robots_found | 2
+                    
 
                 queue.put({
                     'name': self.item + '_' + str(robots_found - 1),
