@@ -178,7 +178,7 @@ class Robot(PitchObject):
         '''
         # TODO Make this work for opponents properly
         if self.is_our_team and not self.is_house_robot:
-            return (self.catcher == 'CLOSED') and self.has_grabbed and self.can_catch_ball(ball)
+            return (self.catcher == 'CLOSED') and self.can_catch_ball(ball)
         else:
             return (math.hypot(self.x - ball.x, self.y - ball.y)
                     < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
@@ -332,11 +332,11 @@ class World(object):
     Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
-    _our_defender = Defender(0, 0, 0, 0, 0, True, True)
-    _our_attacker = Attacker(0, 0, 0, 0, 0, True, False)
+    _our_defender = Defender(0, 0, 0, 0, True, False)
+    _our_attacker = Attacker(0, 0, 0, 0, True, False)
     _their_robots = []
-    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
-    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
+    _their_robots.append(Robot(0, 0, 0, 0, False, True))
+    _their_robots.append(Robot(0, 0, 0, 0, False, True))
     _our_defender_index = 0
     _our_attacker_index = 1
     _their_defender_index = 2

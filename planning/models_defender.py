@@ -162,11 +162,11 @@ class ReactiveGrabGoal(Goal):
 
 class PassAction(Action):
     def perform(self, comms):
-        target_angle = defender_angle_to_pass_upfield(self.world, self.robot)
-        target_rotation = (target_angle - self.robot.angle + pi/2) % pi - pi/2
+        target_rotation = utils.defender_angle_to_pass_upfield(self.world, self.robot)
         logging.info("Passing ball. (Rotate %f degrees, then kick)",
                 math.degrees(target_rotation))
         comms.turn_then_kick(target_rotation)
+        self.robot.catcher = 'OPEN'
 
 
 class RotateAndAlignForBlock(Action):
