@@ -195,8 +195,6 @@ class MoveToDefenceArea(Action):
         comms.move(dist)
 
 class RotateToDefenceArea(Action):
-    # TODO
-    preconditions = []
     def perform(self, comms):
         if self.world.our_side == 'left':
             x = 50
