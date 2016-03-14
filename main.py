@@ -244,6 +244,10 @@ def run(attacker, defender, plan, pitch_no):
             latest_world.game_state = task
         elif task == 'game-stop':
             latest_world.game_state = None
+        elif task == 'penalty11':
+            latest_world.our_defender.penalty = True
+        elif task == 'unpenalty11':
+            latest_world.our_defender.penalty = False
         else:
             set_plan(attack_planner, defence_planner, task)
 

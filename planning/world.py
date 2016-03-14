@@ -118,6 +118,7 @@ class Robot(PitchObject):
         self._catch_distance = 30
         self._catched_ball = False
         self._catcher = 'OPEN'
+        self.penalty = False
         self._has_grabbed = False
         self._is_our_team = is_our_team
         self._is_house_robot = is_house_robot

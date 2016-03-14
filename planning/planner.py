@@ -133,7 +133,9 @@ class DefencePlanner(Planner):
         '''
         Selects a goal for robot
         '''
-        if self.current_task == 'play' and world.game_state != None:
+        if robot.penalty:
+            return None
+        elif self.current_task == 'play' and world.game_state != None:
             if robot.has_ball(world.ball):
                 logging.info("Defender goal choice: kick the ball")
                 # TODO
