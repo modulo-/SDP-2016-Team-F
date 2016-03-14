@@ -187,26 +187,26 @@ class Vision:
                         if item['identification'] == 'green':
                             w.robot_blue_green = Vector(x, y, rad, dis)
                             
-                            if w.ball != None and (abs(w.ball.x - x) <= 7 or abs(w.ball.y - y) <= 7):
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
                                 w.ball = self.world_previous.ball
                                 
                         elif item['identification'] == 'pink':
                             w.robot_blue_pink = Vector(x, y, rad, dis)
                             
-                            if w.ball != None and (abs(w.ball.x - x) <= 7 or abs(w.ball.y - y) <= 7):
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
                                 w.ball = self.world_previous.ball
                                 
                     if item['colour'] == 'yellow':
                         if item['identification'] == 'green':
                             w.robot_yellow_green = Vector(x, y, rad, dis)
                             
-                            if w.ball != None and (abs(w.ball.x - x) <= 7 or abs(w.ball.y - y) <= 7):
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
                                 w.ball = self.world_previous.ball
                                 
                         elif item['identification'] == 'pink':
                             w.robot_yellow_pink = Vector(x, y, rad, dis)
                             
-                            if w.ball != None and (abs(w.ball.x - x) <= 7 or abs(w.ball.y - y) <= 7):
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
                                 w.ball = self.world_previous.ball
             
             # quit()
