@@ -15,7 +15,7 @@ robot = RFCommsManager(0, b[int(raw_input("serial device:"))])
 print("press h for help")
 
 while True:
-    command=raw_input("command (t/k/m/g/r):")
+    command=raw_input("command (t/k/m/g/r/q/p/D/T):")
     if command == "t":
         angle=int(raw_input("angle:"))
         robot.turn(angle)
@@ -34,6 +34,18 @@ while True:
     elif command=="r":
         robot.release_grabbers()
         print("robot.release()")
+    elif command=='p':
+        robot.ping();
+        print("robot.ping()"); 
+    elif command=='D':
+        debugLevel= int(raw_input("debugLevel:"));
+        robot.setDebugLevel(debugLevel);
+        print("robot.setDebugLevel("+str(debugLevel)+")");
+    elif command=='t':
+        robot.test();
+        print("robot.test()");
+    elif command=="q":
+        exit();
     else:
-        print("commands: help h, kick k, move m, grab g, release r")
+        print("commands: help h, kick k, move m, grab g, release r, q quit, p ping, D DebugLevel, T test")
     

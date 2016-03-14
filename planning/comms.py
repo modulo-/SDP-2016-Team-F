@@ -151,3 +151,15 @@ class RFCommsManager (CommsManager):
         cmd = b"r"
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).release_grabbers()
+    
+    def ping(self):
+        cmd = b"p"
+        self._handle.send(cmd, self.robot_id)
+
+    def test(self):
+        cmd = b"t"
+        self._handle.send(cmd, self.robot_id)
+
+    def setDebugLevel(self, level):
+        cmd = b"D" + struct.pack(">h", level)
+        self._handle.send(cmd, self.robot_id)

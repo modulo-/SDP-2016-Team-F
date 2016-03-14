@@ -17,10 +17,22 @@ int positions[ROTARY_COUNT] = {0};
 void updateMotorPositions() {
   // Request motor position deltas from rotary slave board
   Wire.requestFrom(ROTARY_SLAVE_ADDRESS, ROTARY_COUNT);
-
-  // Update the recorded motor positions
+  int8_t values[ROTARY_COUNT];
+  //check for error
+  bool error=true;
   for (int i = 0; i < ROTARY_COUNT; i++) {
-    positions[i] += (int8_t) Wire.read();  // Must cast to signed 8-bit type
+    int8_t a =(int8_t) Wire.read();  // Must cast to signed 8-bit type
+    values[i]=a;
+    if(a!=-1){error=false;}
+  }
+  if(error){
+    Serial.println("cannot communicate with encoder board");
+  }
+  else{
+      // Update the recorded motor positions
+      for (int i = 0; i < ROTARY_COUNT; i++) {
+        positions[i] += values[i]; 
+      }
   }
 }
 
@@ -82,15 +94,26 @@ void setup() {
   // initialise the IMU
 
   //Initialise the WDT and flush the serial...
+  Serial.println("hello world");
   Serial.flush();
 }
 
+int prevPositions[ROTARY_COUNT];
+int time=0;
 void loop() {
-  Serial.print("Heading :");
-  updateMotorPositions();
-  printMotorPositions();
+  if(millis()-time>=200){
+      updateMotorPositions();
+      bool changed=false;
+      for(int i=0; i<ROTARY_COUNT;i++){
+          if(positions[i]!=prevPositions[i]){
+            changed=true;
+          }
+          prevPositions[i]=positions[i];
+          time=millis();
+      }
+      if(changed){ printMotorPositions(); }
+  }
   react();
-  //delay(200);
 }
 
 /*
@@ -122,120 +145,15 @@ void updateRotaryPositions() {
 
 void react() {
   char input;
-  input = Serial.read();
-  switch (input) {
-    case '8':
-      Serial.write("forward\n");
-      motorBackward(0, 100);
-      motorBackward(1, 100);
-      motorStop(2);
-      break;
-
-    case '2':
-      Serial.write("backward\n");
-      motorForward(0, 100);
-      motorForward(1, 100);
-      motorStop(2);
-      break;
-
-    case '5':
-      Serial.write("stop\n");
-      motorStop(0);
-      motorStop(1);
-      motorStop(2);
-      break;
-
-    case '6':
-      Serial.write("right\n");
-      motorForward(0, 0);
-      motorBackward(1, 85);
-      motorBackward(2, 100);
-      break;
-
-    case '4':
-      Serial.write("left\n");
-      motorBackward(0, 85);
-      motorForward(1, 0);
-      motorForward(2, 100);
-      break;
-
-    case '9':
-      Serial.write("forwards clockwise\n");
-      motorBackward(0, 100);
-      motorForward(1, 50);
-      motorBackward(2, 100);
-      break;
-
-    case '7':
-      Serial.write("forwards anticlockwise\n");
-      motorForward(0, 50);
-      motorBackward(1, 100);
-      motorForward(2, 100);
-      break;
-
-    case '3':
-      Serial.write("backwards clockwise\n");
-      motorBackward(0, 50);
-      motorForward(1, 100);
-      motorBackward(0, 50);
-      motorBackward(2, 100);
-      break;
-
-    case '1':
-      Serial.write("backwards anticlockwise\n");
-      motorForward(0, 100);
-      motorBackward(1, 50);
-      motorForward(2, 100);
-      break;
-
-    //flippers open
-    case 'k':
-      Serial.write("flippers open\n");
-      motorForward(5, 80);
-      delay(300);
-      motorStop(5);
-      break;
-
-    //flippers close
-    case 'l':
-      Serial.write("flippers close\n");
-      motorBackward(5, 80);
-      delay(300);
-      motorStop(5);
-      break;
-
-    //    //left flipper open
-    //    case 'a':
-    //      Serial.write("left flipper open\n");
-    //      motorForward(4, 80);
-    //      delay(300);
-    //      motorStop(4);
-    //      break;
-    //
-    //    //left flipper close
-    //    case 's':
-    //      Serial.write("left flipper close\n");
-    //      motorBackward(4, 80);
-    //      delay(300);
-    //      motorStop(4);
-    //      break;
-
-    //kicker down
-    case 'h':
-      Serial.write("kicker down\n");
-      motorForward(3, 100);
-      delay(300);
-      motorStop(3);
-      break;
-
-    // kick
-    case 'y':
-      Serial.write("kick\n");
-      motorBackward(3, 100);
-      delay(300);
-      motorForward(3, 100);
-      delay(100);
-      motorStop(3);
-      break;
-  }
+  if(Serial.available()){
+      int motorNumber=Serial.read()-'0' +0;
+      Serial.println(motorNumber); 
+      if(motorNumber >=0 && motorNumber <=5){
+          motorForward(motorNumber, 100);
+          Serial.println(motorNumber);
+          delay(600);
+          Serial.println("off");
+          motorAllStop();
+      }
+    }
 }

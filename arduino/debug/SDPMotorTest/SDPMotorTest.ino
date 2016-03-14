@@ -5,9 +5,16 @@ int i = 0;
 void setup(){
   SDPsetup();
   helloWorld();
+motorForward(0, 50);
+motorForward(1, 50);
+motorForward(2, 50);
+motorForward(3, 50);
+motorForward(4, 50);
+motorForward(5, 50);
 }
 
 void loop(){
+/*
 Serial.println("All Motors Forward 50%");
 motorForward(0, 50);
 motorForward(1, 50);
@@ -139,4 +146,5 @@ delay(2500);
 Serial.println("Motor 5 Stop");
 motorStop(5);
 delay(2500);
+*/
 }
