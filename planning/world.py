@@ -118,6 +118,7 @@ class Robot(PitchObject):
         self._catch_distance = 30
         self._catched_ball = False
         self._catcher = 'OPEN'
+        self.penalty = False
         self._has_grabbed = False
         self._is_our_team = is_our_team
         self._is_house_robot = is_house_robot
@@ -348,10 +349,21 @@ class World(object):
         Sets the sides and goals
         '''
         self.our_side = our_side
+        self._game_state = None
         self._pitch = Pitch(pitch_num)
         self._their_side = 'left' if our_side == 'right' else 'right'
         self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
         self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
+
+    @property
+    def game_state(self):
+        return self._game_state
+
+    @game_state.setter
+    def game_state(self, state):
+        assert state in [None, 'kickoff-them', 'kickoff-us', 'play',
+                'penalty-defend', 'penalty-shoot']
+        self._game_state = state
 
     @property
     def our_defender(self):
