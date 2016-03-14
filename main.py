@@ -80,7 +80,7 @@ def new_vision(world):
             interrupt.run()
     if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
             'penalty-shoot'] and not utils.ball_is_static(latest_world):
-        latest_world.game_state = 'play'
+        latest_world.game_state = 'normal-play'
 
 
 def start_vision(pitch_no):
