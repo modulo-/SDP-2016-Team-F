@@ -133,7 +133,7 @@ class DefencePlanner(Planner):
         '''
         Selects a goal for robot
         '''
-        if self.current_task == 'play':
+        if self.current_task == 'play' and world.game_state != None:
             if robot.has_ball(world.ball):
                 logging.info("Defender goal choice: kick the ball")
                 # TODO
@@ -146,7 +146,7 @@ class DefencePlanner(Planner):
                         robot.y)
                 oppdists = [math.hypot(world.ball.x - r.x, world.ball.y - r.y)
                         for r in world.their_robots if not r.is_missing()]
-                if ourdist < min(oppdists):
+                if ourdist < min(oppdists) and world.game_state == 'play':
                     logging.info("Defender goal choice: Retrieve ball")
                     return defender.GetBall(world, robot)
                 else:
