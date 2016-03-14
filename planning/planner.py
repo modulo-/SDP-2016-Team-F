@@ -158,8 +158,7 @@ class DefencePlanner(Planner):
                     return defender.Block(world, robot)
             else:
                 info("Defender goal choice: Return to defence area")
-                # TODO
-                pass
+                return defender.ReturnToDefenceArea(world, robot)
         elif self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
         elif self.current_task == 'reactive-grab':
