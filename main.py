@@ -12,6 +12,7 @@ from threading import Timer, Thread
 from planning.predictor import Predictor
 from time import time
 from math import pi
+from planning import utils
 
 color = None
 
@@ -77,9 +78,9 @@ def new_vision(world):
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
-    if latest_world.state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
+    if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
             'penalty-shoot'] and not utils.ball_is_static(latest_world):
-        latest_world.state = 'play'
+        latest_world.game_state = 'play'
 
 
 def start_vision(pitch_no):
