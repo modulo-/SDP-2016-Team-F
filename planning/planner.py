@@ -133,7 +133,30 @@ class DefencePlanner(Planner):
         '''
         Selects a goal for robot
         '''
-        if self.current_task == 'move-grab':
+        if self.current_task == 'play':
+            if robot.has_ball(world.ball):
+                logging.info("Defender goal choice: kick the ball")
+                # TODO
+                pass
+            elif utils.ball_heading_to_our_goal(world) and world.in_our_half(world.ball):
+                logging.info("Defender goal choice: Intercept")
+                return defender.ReactiveGrabGoal(world, robot)
+            elif utils.ball_is_static(world) and world.in_our_half(world.ball):
+                ourdist = math.hypot(world.ball.x - robot.x, world.ball.y -
+                        robot.y)
+                oppdists = [math.hypot(world.ball.x - r.x, world.ball.y - r.y)
+                        for r in world.their_robots if not r.is_missing()]
+                if ourdist < min(oppdists):
+                    logging.info("Defender goal choice: Retrieve ball")
+                    return defender.GetBall(world, robot)
+                else:
+                    logging.info("Defender goal choice: Block")
+                    return defender.Block(world, robot)
+            else:
+                logging.info("Defender goal choice: Return to defence area")
+                # TODO
+                pass
+        elif self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
         elif self.current_task == 'reactive-grab':
             return defender.ReactiveGrabGoal(world, robot)
