@@ -122,7 +122,16 @@ class RFCommsManager (CommsManager):
         rf_channel = "67"
         guard_chars = "~~~"
         self._handle = SerialHandle(serial_device, rf_channel, guard_chars)
+        self._handle.registercb(self.changeTheWorld)
         super(RFCommsManager, self).__init__(robot)
+
+    def changeTheWorld(data):
+        if data=="NC":
+            world.our_attacker.ballInGrabbers=False
+            print "ball not caught"
+        elif data=="BC":
+            world.our_attacker.ballInGrabbers=True
+            print "ball caught"
 
     # move a distance in mm
     def move(self, distance):

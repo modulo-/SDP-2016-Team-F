@@ -113,6 +113,8 @@ class PitchObject(object):
 
 class Robot(PitchObject):
 
+    ballInGrabbers=False
+
     def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
         self._catch_distance = 30

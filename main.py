@@ -165,7 +165,7 @@ def main():
         elif o in ("-1", "--defender"):
             defender = TractorCrabCommsManager(0, a)
         elif o in ("-2", "--attacker"):
-            attacker = RFCommsManager(0, a)
+            attacker = RFCommsManager(0, a, latest_world)
         elif o in ("-l", "--logging"):
             logging_modes = a.split(",")
             for mode in logging_modes:
