@@ -77,7 +77,8 @@ def new_vision(world):
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
-    if latest_world.state in ['kickoff-them', 'kickoff-us'] and not utils.ball_is_static(latest_world):
+    if latest_world.state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
+            'penalty-shoot'] and not utils.ball_is_static(latest_world):
         latest_world.state = 'play'
 
 
