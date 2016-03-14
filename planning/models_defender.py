@@ -153,10 +153,60 @@ class ReactiveGrabGoal(Goal):
                         ReactiveGrabAction(world, robot)]
         super(ReactiveGrabGoal, self).__init__(world, robot)
 
+class ReturnToDefenceArea(Goal):
+    def __init__(self, world, robot):
+        self.actions = [FaceOppositePitchSide(world, robot),
+                        MoveToDefenceArea(world, robot),
+                        TurnToDefenceArea(world, robot)]
+
 
 '''
 > ACTIONS
 '''
+
+class FaceOppositePitchSide(Action):
+    # TODO
+    preconditions = []
+    def perform(self, comms):
+        if self.world.our_side == 'left':
+            target_angle = pi/2
+        else:
+            target_angle = 3*pi/2
+        rot_angle = (target_angle - self.robot.angle + pi/2) % pi - pi/2
+        logging.info("Facing opposite pitch side. Rotating %f degrees.", math.degrees(rot_angle))
+        comms.turn(rot_angle)
+
+class MoveToDefenceArea(Action):
+    # TODO
+    preconditions = []
+    def perform(self, comms):
+        if self.world.our_side == 'left':
+            x = 50
+        else:
+            x = self.world.pitch.width - 50
+        y = self.world.pitch.height/2
+        dist = math.hypot(self.robot.x - x, self.robot.y - y)
+        angle = math.atan2(x - self.robot.x, y - self.robot.y)
+        if abs((angle - (robot.angle + pi/2) + pi) % (2*pi) - pi) < pi/2:
+            pass
+        else:
+            dist = -dist
+        logging.info("Moving to defence area. Moving %f right.", dist)
+        comms.move(dist)
+
+class RotateToDefenceArea(Action):
+    # TODO
+    preconditions = []
+    def perform(self, comms):
+        if self.world.our_side == 'left':
+            x = 50
+        else:
+            x = self.world.pitch.width - 50
+        y = self.world.pitch.height/2
+        target_angle = math.atan2(x - self.robot.x, y - self.robot.y)
+        rot_angle = (target_angle - self.robot.angle + pi/2) % pi - pi/2
+        logging.info("Facing direction to move to defence area. Rotating %f degrees.", math.degrees(rot_angle))
+        comms.turn(rot_angle)
 
 class RotateAndAlignForBlock(Action):
     def perform(self, comms):
