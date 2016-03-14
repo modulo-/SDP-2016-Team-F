@@ -156,6 +156,13 @@ class ReactiveGrabGoal(Goal):
                         ReactiveGrabAction(world, robot)]
         super(ReactiveGrabGoal, self).__init__(world, robot)
 
+class ReturnToDefenceArea(Goal):
+    def __init__(self, world, robot):
+        self.actions = [FaceOppositePitchSide(world, robot),
+                        MoveToDefenceArea(world, robot),
+                        RotateToDefenceArea(world, robot)]
+
+
 '''
 > ACTIONS
 '''
@@ -168,6 +175,32 @@ class PassAction(Action):
         comms.turn_then_kick(target_rotation)
         self.robot.catcher = 'OPEN'
 
+class FaceOppositePitchSide(Action):
+    preconditions = [(lambda w, r: abs(utils.dist(r.vector, utils.get_defence_point(w))) < MOVEMENT_THRESHOLD, "At defence point.")]
+    def perform(self, comms):
+        if self.world.our_side == 'left':
+            target_angle = pi/2
+        else:
+            target_angle = 3*pi/2
+        print target_angle
+        rot_angle = (target_angle - self.robot.angle + pi) % (2*pi) - pi
+        logging.info("Facing opposite pitch side. Rotating %f degrees.", math.degrees(rot_angle))
+        comms.turn(rot_angle)
+
+class MoveToDefenceArea(Action):
+    preconditions = [(lambda w, r: abs(utils.get_rotation_to_point(utils.defender_move_vec(r), utils.get_defence_point(w))) < ROTATION_THRESHOLD, "Aligned to move to defence point.")]
+    def perform(self, comms):
+        dist = utils.dist(self.robot, utils.get_defence_point(self.world))
+        logging.info("Moving to defence area. Moving %f right.", dist)
+        comms.move(dist)
+
+class RotateToDefenceArea(Action):
+    def perform(self, comms):
+        rot_angle = utils.get_rotation_to_point(
+                utils.defender_move_vec(self.robot),
+                utils.get_defence_point(self.world))
+        logging.info("Facing direction to move to defence area. Rotating %f degrees.", math.degrees(rot_angle))
+        comms.turn(rot_angle)
 
 class RotateAndAlignForBlock(Action):
     def perform(self, comms):
