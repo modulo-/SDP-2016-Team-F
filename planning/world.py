@@ -118,6 +118,7 @@ class Robot(PitchObject):
         self._catch_distance = 30
         self._catched_ball = False
         self._catcher = 'OPEN'
+        self.penalty = False
         self._has_grabbed = False
         self._is_our_team = is_our_team
         self._is_house_robot = is_house_robot
@@ -177,7 +178,7 @@ class Robot(PitchObject):
         '''
         # TODO Make this work for opponents properly
         if self.is_our_team and not self.is_house_robot:
-            return (self.catcher == 'CLOSED') and self.has_grabbed and self.can_catch_ball(ball)
+            return (self.catcher == 'CLOSED') and self.can_catch_ball(ball)
         else:
             return (math.hypot(self.x - ball.x, self.y - ball.y)
                     < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
@@ -331,11 +332,11 @@ class World(object):
     Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
-    _our_defender = Defender(0, 0, 0, 0, 0, True, True)
-    _our_attacker = Attacker(0, 0, 0, 0, 0, True, False)
+    _our_defender = Defender(0, 0, 0, 0, True, False)
+    _our_attacker = Attacker(0, 0, 0, 0, True, False)
     _their_robots = []
-    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
-    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
+    _their_robots.append(Robot(0, 0, 0, 0, False, True))
+    _their_robots.append(Robot(0, 0, 0, 0, False, True))
     _our_defender_index = 0
     _our_attacker_index = 1
     _their_defender_index = 2
@@ -348,10 +349,21 @@ class World(object):
         Sets the sides and goals
         '''
         self.our_side = our_side
+        self._game_state = None
         self._pitch = Pitch(pitch_num)
         self._their_side = 'left' if our_side == 'right' else 'right'
         self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
         self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
+
+    @property
+    def game_state(self):
+        return self._game_state
+
+    @game_state.setter
+    def game_state(self, state):
+        assert state in [None, 'kickoff-them', 'kickoff-us', 'play',
+                'penalty-defend', 'penalty-shoot']
+        self._game_state = state
 
     @property
     def our_defender(self):

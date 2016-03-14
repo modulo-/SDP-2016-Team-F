@@ -131,9 +131,8 @@ class Pass(Goal):
     Pass to attacker
     '''
     def __init__(self, world, robot):
-        self.actions = [KickToScoreZone(world, robot),
-                        TurnToScoreZone(world, robot)]
-        super(Goal, self).__init__(world, robot)
+        self.actions = [PassAction(world, robot)]
+        super(Pass, self).__init__(world, robot)
 
 
 class Tactical(Goal):
@@ -145,18 +144,30 @@ class Tactical(Goal):
                         MoveToTacticalDefencePosition(world, robot)]
         super(Tactical, self).__init__(world, robot)
 
+class Block(Goal):
+    def __init__(self, world, robot):
+        self.actions = [RotateAndAlignForBlock(world, robot)]
+        super(Block, self).__init__(world, robot)
+
 class ReactiveGrabGoal(Goal):
     def __init__(self, world, robot):
-        #self.actions = [RotateAndAlignForBlock(world, robot)]
         self.actions = [AlignForGrab(world, robot),
                         RotateAndAlignForGrab(world, robot),
                         ReactiveGrabAction(world, robot)]
         super(ReactiveGrabGoal, self).__init__(world, robot)
 
-
 '''
 > ACTIONS
 '''
+
+class PassAction(Action):
+    def perform(self, comms):
+        target_rotation = utils.defender_angle_to_pass_upfield(self.world, self.robot)
+        logging.info("Passing ball. (Rotate %f degrees, then kick)",
+                math.degrees(target_rotation))
+        comms.turn_then_kick(target_rotation)
+        self.robot.catcher = 'OPEN'
+
 
 class RotateAndAlignForBlock(Action):
     def perform(self, comms):

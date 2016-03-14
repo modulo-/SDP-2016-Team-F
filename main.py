@@ -12,6 +12,7 @@ from threading import Timer, Thread
 from planning.predictor import Predictor
 from time import time
 from math import pi
+from planning import utils
 
 color = None
 
@@ -77,6 +78,10 @@ def new_vision(world):
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
+    if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
+            'penalty-shoot'] and not utils.ball_is_static(latest_world):
+        latest_world.game_state = 'play'
+
 
 def start_vision(pitch_no):
     Vision(video_port=0, pitch=pitch_no, planner_callback=new_vision)
@@ -236,6 +241,15 @@ def run(attacker, defender, plan, pitch_no):
                 latest_world.our_side = 'right'
             else:
                 latest_world.our_side = 'left'
+        elif task in ['kickoff-them', 'kickoff-us', 'play', 'penalty-defend',
+                'penalty-shoot']:
+            latest_world.game_state = task
+        elif task == 'game-stop':
+            latest_world.game_state = None
+        elif task == 'penalty11':
+            latest_world.our_defender.penalty = True
+        elif task == 'unpenalty11':
+            latest_world.our_defender.penalty = False
         else:
             set_plan(attack_planner, defence_planner, task)
 
