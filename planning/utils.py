@@ -5,6 +5,20 @@ from position import Vector, Coordinate
 
 from math import pi
 
+def defender_move_vec(vec):
+    return Vector(vec.x, vec.y, (vec.angle + pi/2) % (2*pi), vec.velocity)
+
+def dist(vec1, vec2):
+    print vec1
+    return math.hypot(vec1.x - vec2.x, vec1.y - vec2.y)
+
+def get_defence_point(world):
+    if world.our_side == 'left':
+        x = 100
+    else:
+        x = world.pitch.width - 100
+    y = world.pitch.height/2
+    return Vector(x, y, 0, 0)
 
 def get_rotation_to_point(vec1, vec2):
     '''
