@@ -131,9 +131,8 @@ class Pass(Goal):
     Pass to attacker
     '''
     def __init__(self, world, robot):
-        self.actions = [KickToScoreZone(world, robot),
-                        TurnToScoreZone(world, robot)]
-        super(Goal, self).__init__(world, robot)
+        self.actions = [PassAction(world, robot)]
+        super(Pass, self).__init__(world, robot)
 
 
 class Tactical(Goal):
@@ -148,6 +147,7 @@ class Tactical(Goal):
 class Block(Goal):
     def __init__(self, world, robot):
         self.actions = [RotateAndAlignForBlock(world, robot)]
+        super(Block, self).__init__(world, robot)
 
 class ReactiveGrabGoal(Goal):
     def __init__(self, world, robot):
@@ -156,10 +156,19 @@ class ReactiveGrabGoal(Goal):
                         ReactiveGrabAction(world, robot)]
         super(ReactiveGrabGoal, self).__init__(world, robot)
 
-
 '''
 > ACTIONS
 '''
+
+class PassAction(Action):
+    def perform(self, comms):
+        # FIXME: use actual angle.
+        target_angle = 42
+        target_rotation = (target_angle - self.robot.angle + pi/2) % pi - pi/2
+        logging.info("Passing ball. (Rotate %f degrees, then kick)",
+                math.degrees(target_rotation))
+        comms.turn_then_kick(target_rotation)
+
 
 class RotateAndAlignForBlock(Action):
     def perform(self, comms):

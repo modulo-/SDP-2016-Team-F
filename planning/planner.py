@@ -140,8 +140,7 @@ class DefencePlanner(Planner):
         elif self.current_task == 'play' and world.game_state != None:
             if robot.has_ball(world.ball):
                 info("Defender goal choice: kick the ball")
-                # TODO
-                pass
+                return defender.Pass(world, robot)
             elif utils.ball_heading_to_our_goal(world) and world.in_our_half(world.ball):
                 info("Defender goal choice: Intercept")
                 return defender.ReactiveGrabGoal(world, robot)

@@ -73,6 +73,13 @@ class TractorCrabCommsManager(CommsManager):
             [self.CMD_STRAIT] +
             self._16_bitify(self._normalize_dist(distance)))
 
+    def turn_then_kick(self, angle):
+        self._run(
+            [self.CMD_SPIN] +
+            self._16_bitify(self._normalize_angle(angle)) +
+            [self.CMD_KICK] +
+            self._16_bitify(100))
+
     def move(self, distance):
         # NOTE: moves to the right, NOT forward. (We need better support for a different action set).
         # Expects input in cm.
