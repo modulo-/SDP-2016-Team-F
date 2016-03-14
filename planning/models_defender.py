@@ -162,8 +162,7 @@ class ReactiveGrabGoal(Goal):
 
 class PassAction(Action):
     def perform(self, comms):
-        # FIXME: use actual angle.
-        target_angle = 42
+        target_angle = defender_angle_to_pass_upfield(self.world, self.robot)
         target_rotation = (target_angle - self.robot.angle + pi/2) % pi - pi/2
         logging.info("Passing ball. (Rotate %f degrees, then kick)",
                 math.degrees(target_rotation))
