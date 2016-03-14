@@ -346,14 +346,21 @@ def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
         y = aim_vector.y
         num_of_iterations = 100
         step = world.pitch.height / num_of_iterations
-        for x in range(0, world.pitch.height, step):
+        # Upper range
+        for x in range(world.pitch.height/2, world.pitch.height, step):
+            new_vec = Vector(x, y, 0, 0)
+            # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
+            if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
+                return get_rotation_to_point(defender_robot.vector, new_vec)
+        # Lower range
+        for x in range(world.pitch.height/2, 0, -step):
             new_vec = Vector(x, y, 0, 0)
             # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
             if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
                 return get_rotation_to_point(defender_robot.vector, new_vec)
 
-        # Could not find an angle, choose a random one within the cone between the defender and their corners
 
+        # Could not find an angle, choose a random one within the cone between the defender and their corners
         top_corner = Vector(0, 0, 0, 0)
         bottom_corner = Vector(0, world.pitch.height, 0, 0)
         if world.our_side == 'left':
