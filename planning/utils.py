@@ -6,6 +6,19 @@ from position import Vector, Coordinate
 
 from math import pi
 
+def defender_move_delay(dist):
+    if abs(dist) > 150:
+        return 2.5
+    elif abs(dist) > 100:
+        return 2
+    elif abs(dist) > 60:
+        return 1.5
+    else:
+        return 1
+
+def defender_turn_delay(angle):
+    return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+
 def defender_move_vec(vec):
     return Vector(vec.x, vec.y, (vec.angle + pi/2) % (2*pi), vec.velocity)
 
