@@ -65,7 +65,7 @@ def get_pink_opponent(world):
         return world.robot_blue_pink
 
 def new_grabber_state(value):
-    self.world.is_ball_in_grabbers = value
+    latest_world.is_ball_in_grabbers = value
 
 def new_vision(world):
     predictor.update(world)
