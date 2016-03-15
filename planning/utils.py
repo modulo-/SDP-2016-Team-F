@@ -381,19 +381,15 @@ def defender_can_pass_to_position(world, position):
 
 # Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
-    our_position = position
-    our_goal = world.our_goal
-    their_attacker = world.their_attackers
-
-    # need to work this out
-    can_we_score = False
-    # work out area between position and top two points of the goal
-    # if their attacker is not in this area we can score from this position
-
-    if (can_we_score is True):
-        return True
-    else:
-        return False
+    assert(position.angle == 0)
+    goal_points = [Vector(world.their_goal.x, world.their_goal.y + (world.their_goal.width / 4) * i, 0, 0) for i in [1,2,3]]
+    for point in goal_points:
+        v = Vector(position.x, position.y, get_rotation_to_point(position, point), 0)
+        d = dist(position, point)
+        obstacle = detect_object(world, v, d)
+        if not obstacle:
+            return True
+    return False
 
 
 def detect_object(world, vector, distance):
