@@ -84,7 +84,7 @@ class SerialHandle:
                 error('Error message recieved: %r', data)
             else:
                 for callback in self._callbacks:
-                    thread.start_new_thread(callback, (data, ))
+                    thread.start_new_thread(callback, (data,))
 
     def _waitok(self):
         buf = (None, None)
