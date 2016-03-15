@@ -67,16 +67,20 @@ class AttackPlanner(Planner):
         if isinstance(action, attacker.GrabBall):
             info("Did grab")
             self.grabber_state = 'CLOSED'
-        elif isinstance(action, attacker.OpenGrabbers):
+        elif isinstance(action, attacker.OpenGrabbers) or isinstance(action, attacker.KickToDefender) or \
+             isinstance(action, attacker.Score):
             info("Did open")
             self.grabber_state = 'OPEN'
-        return Planner.actuate(self, action)
+        Planner.actuate(self, action)
+        return action.get_delay()
 
     def robot(self, world):
         return world.our_attacker
 
     def plan_and_act(self, world):
         world.our_attacker.catcher = self.grabber_state
+        if self.grabber_state is 'OPEN':
+            world.our_attacker.is_ball_in_grabbers = False
         return super(AttackPlanner, self).plan_and_act(world)
 
     def get_goal(self, world, robot):
@@ -111,6 +115,8 @@ class AttackPlanner(Planner):
                 return attacker.GetBall(world, robot)
         elif self.current_task == 'intercept':
             return attacker.AttackerBlock(world, robot)
+        elif self.current_task == 'score-zone':
+            return attacker.AttackPosition(world, robot)
         elif self.current_task == 'game':
             if world.our_attacker.has_ball(world.ball):
                 return attacker.Score(world, robot)
