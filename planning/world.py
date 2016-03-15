@@ -113,8 +113,6 @@ class PitchObject(object):
 
 class Robot(PitchObject):
 
-    ballInGrabbers=False
-
     def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
         self._catch_distance = 30
@@ -155,14 +153,6 @@ class Robot(PitchObject):
     def catcher(self, new_position):
         assert new_position in ['OPEN', 'CLOSED']
         self._catcher = new_position
-
-    @property
-    def has_grabbed(self):
-        return self._has_grabbed
-
-    @has_grabbed.setter
-    def has_grabbed(self, value):
-        self._has_grabbed = value
 
     def can_catch_ball(self, ball):
         '''
@@ -235,6 +225,22 @@ class Defender(Robot):
 
 
 class Attacker(Robot):
+
+    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
+        self._is_ball_in_grabbers = False
+        super(Attacker, self).__init__(x, y, angle, velocity, is_our_team, is_house_robot, width, length, angle_offset)
+
+    @property
+    def is_ball_in_grabbers(self):
+        return self._is_ball_in_grabbers
+
+    @is_ball_in_grabbers.setter
+    def is_ball_in_grabbers(self, value):
+        self._is_ball_in_grabbers = value
+
+    def has_ball(self, ball):
+        return self.is_ball_in_grabbers
+
     def get_blocking_position(self, world):
         # Calculate blocking position
         possession = world.robot_in_possession
@@ -363,7 +369,7 @@ class World(object):
 
     @game_state.setter
     def game_state(self, state):
-        assert state in [None, 'kickoff-them', 'kickoff-us', 'play',
+        assert state in [None, 'kickoff-them', 'kickoff-us', 'normal-play',
                 'penalty-defend', 'penalty-shoot']
         self._game_state = state
 

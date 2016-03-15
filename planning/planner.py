@@ -67,11 +67,9 @@ class AttackPlanner(Planner):
         if isinstance(action, attacker.GrabBall):
             info("Did grab")
             self.grabber_state = 'CLOSED'
-            self.has_grabbed = True
         elif isinstance(action, attacker.OpenGrabbers):
             info("Did open")
             self.grabber_state = 'OPEN'
-            self.has_grabbed = False
         return Planner.actuate(self, action)
 
     def robot(self, world):

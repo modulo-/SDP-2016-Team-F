@@ -62,6 +62,8 @@ def get_pink_opponent(world):
     else:
         return world.robot_blue_pink
 
+def new_grabber_state(value):
+    self.world.is_ball_in_grabbers = value
 
 def new_vision(world):
     predictor.update(world)
@@ -80,7 +82,7 @@ def new_vision(world):
             interrupt.run()
     if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
             'penalty-shoot'] and not utils.ball_is_static(latest_world):
-        latest_world.game_state = 'play'
+        latest_world.game_state = 'normal-play'
 
 
 def start_vision(pitch_no):
@@ -165,7 +167,7 @@ def main():
         elif o in ("-1", "--defender"):
             defender = TractorCrabCommsManager(0, a)
         elif o in ("-2", "--attacker"):
-            attacker = RFCommsManager(0, a, latest_world)
+            attacker = RFCommsManager(0, a, new_grabber_state)
         elif o in ("-l", "--logging"):
             logging_modes = a.split(",")
             for mode in logging_modes:
@@ -241,7 +243,7 @@ def run(attacker, defender, plan, pitch_no):
                 latest_world.our_side = 'right'
             else:
                 latest_world.our_side = 'left'
-        elif task in ['kickoff-them', 'kickoff-us', 'play', 'penalty-defend',
+        elif task in ['kickoff-them', 'kickoff-us', 'normal-play', 'penalty-defend',
                 'penalty-shoot']:
             latest_world.game_state = task
         elif task == 'game-stop':
