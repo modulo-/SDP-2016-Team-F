@@ -374,6 +374,9 @@ class DotTracker(Tracker):
 
         if len(contours) >= 3 and pinkedness > bigThresh:
             return "pink"
+
+        if len(contours) >= 2 and pinkedness > greenness:
+            return "pink"
         
         return "green"
 
