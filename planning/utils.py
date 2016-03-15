@@ -2,13 +2,13 @@ import math
 import logging
 import random
 import numpy as np
-
 from position import Vector
+
 from math import pi
 
 
 def defender_move_vec(vec):
-    return Vector(vec.x, vec.y, (vec.angle + pi / 2) % (2 * pi), vec.velocity)
+    return Vector(vec.x, vec.y, vec.angle + pi / 2, vec.velocity)
 
 
 def dist(vec1, vec2):
@@ -327,14 +327,103 @@ def defender_can_pass_to_position(world, position):
     '''
     Test if a robot at 'position' could be passed to
     '''
-    raise NotImplementedError
+    # get defender position
+    our_defender = world.our_defender
+
+    # get opposing teams positions
+    their_robots[0] = world.their_robots[0]
+    their_robots[1] = world.their_robots[1]
+
+    # work out if any opposing team robots are near the line
+    # need to work out a good value for this
+    threshold = 30
+
+    # distance from their first robot to the line
+    y2 = our_defender.y
+    y1 = our_position.y
+    y0 = their_robots[0].y
+    x2 = our_defender.x
+    x1 = our_position.x
+    x0 = their_robots[0].x
+    dist1 = math.abs(((y2 - y1)*x0) - ((x2 - x1)*y0) + x2*y1 - y2*x1) / math.sqrt(math.pow((y2 - y1),2) + math.pow((x2 - x1),2))
+
+    # distance from their second robot to the line
+    y3 = their_robots[1].y
+    x3 = their_robots[1].x
+    dist2 = math.abs(((y2 - y1)*x3) - ((x2 - x1)*y3) + x2*y1 - y2*x1) / math.sqrt(math.pow((y2 - y1),2) + math.pow((x2 - x1),2))
+
+    # if one or both of the opposing robots are too close to the line then we cannot pass to the postion
+    if dist1 or dist2 < threshold:
+        return False
+    # otherwise we can pass to the postion
+    else:
+        return True
 
 
+# Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
-    '''
-    Test if a robot at 'position' could score
-    '''
-    raise NotImplementedError
+    our_position = position
+    our_goal = world.our_goal
+    their_attacker = world.their_attackers
+
+    # need to work this out
+    can_we_score = False
+    # work out area between position and top two points of the goal
+    # if their attacker is not in this area we can score from this position
+
+    if (can_we_score is True):
+        return True
+    else:
+        return False
+
+
+def detect_object(world, vector, distance):
+    our_attacker = world.our_attacker
+    our_defender = world.our_defender
+    their_robots = world.their_robots
+
+    start_x = vector.x
+    start_y = vector.y
+    angle = vector.angle
+
+    # calculate line
+    end_x = start_x + (distance * math.cos(angle))
+    end_y = start_y + (distance * math.sin(angle))
+
+    # calculate distance from each object to the line
+    distances = []
+    # distance from our attacker to line
+    dist_attacker = math.abs(((end_y - start_y) * our_attacker.x) - ((end_x - start_x) * our_attacker.y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
+    distances.append(dist_attacker)
+
+    # distance from our defender to the line
+    dist_defender = math.abs(((end_y - start_y) * our_defender.x) - ((end_x - start_x) * our_defender.y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
+    distances.append(dist_defender)
+
+    # distance from opposing teams first robot to the line
+    dist_theirs_0 = math.abs(((end_y - start_y) * their_robots[0].x) - ((end_x - start_x) * their_robots[0].y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
+    distances.append(dist_theirs_0)
+
+    # distance from opposing teams second robot to the line
+    dist_theirs_1 = math.abs(((end_y - start_y) * their_robots[1].x) - ((end_x - start_x) * their_robots[1].y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
+    distances.append(dist_theirs_1)
+
+    # if within threshold then return object
+    threshold = 50
+
+    closest = min(distance for distance in distances if distance < threshold)
+
+    if (closest == dist_attacker):
+        return our_attacker
+    elif (closest == dist_defender):
+        return our_defender
+    elif (closest == dist_theirs_0):
+        return their_robots[0]
+    elif (closest == dist_theirs_1):
+        return their_robots[1]
+    # else return none
+    else:
+        return None
 
 
 def predict_y_intersection(world, robot, predict_for_x):
