@@ -215,7 +215,7 @@ def run(attacker, defender, plan, pitch_no):
         global defence_timer
         delay = defence_planner.plan_and_act(latest_world)
         defence_timer.cancel()
-        defence_timer = Timer(delay, run_planners)
+        defence_timer = Timer(delay, run_defence_planner)
         defence_timer.daemon = True
         defence_timer.start()
 
