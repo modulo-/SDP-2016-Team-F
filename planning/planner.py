@@ -148,8 +148,13 @@ class DefencePlanner(Planner):
             elif utils.ball_is_static(world) and world.in_our_half(world.ball):
                 ourdist = math.hypot(world.ball.x - robot.x, world.ball.y - robot.y)
                 oppdists = [math.hypot(world.ball.x - r.x, world.ball.y - r.y)
+<<<<<<< HEAD
                             for r in world.their_robots if not r.is_missing()]
                 if ourdist < min(oppdists) and world.game_state == 'play':
+=======
+                        for r in world.their_robots if not r.is_missing()]
+                if ourdist < min(oppdists) and world.game_state == 'normal-play':
+>>>>>>> afa97c177c6bbf0cd3e40c260fc439d121f27f67
                     info("Defender goal choice: Retrieve ball")
                     return defender.GetBall(world, robot)
                 else:

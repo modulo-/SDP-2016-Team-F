@@ -7,12 +7,26 @@ from position import Vector
 from math import pi
 
 
+def defender_move_delay(dist):
+    if abs(dist) > 150:
+        return 2.5
+    elif abs(dist) > 100:
+        return 2
+    elif abs(dist) > 60:
+        return 1.5
+    else:
+        return 1
+
+
+def defender_turn_delay(angle):
+    return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+
+
 def defender_move_vec(vec):
     return Vector(vec.x, vec.y, vec.angle + pi / 2, vec.velocity)
 
 
 def dist(vec1, vec2):
-    print vec1
     return math.hypot(vec1.x - vec2.x, vec1.y - vec2.y)
 
 
@@ -167,8 +181,7 @@ def defender_get_rotation_to_catch_point_helper(robot_vec, ball_vec, catch_dista
         try:
             alpha = math.asin(catch_distance / displacement)
         except ValueError as er:
-            print("Value Error!")
-            print(er)
+            logging.error(er)
             return (robot_vec.angle, theta, 0)
 
     logging.debug("alpha angle = {0} in degrees {1}".format(alpha, math.degrees(alpha)))
@@ -184,9 +197,9 @@ def ball_heading_to_our_goal(world):
     if ball_is_static(world):
         return False
     if world.our_side == 'left':
-        return world.ball.angle >= math.pi
+        return world.ball.angle > 3*math.pi/2 - 0.4 and world.ball.angle < 3*math.pi/2 + 0.4
     else:
-        return world.ball.angle < math.pi
+        return world.ball.angle > math.pi/2 - 0.4 and world.ball.angle < math.pi/2 + 0.4
 
 
 def ball_is_static(world):
@@ -236,7 +249,6 @@ def defender_distance_to_line(axis, robot_vec, point):
         # Computer the intersection point
         x2 = 10 * math.sin(math.radians(robot_vec.angle))
         y2 = 10 * math.cos(math.radians(robot_vec.angle))
-        print ("POINT: " + str(x2) + " - " + str(y2))
         robot_line = ((robot_vec.x, robot_vec.y), (x2, y2))
         target_line = ((0, point), (10, point))
         intersection_point = line_intersection(robot_line, target_line)
@@ -249,7 +261,6 @@ def defender_distance_to_line(axis, robot_vec, point):
         # Get movement direction
         # direction_vec = Vector(vector_x, vector_y, 0, 0)
         direction = get_movement_direction_from_vector(robot_vec, intersection_point)
-        print("DISTANCE: " + str(distance * direction))
 
         return distance * direction
 
@@ -280,9 +291,6 @@ def get_movement_direction_from_vector(robot_vec, point_vec):
     rotation_for_left = get_rotation_to_point(robot_vec_left, point_vec)
     # rotation_for_right = get_rotation_to_point(robot_vec_right, direction_vec)
 
-    # print (math.degrees(robot_vec.angle))
-    # print (point)
-    # print ("ROTATION LEFT: " + str(math.degrees(rotation_for_left)))
     if abs(math.degrees(rotation_for_left)) < 90:
         return -1
     else:
@@ -435,8 +443,8 @@ def predict_y_intersection(world, robot, predict_for_x):
 
 def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
     """
-    Calculates the angle for defender to pass to attacker or, if not possible,
-    angle to kick upfield which is least contested by enemy robots.
+    Calculates the angle for defender to rotate by to pass to attacker or, if not possible,
+    angle to kick upfield which is not contested by enemy robots.
 
     :param world: World object
     :param defender_robot: The robot who is trying to kick
@@ -454,26 +462,34 @@ def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
         return can_pass
 
     aim_vector = world.our_attacker.vector
-    if world.our_attacker.is_missing:
+    if world.our_attacker.is_missing():
         aim_vector = world.their_goal.vector
 
-    their_vecs = [t.vector for t in world.their_robots if not t.is_missing]
+    their_vecs = [t.vector for t in world.their_robots if not t.is_missing()]
 
     if can_pass_to_attacker(defender_robot.vector, aim_vector, their_vecs):
         return get_rotation_to_point(defender_robot.vector, aim_vector)
     else:
         # TODO possibly improve this to be less brute force
-        y = aim_vector.y
+        x = aim_vector.x
         num_of_iterations = 100
         step = world.pitch.height / num_of_iterations
         # Upper range
+<<<<<<< HEAD
         for x in range(world.pitch.height / 2, world.pitch.height, step):
+=======
+        for y in range(world.pitch.height/2, world.pitch.height, step):
+>>>>>>> afa97c177c6bbf0cd3e40c260fc439d121f27f67
             new_vec = Vector(x, y, 0, 0)
             # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
             if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
                 return get_rotation_to_point(defender_robot.vector, new_vec)
         # Lower range
+<<<<<<< HEAD
         for x in range(world.pitch.height / 2, 0, -step):
+=======
+        for y in range(world.pitch.height/2, 0, -step):
+>>>>>>> afa97c177c6bbf0cd3e40c260fc439d121f27f67
             new_vec = Vector(x, y, 0, 0)
             # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
             if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
@@ -488,7 +504,7 @@ def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
 
         top_angle = get_rotation_to_point(defender_robot.vector, top_corner)
         bottom_angle = get_rotation_to_point(defender_robot.vector, bottom_corner)
-
+	
         return random.uniform(min(top_angle, bottom_angle), max(top_angle, bottom_angle))
 
 

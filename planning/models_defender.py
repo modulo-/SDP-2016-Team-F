@@ -176,6 +176,7 @@ class PassAction(Action):
         logging.info("Passing ball. (Rotate %f degrees, then kick)", math.degrees(target_rotation))
         comms.turn_then_kick(target_rotation)
         self.robot.catcher = 'OPEN'
+        return 1 + utils.defender_turn_delay(target_rotation)
 
 
 class FaceOppositePitchSide(Action):
@@ -190,6 +191,7 @@ class FaceOppositePitchSide(Action):
         rot_angle = (target_angle - self.robot.angle + pi) % (2 * pi) - pi
         logging.info("Facing opposite pitch side. Rotating %f degrees.", math.degrees(rot_angle))
         comms.turn(rot_angle)
+        return utils.defender_turn_delay(rot_angle)
 
 
 class MoveToDefenceArea(Action):
@@ -200,6 +202,7 @@ class MoveToDefenceArea(Action):
         dist = utils.dist(self.robot, utils.get_defence_point(self.world))
         logging.info("Moving to defence area. Moving %f right.", dist)
         comms.move(dist)
+        return utils.defender_move_delay(dist)
 
 
 class RotateToDefenceArea(Action):
@@ -210,6 +213,7 @@ class RotateToDefenceArea(Action):
             utils.get_defence_point(self.world))
         logging.info("Facing direction to move to defence area. Rotating %f degrees.", math.degrees(rot_angle))
         comms.turn(rot_angle)
+        return utils.defender_turn_delay(rot_angle)
 
 
 class RotateAndAlignForBlock(Action):
@@ -235,10 +239,13 @@ class RotateAndAlignForBlock(Action):
         logging.info("Aligning with enemy. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
         if abs(dist) > MOVEMENT_THRESHOLD and abs(target_rotation) > ROTATION_THRESHOLD:
             comms.turn_then_move(target_rotation, dist)
+            return utils.defender_turn_delay(target_rotation) + utils.defender_move_delay(dist)
         elif abs(dist) > MOVEMENT_THRESHOLD:
             comms.move(dist)
+            return utils.defender_move_delay(dist)
         elif abs(target_rotation) > ROTATION_THRESHOLD:
             comms.turn(target_rotation)
+            return utils.defender_turn_delay(target_rotation)
 
 
 class RotateAndAlignForGrab(Action):
@@ -252,8 +259,10 @@ class RotateAndAlignForGrab(Action):
         logging.info("Aligning with ball. (Rotate %f degrees, move %f right)", math.degrees(target_rotation), dist)
         if abs(dist) > MOVEMENT_THRESHOLD:
             comms.turn_then_move(target_rotation, dist)
+            return utils.defender_turn_delay(target_rotation) + utils.defender_move_delay(dist)
         else:
             comms.turn(target_rotation)
+            return utils.defender_turn_delay(target_rotation)
 
 
 class AlignForGrab(Action):
@@ -266,6 +275,7 @@ class AlignForGrab(Action):
         logging.info("Aligning with ball. (Move %f right)", dist)
         if abs(dist) > MOVEMENT_THRESHOLD:
             comms.move(dist)
+            return utils.defender_move_delay(dist)
 
 
 class ReactiveGrabAction(Action):
@@ -276,6 +286,7 @@ class ReactiveGrabAction(Action):
         logging.info("Grabbing.")
         self.robot.catcher = 'CLOSED'
         comms.close_grabbers()
+        return 1
 
 
 class Kick(Action):
@@ -285,6 +296,7 @@ class Kick(Action):
         logging.info("Kicking.")
         comms.kick_full_power()
         self.robot.catcher = 'OPEN'
+        return 1
 
 
 class AlignForPassIntercept(Action):
@@ -303,16 +315,7 @@ class AlignForPassIntercept(Action):
         print("DISTANCE: " + str(distance))
         logging.info("Wants to move by: " + str(distance))
         comms.move(distance)
-
-        if abs(distance) > 150:
-            delay = 2.5
-        elif abs(distance) > 100:
-            delay = 2
-        elif abs(distance) > 60:
-            delay = 1.5
-        else:
-            delay = 1
-        return delay
+        return utils.defender_move_delay(distance)
 
 
 class AlignForGoalIntercept(Action):
@@ -346,15 +349,7 @@ class AlignForGoalIntercept(Action):
         logging.info("Wants to move by: " + str(distance))
         comms.move(distance)
 
-        if abs(distance) > 150:
-            delay = 2.5
-        elif abs(distance) > 100:
-            delay = 2
-        elif abs(distance) > 60:
-            delay = 1.5
-        else:
-            delay = 1
-        return delay
+        return utils.defender_move_delay(distance)
 
 
 # class AlignForPassIntercept2(Action):
@@ -548,15 +543,7 @@ class GoToStaticBall(Action):
         logging.info("Wants to move by: " + str(distance_to_move))
         comms.move(distance_to_move)
 
-        if abs(distance_to_move) > 150:
-            delay = 2.5
-        elif abs(distance_to_move) > 100:
-            delay = 2
-        elif abs(distance_to_move) > 60:
-            delay = 1.5
-        else:
-            delay = 1
-        return delay
+        return utils.defender_move_delay(distance_to_move)
 
 
 class TurnToBall(Action):
@@ -569,7 +556,7 @@ class TurnToBall(Action):
         logging.info("Wants to rotate by: " + str(angle))
         comms.turn(angle)
 
-        return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+        return utils.defender_turn_delay(angle)
 
 
 class TurnToCatchPoint(Action):
@@ -585,7 +572,7 @@ class TurnToCatchPoint(Action):
         logging.info("Wants to rotate by: " + str(angle))
         comms.turn(angle)
 
-        return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+        return utils.defender_turn_delay(angle)
 
 
 class OpenGrabbers(Action):

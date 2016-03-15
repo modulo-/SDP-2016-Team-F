@@ -33,6 +33,8 @@ latest_world = World('left', 0)
 latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
 latest_world.our_defender._receiving_area = {'width': 50, 'height': 35, 'front_offset': 0}
 interrupts = []
+attack_timer = None
+defence_timer = None
 
 
 def get_attacker(world):
@@ -193,37 +195,53 @@ def main():
     usage()
     run(attacker=attacker, defender=defender, plan=plan, pitch_no=pitch_no)
 
-
 def run(attacker, defender, plan, pitch_no):
+    global attack_timer, defence_timer
     thread = Thread(target=start_vision, args=(pitch_no,))
     thread.daemon = True
     thread.start()
     attack_planner = None
     defence_planner = None
+
+    def run_attack_planner():
+        global attack_timer
+        delay = attack_planner.plan_and_act(latest_world)
+        attack_timer.cancel()
+        attack_timer = Timer(delay, run_attack_planner)
+        attack_timer.daemon = True
+        attack_timer.start()
+
+    def run_defence_planner():
+        global defence_timer
+        delay = defence_planner.plan_and_act(latest_world)
+        defence_timer.cancel()
+        defence_timer = Timer(delay, run_defence_planner)
+        defence_timer.daemon = True
+        defence_timer.start()
+
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
         interrupts.append(Interrupt(
             lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
-            lambda: attack_planner.plan_and_act(latest_world), 2))
+            run_attack_planner, 2))
     if defender:
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-            lambda: defence_planner.plan_and_act(latest_world), 2))
+            run_defence_planner, 2))
+        interrupts.append(Interrupt(
+            lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
+            run_defence_planner, 2))
 
-    def run_planners():
-        delay = None
-        if attack_planner:
-            delay = attack_planner.plan_and_act(latest_world)
-        if defence_planner:
-            delay = defence_planner.plan_and_act(latest_world)
-        timer = Timer(delay, run_planners)
-        timer.daemon = True
-        timer.start()
+    if attack_planner:
+        attack_timer = Timer(INITIAL_PLANNER_DELAY, run_attack_planner)
+        attack_timer.daemon = True
+        attack_timer.start()
+    if defence_planner:
+        defence_timer = Timer(INITIAL_PLANNER_DELAY, run_defence_planner)
+        defence_timer.daemon = True
+        defence_timer.start()
 
-    timer = Timer(INITIAL_PLANNER_DELAY, run_planners)
-    timer.daemon = True
-    timer.start()
 
     # set initial plan
     set_plan(attack_planner, defence_planner, plan)
