@@ -2,24 +2,28 @@ import math
 import logging
 import random
 import numpy as np
-from position import Vector, Coordinate
 
+from position import Vector
 from math import pi
 
+
 def defender_move_vec(vec):
-    return Vector(vec.x, vec.y, (vec.angle + pi/2) % (2*pi), vec.velocity)
+    return Vector(vec.x, vec.y, (vec.angle + pi / 2) % (2 * pi), vec.velocity)
+
 
 def dist(vec1, vec2):
     print vec1
     return math.hypot(vec1.x - vec2.x, vec1.y - vec2.y)
+
 
 def get_defence_point(world):
     if world.our_side == 'left':
         x = 100
     else:
         x = world.pitch.width - 100
-    y = world.pitch.height/2
+    y = world.pitch.height / 2
     return Vector(x, y, 0, 0)
+
 
 def get_rotation_to_point(vec1, vec2):
     '''
@@ -86,11 +90,12 @@ def is_angle_between_angles(a, b, c):
     else:
         return b > a and b < c
 
+
 def defender_get_alignment_offset(robot, obj, obj_angle, robot_angle_delta=0):
     obj0 = np.array([obj.x, obj.y])
     objv = np.array([math.sin(obj_angle), math.cos(obj_angle)])
     robot0 = np.array([robot.x, robot.y])
-    angle = robot.angle + robot_angle_delta + pi/2
+    angle = robot.angle + robot_angle_delta + pi / 2
     robotv = np.array([math.sin(angle), math.cos(angle)])
     coefficients = np.array([objv, -robotv]).T
     constants = robot0 - obj0
@@ -182,6 +187,7 @@ def ball_heading_to_our_goal(world):
         return world.ball.angle >= math.pi
     else:
         return world.ball.angle < math.pi
+
 
 def ball_is_static(world):
     '''
@@ -303,9 +309,12 @@ def line_intersection(line1, line2):
     y = det(d, ydiff) / div
     return x, y
 
-# Test if robot can score
-# From 2015 Group 12 behaviour/utilities.py
+
 def can_score(world, our_robot, their_goal, turn=0):
+    '''
+    Test if robot can score
+    From 2015 Group 12 behaviour/utilities.py
+    '''
     predicted_y = predict_y_intersection(world, our_robot, their_goal.x)
 
     logging.info("Predicted goal intersection ({0}, {1})".format(their_goal.x, predicted_y))
@@ -313,17 +322,25 @@ def can_score(world, our_robot, their_goal, turn=0):
     # return goal_posts[0][1] < predicted_y < goal_posts[1][1]
     return their_goal.lower_post < predicted_y < their_goal.higher_post
 
-# Test if a robot at 'position' could be passed to
+
 def defender_can_pass_to_position(world, position):
+    '''
+    Test if a robot at 'position' could be passed to
+    '''
     raise NotImplementedError
 
 
-# Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
+    '''
+    Test if a robot at 'position' could score
+    '''
     raise NotImplementedError
 
-# Predict y-intersection of robot's direction and goal line at predict_for_x
+
 def predict_y_intersection(world, robot, predict_for_x):
+    '''
+    Predict y-intersection of robot's direction and goal line at predict_for_x
+    '''
     return robot.y + math.tan(math.pi / 2 - robot.angle) * (predict_for_x - robot.x)
 
 
@@ -361,18 +378,17 @@ def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
         num_of_iterations = 100
         step = world.pitch.height / num_of_iterations
         # Upper range
-        for x in range(world.pitch.height/2, world.pitch.height, step):
+        for x in range(world.pitch.height / 2, world.pitch.height, step):
             new_vec = Vector(x, y, 0, 0)
             # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
             if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
                 return get_rotation_to_point(defender_robot.vector, new_vec)
         # Lower range
-        for x in range(world.pitch.height/2, 0, -step):
+        for x in range(world.pitch.height / 2, 0, -step):
             new_vec = Vector(x, y, 0, 0)
             # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
             if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
                 return get_rotation_to_point(defender_robot.vector, new_vec)
-
 
         # Could not find an angle, choose a random one within the cone between the defender and their corners
         top_corner = Vector(0, 0, 0, 0)
@@ -385,7 +401,6 @@ def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
         bottom_angle = get_rotation_to_point(defender_robot.vector, bottom_corner)
 
         return random.uniform(min(top_angle, bottom_angle), max(top_angle, bottom_angle))
-
 
 
 def line_intersects_circle(line, circle):
@@ -404,7 +419,7 @@ def line_intersects_circle(line, circle):
     r = circle[1]
     a = line[1][1] - line[0][1]
     b = line[1][0] - line[0][0]
-    c = line[0][0]*line[1][1] - line[1][0]*line[0][1]
+    c = line[0][0] * line[1][1] - line[1][0] * line[0][1]
 
     # Check variables are in range
     if a == 0 or b == 0 or r < 0:

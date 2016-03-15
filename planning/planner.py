@@ -1,11 +1,11 @@
 import models_attacker as attacker
 import models_defender as defender
-
-from comms import CommsManager
-from logging import info, error
-from models_common import DEFAULT_DELAY
 import utils
 import math
+
+from comms import CommsManager
+from logging import info
+from models_common import DEFAULT_DELAY
 
 
 class Planner (object):
@@ -138,7 +138,7 @@ class DefencePlanner(Planner):
         '''
         if robot.penalty:
             return None
-        elif self.current_task == 'play' and world.game_state != None:
+        elif self.current_task == 'play' and world.game_state is not None:
             if robot.has_ball(world.ball):
                 info("Defender goal choice: kick the ball")
                 return defender.Pass(world, robot)
@@ -146,10 +146,9 @@ class DefencePlanner(Planner):
                 info("Defender goal choice: Intercept")
                 return defender.ReactiveGrabGoal(world, robot)
             elif utils.ball_is_static(world) and world.in_our_half(world.ball):
-                ourdist = math.hypot(world.ball.x - robot.x, world.ball.y -
-                        robot.y)
+                ourdist = math.hypot(world.ball.x - robot.x, world.ball.y - robot.y)
                 oppdists = [math.hypot(world.ball.x - r.x, world.ball.y - r.y)
-                        for r in world.their_robots if not r.is_missing()]
+                            for r in world.their_robots if not r.is_missing()]
                 if ourdist < min(oppdists) and world.game_state == 'play':
                     info("Defender goal choice: Retrieve ball")
                     return defender.GetBall(world, robot)

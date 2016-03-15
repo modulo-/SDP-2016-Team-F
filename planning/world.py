@@ -21,6 +21,7 @@ GOAL_HIGHER = 300
 
 MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 30
 
+
 class PitchObject(object):
     '''
     A class that describes an abstract pitch object
@@ -172,8 +173,7 @@ class Robot(PitchObject):
         if self.is_our_team and not self.is_house_robot:
             return (self.catcher == 'CLOSED') and self.can_catch_ball(ball)
         else:
-            return (math.hypot(self.x - ball.x, self.y - ball.y)
-                    < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
+            return (math.hypot(self.x - ball.x, self.y - ball.y) < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
 
     def get_displacement_to_point(self, x, y):
         '''
@@ -217,6 +217,7 @@ class Robot(PitchObject):
     def is_house_robot(self):
         return self._is_house_robot
 
+
 class Defender(Robot):
     @property
     def get_tactical_position(self, world):
@@ -259,8 +260,8 @@ class Attacker(Robot):
         if (possession.x - target.x) == 0:
             error("Robot in possession in line on x!")
             return Vector(0, 0, 0, 0)
-        #m =  (possession.y - target.y) / (possession.x - target.x)
-        #return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
+        # m =  (possession.y - target.y) / (possession.x - target.x)
+        # return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
         return Vector((target.x + possession.x) / 2, (target.y + possession.y) / 2, 0, 0)
         """dx = target.x - possession.x
         dy = target.y - possession.y
@@ -273,10 +274,9 @@ class Attacker(Robot):
 
         l = math.hypot(dx, dy)
         print dx,dy, l
-	print possession.x+dx, possession.y+dy
+        print possession.x+dx, possession.y+dy
 
         return Vector(possession.x+dx, possession.y+dy,0,0)"""
-        
 
 
 class Ball(PitchObject):
@@ -369,8 +369,7 @@ class World(object):
 
     @game_state.setter
     def game_state(self, state):
-        assert state in [None, 'kickoff-them', 'kickoff-us', 'normal-play',
-                'penalty-defend', 'penalty-shoot']
+        assert state in [None, 'kickoff-them', 'kickoff-us', 'normal-play', 'penalty-defend', 'penalty-shoot']
         self._game_state = state
 
     @property
