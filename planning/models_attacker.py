@@ -12,7 +12,7 @@ FACING_ROTATION_THRESHOLD = 0.2
 ROTATION_TIME_FACTOR = 1
 ROTATION_EXTRA_TIME = 0.3
 GRAB_DISTANCE = 15
-GRAB_DELAY = 2
+GRAB_DELAY = 1.5
 
 def is_robot_facing_position(r, pos):
     return abs(utils.attacker_get_rotation_to_point(r.vector, pos)) < ROTATION_THRESHOLD
@@ -177,8 +177,7 @@ class Shoot(Action):
         comms.kick_full_power()
 
     def get_delay(self):
-        print("Getting delay")
-        return 10
+        return GRAB_DELAY
 
 class KickToDefender(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has ball"),
