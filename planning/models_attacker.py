@@ -12,6 +12,7 @@ FACING_ROTATION_THRESHOLD = 0.2
 ROTATION_TIME_FACTOR = 1
 ROTATION_EXTRA_TIME = 0.3
 GRAB_DISTANCE = 15
+GRAB_DELAY = 2
 
 def is_robot_facing_position(r, pos):
     return abs(utils.attacker_get_rotation_to_point(r.vector, pos)) < ROTATION_THRESHOLD
@@ -122,6 +123,8 @@ class GrabBall(Action):
     def perform(self, comms):
         comms.close_grabbers()
 
+    def get_delay(self):
+        return GRAB_DELAY
 
 class TurnToGoal(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
