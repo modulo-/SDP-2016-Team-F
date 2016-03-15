@@ -466,8 +466,15 @@ class World(object):
         filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(world, v) and
                                     utils.attacker_can_score_from_position(world, v), centroids)
         sorted_centroids = sorted(filtered_centroids, key=lambda v: (v.x)**2 + (v.y)**2, reverse=True)
-        return sorted_centroids
+        if not sorted_centroids:
+            self._score_zone = None
+        else:
+            self._score_zone = sorted_centroids[0]
+        return self.score_zone
 
     @property
     def score_zone(self):
-        return self._score_zone
+        if not self._score_zone:
+            return self.our_attacker.vector
+        else:
+            return self._score_zone

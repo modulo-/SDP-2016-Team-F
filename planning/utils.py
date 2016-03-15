@@ -335,6 +335,16 @@ def defender_can_pass_to_position(world, position):
     '''
     Test if a robot at 'position' could be passed to
     '''
+    can_pass = True
+    defender_attacker_line = ((world.our_defender.x, world.our_defender.y), (position.x, position.y))
+    their_vecs = [t.vector for t in world.their_robots if not t.is_missing]
+    for t in their_vecs:
+        if line_intersects_circle(defender_attacker_line, ((t.x, t.y), enemy_zone_radius)):
+            return False
+    return True
+
+
+"""
     # get defender position
     our_defender = world.our_defender
 
@@ -366,6 +376,7 @@ def defender_can_pass_to_position(world, position):
     # otherwise we can pass to the postion
     else:
         return True
+"""
 
 
 # Test if a robot at 'position' could score
