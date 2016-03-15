@@ -192,9 +192,9 @@ def ball_heading_to_our_goal(world):
     if ball_is_static(world):
         return False
     if world.our_side == 'left':
-        return world.ball.angle >= math.pi
+        return world.ball.angle > math.pi/2 - 0.4 and world.ball.angle < math.pi/2 + 0.4
     else:
-        return world.ball.angle < math.pi
+        return world.ball.angle > 3*math.pi/2 - 0.4 and world.ball.angle < 3*math.pi/2 + 0.4
 
 def ball_is_static(world):
     '''
