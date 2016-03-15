@@ -320,7 +320,19 @@ def defender_can_pass_to_position(world, position):
 
 # Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
-    raise NotImplementedError
+    our_position = position
+    their_goal = world.their_goal
+
+    if (in_our_half(position) == True):
+        can_we_score = can_score(world, our_position, their_goal, turn = 0)
+    else:
+        return False
+
+    if (can_we_score == True):
+        return True
+    else:
+        return False
+
 
 # Predict y-intersection of robot's direction and goal line at predict_for_x
 def predict_y_intersection(world, robot, predict_for_x):
