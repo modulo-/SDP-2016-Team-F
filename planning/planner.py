@@ -138,7 +138,7 @@ class DefencePlanner(Planner):
         '''
         if robot.penalty:
             return None
-        elif self.current_task == 'play' and world.game_state is not None:
+        elif self.current_task == 'game' and world.game_state is not None:
             if robot.has_ball(world.ball):
                 info("Defender goal choice: kick the ball")
                 return defender.Pass(world, robot)
