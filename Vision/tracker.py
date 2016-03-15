@@ -391,6 +391,8 @@ class DotTracker(Tracker):
         except Queue.Empty:
             return None
 
+        if corner == None:
+            return None
         return {"x":corner['x']+x, "y":corner['y']+y}
 
     def crop(self, frame_hsv, (x,y), croprange):
