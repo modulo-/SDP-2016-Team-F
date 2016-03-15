@@ -474,7 +474,9 @@ class World(object):
 
     @property
     def score_zone(self):
-        if not self._score_zone:
-            return self.our_attacker.vector
-        else:
-            return self._score_zone
+        try:
+            if not self._score_zone:
+                return self.our_attacker.vector
+        except AttributeError:
+            pass
+        return self._score_zone
