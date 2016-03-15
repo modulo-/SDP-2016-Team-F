@@ -197,9 +197,9 @@ def ball_heading_to_our_goal(world):
     if ball_is_static(world):
         return False
     if world.our_side == 'left':
-        return world.ball.angle > 3*math.pi/2 - 0.4 and world.ball.angle < 3*math.pi/2 + 0.4
+        return world.ball.angle > 3 * math.pi / 2 - 0.4 and world.ball.angle < 3 * math.pi / 2 + 0.4
     else:
-        return world.ball.angle > math.pi/2 - 0.4 and world.ball.angle < math.pi/2 + 0.4
+        return world.ball.angle > math.pi / 2 - 0.4 and world.ball.angle < math.pi / 2 + 0.4
 
 
 def ball_is_static(world):
@@ -475,21 +475,14 @@ def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
         num_of_iterations = 100
         step = world.pitch.height / num_of_iterations
         # Upper range
-<<<<<<< HEAD
-        for x in range(world.pitch.height / 2, world.pitch.height, step):
-=======
-        for y in range(world.pitch.height/2, world.pitch.height, step):
->>>>>>> afa97c177c6bbf0cd3e40c260fc439d121f27f67
+        for y in range(world.pitch.height / 2, world.pitch.height, step):
             new_vec = Vector(x, y, 0, 0)
             # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
             if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
                 return get_rotation_to_point(defender_robot.vector, new_vec)
         # Lower range
-<<<<<<< HEAD
-        for x in range(world.pitch.height / 2, 0, -step):
-=======
-        for y in range(world.pitch.height/2, 0, -step):
->>>>>>> afa97c177c6bbf0cd3e40c260fc439d121f27f67
+
+        for y in range(world.pitch.height / 2, 0, -step):
             new_vec = Vector(x, y, 0, 0)
             # Could skip by enemy_zone_radius but can't work out a way to update loop variable in python
             if can_pass_to_attacker(defender_robot.vector, new_vec, their_vecs):
@@ -504,7 +497,7 @@ def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
 
         top_angle = get_rotation_to_point(defender_robot.vector, top_corner)
         bottom_angle = get_rotation_to_point(defender_robot.vector, bottom_corner)
-	
+
         return random.uniform(min(top_angle, bottom_angle), max(top_angle, bottom_angle))
 
 
