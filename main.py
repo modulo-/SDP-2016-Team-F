@@ -65,7 +65,7 @@ def get_pink_opponent(world):
         return world.robot_blue_pink
 
 def new_grabber_state(value):
-    latest_world.is_ball_in_grabbers = value
+    latest_world.our_attacker.is_ball_in_grabbers = value
 
 def new_vision(world):
     predictor.update(world)
@@ -221,9 +221,9 @@ def run(attacker, defender, plan, pitch_no):
 
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
-        interrupts.append(Interrupt(
+        """interrupts.append(Interrupt(
             lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
-            run_attack_planner, 2))
+            run_attack_planner, 2))"""
     if defender:
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
