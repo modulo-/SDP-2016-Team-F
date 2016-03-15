@@ -79,11 +79,12 @@ class SerialHandle:
             data = b64.decode(line[2:-2])
             if line.startswith('d'):
                 info('Debug message recieved: %r', data)
+                print data
             elif line.startswith('e'):
                 error('Error message recieved: %r', data)
             else:
                 for callback in self._callbacks:
-                    thread.start_new_thread(callback, (data, ))
+                    thread.start_new_thread(callback, (data,))
 
     def _waitok(self):
         buf = (None, None)

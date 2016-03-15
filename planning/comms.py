@@ -126,7 +126,7 @@ class RFCommsManager (CommsManager):
         self.grab_callback = grab_callback
         super(RFCommsManager, self).__init__(robot)
 
-    def update_grabbers(data):
+    def update_grabbers(data, somestuff):
         if data=="NC":
             self.grab_callback(False)
             info("Ball not caught")

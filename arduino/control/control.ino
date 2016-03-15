@@ -199,10 +199,12 @@ void parseOptions(byte* message) {
 
 void grab() {
     updateMotorPositions();
+    /*
     char positionStr[2];
     positionStr[0]=(byte) (positions[ENCODER_GRABBER])+'0';
     positionStr[1]='\0';
     commSend(positionStr);
+    */
     //close flippers
     int time=millis();
     motorForward(MOTOR_GRABBER, 25);
@@ -215,15 +217,19 @@ void grab() {
     updateMotorPositions();
     if(positions[ENCODER_GRABBER]>=10&&positions[ENCODER_GRABBER]<=12){
         commSend("ball caught");
+        /*
         positionStr[0]=(byte) (positions[ENCODER_GRABBER]);
         positionStr[1]='\0';
+        */
         commSend(positionStr);
     }
     else{
         commSend("do not have ball");
+        /*
         positionStr[0]=(byte) (positions[ENCODER_GRABBER])+'0';
         positionStr[1]='\0';
         commSend(positionStr);
+        */
         commSend("#");
     }
     motorAllStop();

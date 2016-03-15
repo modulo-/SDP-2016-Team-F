@@ -11,7 +11,7 @@ for d in os.listdir("/dev"):
     if d[0:6]=="ttyACM":
             print str(i) + "\t" + d
             b.append("/dev/"+d)
-robot = RFCommsManager(0, b[int(raw_input("serial device:"))])
+robot = RFCommsManager(0, b[int(raw_input("serial device:"))], None)
 print("press h for help")
 
 while True:
