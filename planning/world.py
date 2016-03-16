@@ -1,4 +1,5 @@
 import math
+import utils
 
 from Polygon.cPolygon import Polygon
 from position import Vector
@@ -314,13 +315,12 @@ class Pitch(object):
         # TODO Get real pitch size
         self._width = 600
         self._height = 400
-        self._goal_box_x_offset = 150
+        self._goal_box_x_offset = 190
 
     def is_within_bounds(self, robot, x, y):
         '''
         Checks whether the position/point planned for the robot is reachable
         '''
-        # TODO Add goal boxes
         return x > 0 and x < self._width and y > 0 and y < self._height
 
     @property
@@ -432,6 +432,15 @@ class World(object):
     def in_their_half(self, robot):
         return not self.in_our_half(robot)
 
+    def is_possible_position(self, robot, x, y):
+        if not self.pitch.is_within_bounds(robot, x, y):
+            return False
+        if robot == self.our_attacker:
+            return x > self.pitch.goal_box_x_offset and x < self.pitch.width - self.pitch.goal_box_x_offset
+        # TODO
+        return True
+            
+
     @property
     def robot_in_possession(self):
         robots = [self.our_defender,
@@ -458,18 +467,19 @@ class World(object):
                 obj.vector = kwargs[name]
 
     def get_new_score_zone(self):
-        halway = self.pitch.width / 2
-        x = halway + self.pitch.goal_box_x_offset / 2 if self._our_side == 'left'\
-            else halway - self.pitch.goal_box_x_offset / 2
+        halfway = self.pitch.width / 2
+        x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
+            else halfway - (halfway - self.pitch.goal_box_x_offset) / 2
         y_step = self.pitch.width / 5
         centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
-        filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(world, v) and
-                                    utils.attacker_can_score_from_position(world, v), centroids)
+        filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
+                                    utils.attacker_can_score_from_position(self, v), centroids)
         sorted_centroids = sorted(filtered_centroids, key=lambda v: (v.x)**2 + (v.y)**2, reverse=True)
         if not sorted_centroids:
             self._score_zone = None
         else:
             self._score_zone = sorted_centroids[0]
+        info("Found score zone at {0}".format(self.score_zone))
         return self.score_zone
 
     @property
