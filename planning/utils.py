@@ -463,9 +463,9 @@ def defender_scan_angle_to_pass_absolute(world, defender_vec, enemy_zone_radius=
     print("low: " + str(low))
     print("hi: " + str(hi))
     if abs(friend_degree - low) < abs(friend_degree - hi):
-        return low + offset
+        return low + offset - math.degrees(defender_vec.angle)
     else:
-        return hi + offset
+        return hi + offset - math.degrees(defender_vec.angle)
 
 
 def defender_scan_area_to_pass(world, defender_robot, enemy_zone_radius):
@@ -500,6 +500,15 @@ def defender_scan_area_to_pass(world, defender_robot, enemy_zone_radius):
         # print("Checking: " + str(scan_x) + " x " + str(scan_y))
         scan_vec = Vector(scan_x, scan_y, 0, 0)
         possible_shots[n] = can_pass_to_attacker(defender_robot, scan_x, scan_y, their_vecs)
+
+    # plot
+    vision = ""
+    for n in possible_shots:
+        if n:
+            vision += "="
+        else:
+            vision += "X"
+    print(vision)
 
     return possible_shots
 
@@ -620,8 +629,8 @@ def segment_to_point_distance(s1, s2, point):
 
 class testRobot:
 
-    def __init__(self, x, y):
-        self.vector = Vector(x, y, 0, 0)
+    def __init__(self, x, y, angle=0):
+        self.vector = Vector(x, y, angle, 0)
 
     def is_missing(self):
         return False
@@ -634,23 +643,14 @@ class testWorld:
         self.their_robots = [
             testRobot(400, 300),
             testRobot(400, 200),
-            # testRobot(400, 150),
+            testRobot(400, 150),
         ]
         self.our_side = "left"
 
 if __name__ == "__main__":
     world = testWorld()
 
-    defender = testRobot(0, 200).vector
-    scanned = defender_scan_area_to_pass(world, defender, 40)
-    vision = ""
-    for n in scanned:
-        if n:
-            vision += "="
-        else:
-            vision += "X"
-    print(vision)
-
+    defender = testRobot(0, 200, math.radians(90)).vector
     b = defender_scan_angle_to_pass_absolute(world, defender)
     print b
 
