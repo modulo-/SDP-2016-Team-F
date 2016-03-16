@@ -31,7 +31,8 @@ class GetBall(Goal):
                         GoToGrabStaticBall(world, robot),
                         OpenGrabbers(world, robot),
                         GoToBallOpeningDistance(world, robot),
-                        TurnToBall(world, robot)]
+                        TurnToBall(world, robot),
+                        CloseGrabbers(world, robot)]
         super(GetBall, self).__init__(world, robot)
 
 
@@ -93,7 +94,8 @@ class GoToGrabStaticBall(Action):
 
 
 class GoToBallOpeningDistance(Action):
-    preconditions = [(lambda w, r: is_robot_facing_position(w, r, w.ball), "Attacker is facing ball")]
+    preconditions = [(lambda w, r: is_robot_facing_position(w, r, w.ball), "Attacker is facing ball"),
+                     (lambda w, r: r.catcher == 'CLOSED', "Attacker's grabbers are closed")]
     # lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) > 60]
 
     def perform(self, comms):
@@ -113,8 +115,7 @@ class GoToBallOpeningDistance(Action):
 
 
 class OpenGrabbers(Action):
-    preconditions = [(lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80, "Ball is in attacker's grabber range"),
-                     (lambda w, r: r.catcher == 'CLOSED', "Attacker's grabbers are closed")]
+    preconditions = [(lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80, "Ball is in attacker's grabber range")]
 
     def perform(self, comms):
         comms.release_grabbers()
@@ -162,6 +163,8 @@ class TurnToDefenderToGive(Action):
         return abs(self.angle) * ROTATION_TIME_FACTOR + ROTATION_EXTRA_TIME
 
 class TurnToBall(Action):
+    preconditions = [(lambda w, r: r.catcher == 'CLOSED', "Attacker's grabbers are closed")]
+
     def __init__(self, world, robot):
         self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, world.ball.vector)
         #self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.ball.vector)
@@ -183,6 +186,12 @@ class Shoot(Action):
 
     def get_delay(self):
         return GRAB_DELAY
+
+
+class CloseGrabbers(Action):
+    def perform(self, comms):
+        comms.close_grabbers()
+
 
 class KickToDefender(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Robot has ball"),
