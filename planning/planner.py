@@ -162,7 +162,7 @@ class DefencePlanner(Planner):
                 ourdist = math.hypot(world.ball.x - robot.x, world.ball.y - robot.y)
                 oppdists = [math.hypot(world.ball.x - r.x, world.ball.y - r.y)
                             for r in world.their_robots if not r.is_missing()]
-                if ourdist < min(oppdists) and world.game_state == 'normal-play':
+                if (len(oppdists) == 0 or ourdist < min(oppdists)) and world.game_state == 'normal-play':
                     info("Defender goal choice: Retrieve ball")
                     return defender.GetBall(world, robot)
                 else:

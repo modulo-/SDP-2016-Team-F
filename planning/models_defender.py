@@ -18,7 +18,7 @@ ROTATION_THRESHOLD = 0.2
 MOVEMENT_THRESHOLD = 15
 FACING_ROTATION_THRESHOLD = 0.2
 CLOSE_DISTANCE_BALL_THRESHOLD = 50
-MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 75
+MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 45
 
 '''
 > GOALS
@@ -172,7 +172,7 @@ class ReturnToDefenceArea(Goal):
 
 class PassAction(Action):
     def perform(self, comms):
-        target_rotation = utils.defender_angle_to_pass_upfield(self.world, self.robot)
+        target_rotation = utils.defender_scan_angle_to_pass_absolute(self.world, self.robot)
         logging.info("Passing ball. (Rotate %f degrees, then kick)", math.degrees(target_rotation))
         comms.turn_then_kick(target_rotation)
         self.robot.catcher = 'OPEN'
