@@ -243,7 +243,7 @@ namespace hlcmd {
             out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
             *((uint16_t *)(out + 4)) = 100;
             out[6] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 7)) = 300;
+            *((uint16_t *)(out + 7)) = 600;
             out[9] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
             *((uint16_t *)(out + 10)) = 200;
             out[12] = llcmd::NOP;
