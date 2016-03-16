@@ -6,6 +6,7 @@ from position import Vector
 
 from math import pi
 
+AVOID_DISTANCE = 30
 
 def defender_move_delay(dist):
     if abs(dist) > 150:
@@ -38,6 +39,44 @@ def get_defence_point(world):
     y = world.pitch.height / 2
     return Vector(x, y, 0, 0)
 
+
+def get_avoiding_angle_to_point(world, vec1, vec2):
+    straight_angle = get_rotation_to_point(vec1, vec2)
+    straight_distance = dist(vec1, vec2)
+    straight_vector = Vector(vec1.x, vec1.y, vec1.angle, 0)
+    obstacle = find_obstacle(world, vec1, vec2)
+    if not obstacle:
+        return straight_angle
+
+    logging.info("Obstacle on path")
+
+    m_straight = float(vec2.y - vec1.y) / (vec2.x - vec1.x)
+    c_straight = vec1.y - vec1.x * m_straight
+    m_perp = float(-1) / m_straight
+    c_perp = obstacle.y - obstacle.x * m_perp
+
+    ix = -(c_straight - c_perp) / (m_straight - m_perp)
+    iy = m_straight * ix + c_straight
+    intercept = Vector(ix, iy, 0, 0)
+
+    obstacle_from_line = dist(intercept, obstacle)
+    delta_length = AVOID_DISTANCE / 2
+    dx = (obstacle.x - ix) / obstacle_from_line * delta_length
+    dy = (obstacle.y - iy) / obstacle_from_line * delta_length
+    
+    closest = None
+    for j in range(-10, 10):
+        v = Vector(ix + dx * j, iy + dy * j, 0, 0)
+        if not find_obstacle(world, vec1, v) and world.is_possible_position(world.our_attacker, v.x, v.y):
+            angle = get_rotation_to_point(vec1, v)
+            if not closest or abs(angle - straight_angle) < abs(closest - straight_angle):
+                closest = angle
+    if not closest:
+        logging.info("Didn't find any suitable angle!!!")
+    else:
+        logging.info("Found suitable angle {0}".format(closest))
+    return closest
+            
 
 def get_rotation_to_point(vec1, vec2):
     '''
@@ -331,52 +370,11 @@ def can_score(world, our_robot, their_goal, turn=0):
     return their_goal.lower_post < predicted_y < their_goal.higher_post
 
 
-def defender_can_pass_to_position(world, position):
+def defender_can_pass_to_position(world, position, enemy_zone_radius=40):
     '''
     Test if a robot at 'position' could be passed to
     '''
-    can_pass = True
-    defender_attacker_line = ((world.our_defender.x, world.our_defender.y), (position.x, position.y))
-    their_vecs = [t.vector for t in world.their_robots if not t.is_missing()]
-    for t in their_vecs:
-        if line_intersects_circle(defender_attacker_line, ((t.x, t.y), enemy_zone_radius)):
-            return False
-    return True
-
-
-"""
-    # get defender position
-    our_defender = world.our_defender
-
-    # get opposing teams positions
-    their_robots[0] = world.their_robots[0]
-    their_robots[1] = world.their_robots[1]
-
-    # work out if any opposing team robots are near the line
-    # need to work out a good value for this
-    threshold = 30
-
-    # distance from their first robot to the line
-    y2 = our_defender.y
-    y1 = our_position.y
-    y0 = their_robots[0].y
-    x2 = our_defender.x
-    x1 = our_position.x
-    x0 = their_robots[0].x
-    dist1 = math.abs(((y2 - y1)*x0) - ((x2 - x1)*y0) + x2*y1 - y2*x1) / math.sqrt(math.pow((y2 - y1),2) + math.pow((x2 - x1),2))
-
-    # distance from their second robot to the line
-    y3 = their_robots[1].y
-    x3 = their_robots[1].x
-    dist2 = math.abs(((y2 - y1)*x3) - ((x2 - x1)*y3) + x2*y1 - y2*x1) / math.sqrt(math.pow((y2 - y1),2) + math.pow((x2 - x1),2))
-
-    # if one or both of the opposing robots are too close to the line then we cannot pass to the postion
-    if dist1 or dist2 < threshold:
-        return False
-    # otherwise we can pass to the postion
-    else:
-        return True
-"""
+    return not find_obstacle(world, world.our_defender, position)
 
 
 # Test if a robot at 'position' could score
@@ -384,61 +382,39 @@ def attacker_can_score_from_position(world, position):
     assert(position.angle == 0)
     goal_points = [Vector(world.their_goal.x, world.their_goal.y + (world.their_goal.width / 4) * i, 0, 0) for i in [1,2,3]]
     for point in goal_points:
-        v = Vector(position.x, position.y, get_rotation_to_point(position, point), 0)
-        d = dist(position, point)
-        obstacle = detect_object(world, v, d)
+        obstacle = find_obstacle(world, position, point)
         if not obstacle:
             return True
     return False
 
 
-def detect_object(world, vector, distance):
-    our_attacker = world.our_attacker
-    our_defender = world.our_defender
-    their_robots = world.their_robots
+def find_obstacle(world, vec1, vec2):
+    def check_object(vec3):
+        m_straight = float(vec2.y - vec1.y) / (vec2.x - vec1.x)
+        c_straight = vec1.y - vec1.x * m_straight
+        m_perp = float(-1) / m_straight
+        c_perp = vec3.y - vec3.x * m_perp
 
-    start_x = vector.x
-    start_y = vector.y
-    angle = vector.angle
+        ix = -(c_straight - c_perp) / (m_straight - m_perp)
+        iy = m_straight * ix + c_straight
+        intercept = Vector(ix, iy, 0, 0)
+        if dist(vec1, intercept) > dist(vec1, vec2):
+            return None
 
-    # calculate line
-    end_x = start_x + (distance * math.cos(angle))
-    end_y = start_y + (distance * math.sin(angle))
-
-    # calculate distance from each object to the line
-    distances = []
-    # distance from our attacker to line
-    dist_attacker = math.abs(((end_y - start_y) * our_attacker.x) - ((end_x - start_x) * our_attacker.y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
-    distances.append(dist_attacker)
-
-    # distance from our defender to the line
-    dist_defender = math.abs(((end_y - start_y) * our_defender.x) - ((end_x - start_x) * our_defender.y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
-    distances.append(dist_defender)
-
-    # distance from opposing teams first robot to the line
-    dist_theirs_0 = math.abs(((end_y - start_y) * their_robots[0].x) - ((end_x - start_x) * their_robots[0].y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
-    distances.append(dist_theirs_0)
-
-    # distance from opposing teams second robot to the line
-    dist_theirs_1 = math.abs(((end_y - start_y) * their_robots[1].x) - ((end_x - start_x) * their_robots[1].y) + end_x * start_y - end_y * start_x) / math.sqrt(math.pow((end_y - start_y), 2) + math.pow((end_x - start_x), 2))
-    distances.append(dist_theirs_1)
-
-    # if within threshold then return object
-    threshold = 50
-
-    closest = min(distance for distance in distances if distance < threshold)
-
-    if (closest == dist_attacker):
-        return our_attacker
-    elif (closest == dist_defender):
-        return our_defender
-    elif (closest == dist_theirs_0):
-        return their_robots[0]
-    elif (closest == dist_theirs_1):
-        return their_robots[1]
-    # else return none
-    else:
-        return None
+        distance_from_line = dist(intercept, vec3)
+        if distance_from_line < AVOID_DISTANCE:
+            return dist(vec1, intercept)
+        else:
+            return None
+    closest = (None, 10000)
+    for obj in [world.our_defender, world.our_attacker,
+                world.their_robots[0], world.their_robots[1]]:
+        if (obj.x == vec1.x and obj.y == vec1.y) or (obj.x == vec2.x and obj.y == vec2.y):
+            continue
+        result = check_object(obj.vector)
+        if result and result < closest[1]:
+            closest = (obj, result)
+    return closest[0]
 
 
 def predict_y_intersection(world, robot, predict_for_x):
