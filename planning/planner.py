@@ -126,8 +126,10 @@ class AttackPlanner(Planner):
                 return attacker.AttackPosition(world, robot)
             elif any([r.has_ball(world.ball) for r in world.their_defenders]):
                 return attacker.AttackerBlock(world, robot)
-            else:
+            elif world.is_possible_position(world.our_attacker, world.ball.x, world.ball.y):
                 return attacker.GetBall(world, robot)
+            else:
+                return attacker.AttackPosition(world, robot)
         elif self.current_task == 'test-obstacle':
             print(math.degrees(utils.get_avoiding_angle_to_point(world,
                                                     world.our_attacker.vector,
