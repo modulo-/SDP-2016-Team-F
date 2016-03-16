@@ -464,9 +464,11 @@ def defender_scan_angle_to_pass_absolute(world, defender_vec, enemy_zone_radius=
     print("low: " + str(low))
     print("hi: " + str(hi))
     if abs(friend_degree - low) < abs(friend_degree - hi):
-        return low + offset - math.degrees(defender_vec.angle)
+        print("Return by: " + str(math.radians(low + offset - math.degrees(defender_vec.angle))))
+        return math.radians(low + offset - math.degrees(defender_vec.angle))
     else:
-        return hi + offset - math.degrees(defender_vec.angle)
+        print("Return by: " + str(math.radians(low + offset - math.degrees(defender_vec.angle))))
+        return math.radians(hi + offset - math.degrees(defender_vec.angle))
 
 
 def defender_scan_area_to_pass(world, defender_robot, enemy_zone_radius):
@@ -523,7 +525,7 @@ def defender_remove_robots_far_away(robot, robots, threshold_distance):
     Takes a list removes all robots that are further than specified distance
     '''
 
-    near_robots = [ n for n in robots if math.hypot(robot.x - n.x, robot.y - n.y) < threshold_distance]
+    near_robots = [n for n in robots if math.hypot(robot.x - n.x, robot.y - n.y) < threshold_distance]
     return near_robots
 
 
