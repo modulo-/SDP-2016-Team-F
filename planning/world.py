@@ -468,8 +468,9 @@ class World(object):
 
     def get_new_score_zone(self):
         halfway = self.pitch.width / 2
-        x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
-            else halfway - (halfway - self.pitch.goal_box_x_offset) / 2
+        #x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
+        #    else halfway - (halfway - self.pitch.goal_box_x_offset) / 2
+        x = 200 if self._our_side == 'left' else 400
         y_step = self.pitch.width / 5
         centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
         filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
