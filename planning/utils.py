@@ -8,6 +8,7 @@ from math import pi
 from IPython import embed
 
 AVOID_DISTANCE = 30
+FAR_AWAY_DISTANCE_THRESHOLD = 120
 
 
 def defender_move_delay(dist):
@@ -476,8 +477,6 @@ def defender_scan_area_to_pass(world, defender_robot, enemy_zone_radius):
     If not, it explores surrounding degrees and return the closest one that was set to 1.
     '''
 
-    their_vecs = [t.vector for t in world.their_robots if not t.is_missing()]
-
     def can_pass_to_attacker(defender_vec, scan_x, scan_y, their_robots_vecs):
         for t in their_robots_vecs:
             s1 = [defender_robot.x, defender_robot.y]
@@ -487,6 +486,13 @@ def defender_scan_area_to_pass(world, defender_robot, enemy_zone_radius):
                 return False
 
         return True
+
+    # get all enemy robots that are not missing
+    their_vecs = [t.vector for t in world.their_robots if not t.is_missing()]
+
+    # remove robots that are further then our robot
+    distance_to_our_robot = math.hypot(defender_robot.x - world.our_attacker.vector.x, defender_robot.y - world.our_attacker.vector.y)
+    their_vecs = defender_remove_robots_far_away(defender_robot, their_vecs, distance_to_our_robot + FAR_AWAY_DISTANCE_THRESHOLD)
 
     offset = 0
     if world.our_side == 'right':
@@ -498,10 +504,9 @@ def defender_scan_area_to_pass(world, defender_robot, enemy_zone_radius):
         scan_x = defender_robot.x + 500 * math.sin(math.radians(n + offset))
         scan_y = defender_robot.y + 500 * math.cos(math.radians(n + offset))
         # print("Checking: " + str(scan_x) + " x " + str(scan_y))
-        scan_vec = Vector(scan_x, scan_y, 0, 0)
         possible_shots[n] = can_pass_to_attacker(defender_robot, scan_x, scan_y, their_vecs)
 
-    # plot
+    # plot FP vision
     vision = ""
     for n in possible_shots:
         if n:
@@ -511,6 +516,15 @@ def defender_scan_area_to_pass(world, defender_robot, enemy_zone_radius):
     print(vision)
 
     return possible_shots
+
+
+def defender_remove_robots_far_away(robot, robots, threshold_distance):
+    '''
+    Takes a list removes all robots that are further than specified distance
+    '''
+
+    near_robots = [ n for n in robots if math.hypot(robot.x - n.x, robot.y - n.y) < threshold_distance]
+    return near_robots
 
 
 def defender_angle_to_pass_upfield(world, defender_robot, enemy_zone_radius=40):
@@ -639,7 +653,7 @@ class testRobot:
 class testWorld:
 
     def __init__(self):
-        self.our_attacker = testRobot(600, 200)
+        self.our_attacker = testRobot(282, 200)
         self.their_robots = [
             testRobot(400, 300),
             testRobot(400, 200),
