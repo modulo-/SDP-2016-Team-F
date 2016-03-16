@@ -153,7 +153,9 @@ class TurnToDefenderToGive(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
 
     def __init__(self, world, robot):
-        self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.our_defender.vector)
+        self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, world.our_defender.vector)
+        if not self.angle:
+            self.angle = utils.attacker_get_angle_to_point(robot.vector, world.our_defender.vector)
         super(TurnToDefenderToGive, self).__init__(world, robot)
 
     def perform(self, comms):
@@ -168,6 +170,8 @@ class TurnToBall(Action):
     def __init__(self, world, robot):
         self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, world.ball.vector)
         #self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.ball.vector)
+        if not self.angle:
+            self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.ball.vector)
         super(TurnToBall, self).__init__(world, robot)
 
     def perform(self, comms):
@@ -206,7 +210,9 @@ class KickToDefender(Action):
 class TurnToScoreZone(Action):
     def __init__(self, world, robot):
         position = world.get_new_score_zone()
-        self.angle = utils.attacker_get_rotation_to_point(robot.vector, position)
+        self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, position)
+        if not self.angle:
+            self.angle = utils.attacker_get_rotation_to_point(robot.vector, position)
         super(TurnToScoreZone, self).__init__(world, robot)
 
     def perform(self, comms):
@@ -227,7 +233,9 @@ class TurnToDefenderToReceive(Action):
     precondtions = [(lambda w, r: r.are_equivalent_positions(r.vector, w.get_new_score_zone()), "Attacker in score zone")]
 
     def __init__(self, world, robot):
-        self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.their_attackers[0].vector)
+        self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, world.our_defender.vector)
+        if not self.angle:
+            self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.our_defender.vector)
         super(TurnToDefenderToReceive, self).__init__(world, robot)
 
     def perform(self, comms):
@@ -240,7 +248,9 @@ class TurnToDefenderToReceive(Action):
 class TurnToFaceBlockingPosition(Action):
     def __init__(self, world, robot):
         position = robot.get_blocking_position(world)
-        self.angle = utils.attacker_get_rotation_to_point(robot.vector, position)
+        self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, position)
+        if not self.angle:
+            self.angle = utils.attacker_get_rotation_to_point(robot.vector, position)
         super(TurnToFaceBlockingPosition, self).__init__(world, robot)
 
     def perform(self, comms):
@@ -267,7 +277,9 @@ class TurnToBlockingAngle(Action):
 
     def __init__(self, world, robot):
         if world.robot_in_possession:
-            self.angle = utils.attacker_get_rotation_to_point(robot, world.robot_in_possession.vector)
+            self.angle = utils.get_avoiding_angle_to_point(world, robot, world.robot_in_possession.vector)
+            if not self.angle:
+                self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.robot_in_possession.vector)
         else:
             error("Attempting to block while no robot in possession")
             self.angle = 0
