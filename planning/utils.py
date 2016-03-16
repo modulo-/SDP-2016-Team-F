@@ -53,16 +53,16 @@ def get_avoiding_angle_to_point(world, vec1, vec2):
 
     logging.info("Obstacle on path")
 
-    m_straight = float(vec2.y - vec1.y) / (vec2.x - vec1.x)
+    m_straight = float(vec2.y - vec1.y) / ((vec2.x - vec1.x) + 1)
     c_straight = vec1.y - vec1.x * m_straight
     m_perp = float(-1) / m_straight
     c_perp = obstacle.y - obstacle.x * m_perp
 
-    ix = -(c_straight - c_perp) / (m_straight - m_perp)
+    ix = -(c_straight - c_perp) / ((m_straight - m_perp) + 1)
     iy = m_straight * ix + c_straight
     intercept = Vector(ix, iy, 0, 0)
 
-    obstacle_from_line = dist(intercept, obstacle)
+    obstacle_from_line = dist(intercept, obstacle) + 1
     delta_length = AVOID_DISTANCE / 2
     dx = (obstacle.x - ix) / obstacle_from_line * delta_length
     dy = (obstacle.y - iy) / obstacle_from_line * delta_length
@@ -393,12 +393,12 @@ def attacker_can_score_from_position(world, position):
 
 def find_obstacle(world, vec1, vec2):
     def check_object(vec3):
-        m_straight = float(vec2.y - vec1.y) / (vec2.x - vec1.x)
+        m_straight = float(vec2.y - vec1.y) / ((vec2.x - vec1.x) + 1)
         c_straight = vec1.y - vec1.x * m_straight
         m_perp = float(-1) / m_straight
         c_perp = vec3.y - vec3.x * m_perp
 
-        ix = -(c_straight - c_perp) / (m_straight - m_perp)
+        ix = -(c_straight - c_perp) / ((m_straight - m_perp) + 1)
         iy = m_straight * ix + c_straight
         intercept = Vector(ix, iy, 0, 0)
         if dist(vec1, intercept) > dist(vec1, vec2):
