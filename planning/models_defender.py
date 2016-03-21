@@ -16,6 +16,7 @@ from time import time
 ROTATION_BALL_THRESHOLD = 0.2
 ROTATION_THRESHOLD = 0.2
 MOVEMENT_THRESHOLD = 10
+DEFENCE_AREA_THRESHOLD = 30
 FACING_ROTATION_THRESHOLD = 0.2
 CLOSE_DISTANCE_BALL_THRESHOLD = 50
 MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 45
@@ -180,7 +181,7 @@ class PassAction(Action):
 
 
 class FaceOppositePitchSide(Action):
-    preconditions = [(lambda w, r: abs(utils.dist(r.vector, utils.get_defence_point(w))) < MOVEMENT_THRESHOLD, "At defence point.")]
+    preconditions = [(lambda w, r: abs(utils.dist(r.vector, utils.get_defence_point(w))) < DEFENCE_AREA_THRESHOLD, "At defence point.")]
 
     def perform(self, comms):
         if self.world.our_side == 'left':
@@ -196,21 +197,22 @@ class FaceOppositePitchSide(Action):
 
 class MoveToDefenceArea(Action):
 
-    preconditions = [(lambda w, r: abs(utils.get_rotation_to_point(utils.defender_move_vec(r), utils.get_defence_point(w))) < ROTATION_THRESHOLD, "Aligned to move to defence point.")]
+    preconditions = [(lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), utils.get_defence_point(w), 0)[0]) < ROTATION_THRESHOLD, "Aligned to move to defence point.")]
 
     def perform(self, comms):
         dist = utils.dist(self.robot, utils.get_defence_point(self.world))
+        dist *= utils.get_movement_direction_from_vector(self.robot, utils.get_defence_point(self.world))
         logging.info("Moving to defence area. Moving %f right.", dist)
         comms.move(dist)
-        return utils.defender_move_delay(dist)
+        return utils.defender_move_delay(abs(dist))
 
 
 class RotateToDefenceArea(Action):
 
     def perform(self, comms):
-        rot_angle = utils.get_rotation_to_point(
-            utils.defender_move_vec(self.robot),
-            utils.get_defence_point(self.world))
+        rot_angle = utils.defender_get_rotation_to_catch_point(
+            Vector(self.robot.x, self.robot.y, self.robot.angle, 0),
+            utils.get_defence_point(self.world), 0)[0]
         logging.info("Facing direction to move to defence area. Rotating %f degrees.", math.degrees(rot_angle))
         comms.turn(rot_angle)
         return utils.defender_turn_delay(rot_angle)
