@@ -197,9 +197,35 @@ def main():
 
 def run(attacker, defender, plan, pitch_no):
     global attack_timer, defence_timer
-    thread = Thread(target=start_vision, args=(pitch_no,))
-    thread.daemon = True
-    thread.start()
+    vision_thread = Thread(target=start_vision, args=(pitch_no,))
+    vision_thread.daemon = True
+    vision_thread.start()
+
+    top = Tk()
+    statev = StringVariable(top)
+    def setstate(s):
+        statev.set(s)
+        if s == "game-stop":
+            s = None
+        latest_world.game_state = s
+    ko_us = Button(top, text="kickoff-us", command=setstate("kickoff-us"))
+    ko_them = Button(top, text="kickoff-them", command=setstate("kickoff-them"))
+    pn_def = Button(top, text="penalty-defend", command=setstate("penalty-defend"))
+    pn_sht = Button(top, text="penalty-shoot", command=setstate("penalty-shoot"))
+    nm_play = Button(top, text="normal-play", command=setstate("normal-play"))
+    stp = Button(top, text="game-stop", command=setstate("game-stop"))
+    statel = Label(top, textvariable=statev)
+    ko_us.pack()
+    ko_them.pack()
+    pn_def.pack()
+    pn_sht.pack()
+    nm_play.pack()
+    stp.pack()
+    statel.pack()
+    ui_thread = Thread(target=top.mainloop)
+    ui_thread.daemon = True
+    ui_thread.start()
+
     attack_planner = None
     defence_planner = None
 
@@ -261,11 +287,6 @@ def run(attacker, defender, plan, pitch_no):
                 latest_world.our_side = 'right'
             else:
                 latest_world.our_side = 'left'
-        elif task in ['kickoff-them', 'kickoff-us', 'normal-play', 'penalty-defend',
-                'penalty-shoot']:
-            latest_world.game_state = task
-        elif task == 'game-stop':
-            latest_world.game_state = None
         elif task == 'penalty11':
             latest_world.our_defender.penalty = True
         elif task == 'unpenalty11':
