@@ -12,16 +12,14 @@
 
 
 // Motor mapping
-#define MOTOR_LEFT 5 // polarity reversed
-#define MOTOR_RIGHT 1 // polarity reversed
+#define MOTOR_LEFT 0 // polarity reversed
+#define MOTOR_RIGHT 4 // polarity reversed
 #define MOTOR_MIDDLE 0 // forward is anticlockwise
-#define MOTOR_KICKER 5 // forward is kick
-#define MOTOR_GRABBER 4 // forward is grab
+#define MOTOR_GRABBER 1 // forward is grab
 
 #define ENCODER_LEFT 3
 #define ENCODER_RIGHT 4
-#define ENCODER_MIDDLE 5 //+ve is clockwise
-#define ENCODER_GRABBER 0
+#define ENCODER_GRABBER 5
 
 
 #define PIN_KICKER 6
@@ -72,9 +70,9 @@ int debugLevel=0;
 // Initial motor position is 0.
 int positions[ROTARY_COUNT] = {0};
 bool turnCorrection = false;
-int kickerTime50 = 80;
-int kickerTime100 = 110;
-int kickerTime150 = 135;
+int kickerTime50 = 6;
+int kickerTime100 = 7;
+int kickerTime150 = 8;
 long degToMetre = 1250;
 #ifdef COMPASS
 Adafruit_9DOF                  dof   = Adafruit_9DOF();
@@ -94,11 +92,6 @@ void doData(byte * message);
 byte * dataBytes = (byte *) malloc(MAX_DATA_SIZE * sizeof(byte));
 int dataFreq = 2;
 int dataLen = 100;
-
-struct goal {
-    int distance;
-    int heading;
-};
 
 void setup() {
     SDPsetup();
@@ -120,8 +113,7 @@ void setup() {
 
     //Initialise the WDT and flush the serial...
     //wdt_enable(WDTO_1S);
-    release();
-    positions[ENCODER_GRABBER]=0;
+    calibrateGrabbers();
     Serial.flush();
 }
 
@@ -154,19 +146,20 @@ namespace comms {
             case CMD_DATA:
                 doData(message);
                 break;
-            case CMD_GRAB:
-                grab();
-                break;
+            case CMD_GRAB: grab();
+                           break;
             case CMD_RELEASE:
-                release();
+                           release();
+                           break;
             case CMD_PING:
-                ping();
+                           ping();
+                           break;
             case CMD_SET_DEBUG:
-                setDebug(message);
-                break;
+                           setDebug(message);
+                           break;
             case CMD_TEST:
-                test();
-                break;
+                           test();
+                           break;
         }
         //free(data);
     }
@@ -199,51 +192,40 @@ void parseOptions(byte* message) {
 
 void grab() {
     updateMotorPositions();
-    /*
-    char positionStr[2];
-    positionStr[0]=(byte) (positions[ENCODER_GRABBER])+'0';
-    positionStr[1]='\0';
-    commSend(positionStr);
-    */
     //close flippers
     int time=millis();
-    motorForward(MOTOR_GRABBER, 25);
+    motorForward(MOTOR_GRABBER, 55);
     delay(800);
-    /*
-       while(millis()-time<800){//&&positions[ENCODER_GRABBER]<13){
-       updateMotorPositions();
-       }
-     */
-    updateMotorPositions();
-    if(positions[ENCODER_GRABBER]>=10&&positions[ENCODER_GRABBER]<=12){
-        commSend("ball caught");
-        /*
-        positionStr[0]=(byte) (positions[ENCODER_GRABBER]);
-        positionStr[1]='\0';
-        */
-        commSend(positionStr);
+    if(positions[ENCODER_GRABBER]<=8){
+        commSend("BC");
     }
     else{
-        commSend("do not have ball");
-        /*
-        positionStr[0]=(byte) (positions[ENCODER_GRABBER])+'0';
-        positionStr[1]='\0';
-        commSend(positionStr);
-        */
-        commSend("#");
+        commSend("NC");
     }
     motorAllStop();
 }
 
 void release() {
     //move flippers away
-    motorBackward(MOTOR_GRABBER, 25);
+    motorBackward(MOTOR_GRABBER, 55);
+    int time=millis();
+    delay(800);
+    motorAllStop();
+}
+
+void calibrateGrabbers() {
+    //move flippers away
+    motorBackward(MOTOR_GRABBER, 55);
+    delay(800);
+    positions[ENCODER_GRABBER]=0;
+    motorForward(MOTOR_GRABBER, 55);
     delay(800);
     motorAllStop();
 }
 
 void ping(){
-    commSend("ping");
+    updateMotorPositions();
+    printMotorPositions();
 }
 
 void setDebug(byte * message){
@@ -256,11 +238,6 @@ void test(){
 
 void doMove(byte * message) {
     int distance = (message[1] << 8) | message[2];
-#ifdef SERIAL_DEBUG
-    Serial.println("doMove:");
-    Serial.println(distance);
-}
-#endif
 move(distance);
 }
 
@@ -268,23 +245,8 @@ void doMoveAndTurn(byte * message) {
     int direction = (message[1] << 8) | message[2];
     int distance = (message[3] << 8) | message[4];
     int finalHeading = (message[5] << 8) | message[6]; // relative finish heading
-
-#ifdef SERIAL_DEBUG
-    Serial.println("doMoveAndTurn:");
-    Serial.println(distance);
-    Serial.println(direction);
-    Serial.println(finalHeading);
-#endif
-
     int startHeading = getCurrentHeading(); // absolute start heading
     finalHeading = (startHeading + finalHeading + 360) % 360; // absulute finish heading
-
-#ifdef SERIAL_DEBUG
-    Serial.println("Augmented headings:");
-    Serial.println(startHeading);
-    Serial.println(finalHeading);
-#endif
-
     turn(direction, 0); // turn to calculated final abs heading
     move(distance); // move in relative heading
     delay(1000);
@@ -341,15 +303,13 @@ void move(int distance) {
     if (Serial.available()) {
         return;
     };
+    long max_data_points=100;
+    long history[3][max_data_points];
+    int number_data_points=0;
     resetMotorPositions();
     long distanceCovered = 0;
-    int startHeading = getCurrentHeading();
-    long degrees = (distance * degToMetre) / 1000;
-
-#ifdef SERIAL_DEBUG
-    Serial.print("I am going to move:");
-    Serial.println(degrees);
-#endif
+    //long degrees = (distance * degToMetre) / 1000;
+    long degrees= distance;
 
     bool finished = false;
     bool forwards = (distance >= 0);
@@ -360,24 +320,24 @@ void move(int distance) {
 
     int delta0 = 0;
     int delta1 = 0;
+
+    int targetDelta=0;    
+    int targetSpeed=0;
+
     int leftPower = 100;
     int rightPower = 100;
     int prevTime = millis();
     bool timeout;
 
-#ifdef SERIAL_DEBUG
-    Serial.print("Starting at: ");
-    Serial.print(start[0]);
-    Serial.print(" ");
-    Serial.print(start[1]);
-    Serial.print(" Going to:");
-    Serial.print(positions[0] + degrees);
-    Serial.print(" ");
-    Serial.println(positions[1] + degrees);
-#endif
-
     while (!finished && !Serial.available()) {
         updateMotorPositions();
+        if(number_data_points<max_data_points && (delta0!=-(positions[ENCODER_LEFT] - start[0]) || delta1!=-(positions[ENCODER_RIGHT] - start[1]))){
+            history[0][number_data_points]=positions[ENCODER_LEFT]; 
+            history[1][number_data_points]=positions[ENCODER_RIGHT]; 
+            history[2][number_data_points]=micros(); 
+            number_data_points++;
+        }
+        
         delta0 = -(positions[ENCODER_LEFT] - start[0]);
         delta1 = -(positions[ENCODER_RIGHT] - start[1]);
         if (!forwards) {
@@ -390,19 +350,19 @@ void move(int distance) {
         if (rightPower != 0 && abs(delta1) >= abs(degrees)) {
             rightPower = 0;
         }
-        if ((abs(delta0) >= abs(degrees) && abs(delta1) >= abs(degrees)) || (leftPower == 0 && rightPower == 0)) {
+        if ((abs(delta0) >= abs(degrees) && abs(delta1) >= abs(degrees))) {
             finished = true;
             break;
         }
         else if (delta0 - delta1 > 5) {
-            if (leftPower > 90)leftPower = 90;
+            if (leftPower > 90)leftPower = 60;
         }
         else if (delta1 - delta0 > 5) {
-            if (rightPower > 90)rightPower = 90;
+            if (rightPower > 90)rightPower = 60;
         }
         else {
-            if (leftPower != 0)leftPower = 100;
-            if (rightPower != 0)rightPower = 100;
+            if (leftPower != 0)leftPower = 70;
+            if (rightPower != 0)rightPower = 70;
         }
         if (forwards) {
             motorBackward(MOTOR_LEFT, leftPower);
@@ -413,16 +373,25 @@ void move(int distance) {
             motorForward(MOTOR_RIGHT, rightPower);
         }
     }
+    debugSend("finished");
     motorAllStop();
     updateMotorPositions();
-
-#ifdef SERIAL_DEBUG
-    Serial.print("Finished at: ");
-    Serial.print(positions[0]);
-    Serial.print(" ");
-    Serial.print(positions[1]);
-    Serial.print("\r\n");
-#endif
+    for(int i=0;i<number_data_points;i++){
+        for(int j=0;j<3;j++){
+            String numStr=String(history[j][i]);
+            char numChrArray[numStr.length()+1];
+            for(int k=0;k<numStr.length();k++){
+                numChrArray[k]=numStr.charAt(k);
+            }
+            numChrArray[numStr.length()+1]='\0';
+            debugSend(numChrArray);
+            delay(100);
+            debugSend(", ");
+            delay(100);
+        }
+        delay(100);
+        debugSend("\n");
+    }
 }
 
 //in a full rotation left should go 550 right should go 550
@@ -440,12 +409,6 @@ void turn(long degrees, int depth) {
     //because 1 reported 2 degree is 2 degrees of rotation
     float degToDegLR = (360 / FULL_ROT_LR) * ((WHEEL_CIRCUM) / (LR_WHEELBASE * PI));
     float degToDegC =  (360 / FULL_ROT_MIDDLE) * ((WHEEL_CIRCUM) / (2 * MIDDLE_RADIUS * PI));
-#ifdef SERIAL_DEBUG
-    Serial.print("degToDegLR:");
-    Serial.print(degToDegLR);
-    Serial.print(" degToDegC:");
-    Serial.println(degToDegC);
-#endif
     //target speed in deg/s
     int targetRotV = 70;
     //everything is confusing because the motors are mounted backwards
@@ -454,42 +417,21 @@ void turn(long degrees, int depth) {
     updateMotorPositions();
     resetMotorPositions();
     updateMotorPositions();
-#ifdef SERIAL_DEBUG
-    printMotorPositions();
-#endif
-    int start[] = {positions[ENCODER_LEFT], positions[ENCODER_RIGHT], positions[ENCODER_MIDDLE]};
+    int start[] = {positions[ENCODER_LEFT], positions[ENCODER_RIGHT]};
     int prevPositions[] = {0, 0, 0};
-#ifdef SERIAL_DEBUG
-    Serial.write(cw ? "clockwise " : "anticlockwise ");
-    Serial.println(degrees);
-#endif
     float deltaL = 0;
     float deltaR = 0;
-    float deltaC = 0;
     int pows[] = {40, 40};
     int startTime = millis();
     int prevTime = 0;
-#ifdef SERIAL_DEBUG
-    int prevPrint = millis();
-    bool timeout;
-#endif
     while (!finished && !Serial.available()) {
-#ifdef SERIAL_DEBUG
-        timeout = false;
-        if (millis() - prevPrint > 100) {
-            timeout = true;
-            prevPrint = millis();
-        }
-#endif
         updateMotorPositions();
         deltaL = -(positions[ENCODER_LEFT] - start[0]) * degToDegLR;
         deltaR =  (positions[ENCODER_RIGHT] - start[1]) * degToDegLR;
-        deltaC = (positions[ENCODER_MIDDLE] - start[2]) * degToDegC;
-        int deltas[] = {deltaL, deltaR, deltaC};
+        int deltas[] = {deltaL, deltaR};
         if (!cw) {
             deltaL = -deltaL;
             deltaR = -deltaR;
-            deltaC = -deltaC;
         }
         int time = millis();
         if ((deltaL + deltaR) / 2 >= degrees) {
@@ -510,44 +452,22 @@ void turn(long degrees, int depth) {
             prevPositions[0] = deltaL;
             prevPositions[1] = deltaR;
             prevTime = time;
-#ifdef SERIAL_DEBUG
-            printMotorPositions();
-#endif
         }
         if (cw) {
             motorBackward(MOTOR_LEFT, pows[0]);
             motorForward(MOTOR_RIGHT, pows[1]);
-            //motorBackward(MOTOR_MIDDLE, powC);
         }
         else {
             motorForward(MOTOR_LEFT, pows[0]);
             motorBackward(MOTOR_RIGHT, pows[1]);
-            //motorForward(MOTOR_MIDDLE, powC);
         }
     }
     motorAllStop();
     updateMotorPositions();
-#ifdef SERIAL_DEBUG
-    Serial.print("degrees:");
-    Serial.print(degrees);
-    Serial.print("\ndeltaL:");
-    Serial.print(deltaL);
-    Serial.print("\ndeltaR:");
-    Serial.print(deltaR);
-    Serial.print("\ndeltaC:");
-    Serial.print(deltaC);
-    Serial.print("\npowL:");
-    Serial.print(pows[0]);
-    Serial.print(" powR:");
-    Serial.print(pows[1]);
-    Serial.print("\ntargetRotV:");
-    Serial.print(targetRotV);
-    Serial.print("\n");
-    printMotorPositions();
-#endif
 }
 
 void kick(int distance) { // distance in cm
+    distance=abs(distance);
     int kickerTime = 0;
     int kickerStrength = 100;
     switch (distance) {
@@ -561,7 +481,7 @@ void kick(int distance) { // distance in cm
             kickerTime = kickerTime150;
             break;
         default:
-            kickerTime = distance;
+            kickerTime = 6+ ((distance-50)/50);
             break;
     }
     //close flippers
@@ -583,13 +503,6 @@ void kick(int distance) { // distance in cm
     delay(200);
     grab();
     //motorAllStop();
-#ifdef SERIAL_DEBUG
-    Serial.write("kicking at P:");
-    Serial.print(kickerStrength);
-    Serial.write(" T:");
-    Serial.print(kickerTime);
-    Serial.write("\r\n");
-#endif
 }
 
 
@@ -682,7 +595,7 @@ void updateMotorPositions() {
         if(a!=0){changed=true;}
     }
     if(error){
-        debugSend("cannot communicate with encoder board",0);
+        debugSend("cannot communicate with encoder board");
     }
     else{
         // Update the recorded motor positions
@@ -705,27 +618,26 @@ void resetMotorPositions() {
 }
 
 void printMotorPositions() {
-    debugSend("Motor positions: ",3);
-    char positionsStr[ROTARY_COUNT*2+1];
-    positionsStr[0]=(char) (((byte) positions[0])+'0');
-    int strI=1;
-    for (int i = 1; i < ROTARY_COUNT; i++) {
-        positionsStr[strI]=',';
-        strI++;
-        positionsStr[strI]=(char) (((byte) positions[i])+'0');
-        strI++;
+    debugSend("Motor positions: ");
+    String positionStr;
+    for(int i=0; i<ROTARY_COUNT;i++){
+        positionStr.concat(positions[i]);
+        if(i!=ROTARY_COUNT-1){
+            positionStr.concat(',');
+        }
     }
-    positionsStr[ROTARY_COUNT*2]='\n';
-    positionsStr[ROTARY_COUNT*2+1]='\0';
-    debugSend(positionsStr,3);
+    char positionString[positionStr.length()+1];
+    for(int i=0;i<positionStr.length();i++){
+        positionString[i]=positionStr.charAt(i);
+    }
+    positionString[positionStr.length()+1]='\0';
+    debugSend(positionString);
 }
 
 void commSend(char* str) {
     comms::send(str, 'c', strlen(str));
 }
 
-void debugSend(char* str, int level) { 
-    if(level>=debugLevel){
-        comms::send(str, 'd', strlen(str));
-    }
+void debugSend(char* str) { 
+    comms::send(str, 'd', strlen(str));
 }

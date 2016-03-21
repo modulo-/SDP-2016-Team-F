@@ -41,7 +41,7 @@ void motorForward(int motorNum, int motorPower) { //Makes Motor motorNum go forw
     }
     int motorMode = 2; //Mode 2 is Forward
     byte motor1 = motorNum<<5 | 24 | motorMode<<1 ;//Build Command Byte
-    byte motor2 = int(motorPower * 2.55);
+    byte motor2 = motorPower;
     uint8_t sender[2] = {motor1, motor2};
     Wire.beginTransmission(MotorBoardI2CAddress); //open I2C communation to Motor Board.
     Wire.write(sender,2);                    //send data. 
@@ -59,7 +59,7 @@ void motorBackward(int motorNum, int motorPower) { //Makes Motor motorNum go bac
     }
     int motorMode = 3; //Mode 3 is Backwards.
     byte motor1 = motorNum<<5 | 24 | motorMode<<1 ;//Build Command Byte
-    byte motor2 = int(motorPower * 2.55); //Power Byte.
+    byte motor2 = motorPower; //Power Byte.
     uint8_t sender[2] = {motor1, motor2};
     Wire.beginTransmission(MotorBoardI2CAddress); //open I2C communation to Motor Board.
     Wire.write(sender,2);        	 // sends two byte  

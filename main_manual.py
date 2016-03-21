@@ -11,6 +11,7 @@ for d in os.listdir("/dev"):
     if d[0:6]=="ttyACM":
             print str(i) + "\t" + d
             b.append("/dev/"+d)
+            i+=1
 robot = RFCommsManager(0, b[int(raw_input("serial device:"))], None)
 print("press h for help")
 
@@ -25,7 +26,7 @@ while True:
         robot.kick(distance)
         print("robot.kick("+str(distance)+")")
     elif command == "m":
-        distance=int(raw_input("distance in mm")) 
+        distance=int(raw_input("distance in mm:")) 
         robot.move(distance)
         print("robot.move("+str(distance)+")")
     elif command=="g":

@@ -60,6 +60,7 @@ class SerialHandle:
                 for (i, packet) in enumerate(self._packetlist):
                     if line[2:4] == packet[-4:-2]:
                         debug('Package ACK: %r', line)
+                        print('Package ACK: '+ line + '\n')
                         index = i
                         break
                 if index is not None:
@@ -83,6 +84,7 @@ class SerialHandle:
             elif line.startswith('e'):
                 error('Error message recieved: %r', data)
             else:
+                print data
                 for callback in self._callbacks:
                     thread.start_new_thread(callback, (data,))
 
