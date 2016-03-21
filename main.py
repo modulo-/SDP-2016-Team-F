@@ -13,6 +13,7 @@ from planning.predictor import Predictor
 from time import time
 from math import pi
 from planning import utils
+from Tkinter import Tk, Button, Label, StringVar
 
 color = None
 
@@ -195,25 +196,20 @@ def main():
     usage()
     run(attacker=attacker, defender=defender, plan=plan, pitch_no=pitch_no)
 
-def run(attacker, defender, plan, pitch_no):
-    global attack_timer, defence_timer
-    vision_thread = Thread(target=start_vision, args=(pitch_no,))
-    vision_thread.daemon = True
-    vision_thread.start()
-
+def do_ui():
     top = Tk()
-    statev = StringVariable(top)
+    statev = StringVar(top, 'game-stop')
     def setstate(s):
         statev.set(s)
         if s == "game-stop":
             s = None
         latest_world.game_state = s
-    ko_us = Button(top, text="kickoff-us", command=setstate("kickoff-us"))
-    ko_them = Button(top, text="kickoff-them", command=setstate("kickoff-them"))
-    pn_def = Button(top, text="penalty-defend", command=setstate("penalty-defend"))
-    pn_sht = Button(top, text="penalty-shoot", command=setstate("penalty-shoot"))
-    nm_play = Button(top, text="normal-play", command=setstate("normal-play"))
-    stp = Button(top, text="game-stop", command=setstate("game-stop"))
+    ko_us = Button(top, text="kickoff-us", command=lambda:setstate("kickoff-us"))
+    ko_them = Button(top, text="kickoff-them", command=lambda:setstate("kickoff-them"))
+    pn_def = Button(top, text="penalty-defend", command=lambda:setstate("penalty-defend"))
+    pn_sht = Button(top, text="penalty-shoot", command=lambda:setstate("penalty-shoot"))
+    nm_play = Button(top, text="normal-play", command=lambda:setstate("normal-play"))
+    stp = Button(top, text="game-stop", command=lambda:setstate("game-stop"))
     statel = Label(top, textvariable=statev)
     ko_us.pack()
     ko_them.pack()
@@ -222,9 +218,17 @@ def run(attacker, defender, plan, pitch_no):
     nm_play.pack()
     stp.pack()
     statel.pack()
-    ui_thread = Thread(target=top.mainloop)
+    top.mainloop()
+
+def run(attacker, defender, plan, pitch_no):
+    global attack_timer, defence_timer
+    ui_thread = Thread(target=do_ui)
     ui_thread.daemon = True
     ui_thread.start()
+
+    vision_thread = Thread(target=start_vision, args=(pitch_no,))
+    vision_thread.daemon = True
+    vision_thread.start()
 
     attack_planner = None
     defence_planner = None
