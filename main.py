@@ -13,6 +13,7 @@ from planning.predictor import Predictor
 from time import time
 from math import pi
 from planning import utils
+from Tkinter import Tk, Button, Label, StringVar
 
 color = None
 
@@ -33,6 +34,8 @@ latest_world = World('left', 0)
 latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
 latest_world.our_defender._receiving_area = {'width': 50, 'height': 35, 'front_offset': 0}
 interrupts = []
+attack_timer = None
+defence_timer = None
 
 
 def get_attacker(world):
@@ -63,7 +66,7 @@ def get_pink_opponent(world):
         return world.robot_blue_pink
 
 def new_grabber_state(value):
-    self.world.is_ball_in_grabbers = value
+    latest_world.our_attacker.is_ball_in_grabbers = value
 
 def new_vision(world):
     predictor.update(world)
@@ -193,37 +196,82 @@ def main():
     usage()
     run(attacker=attacker, defender=defender, plan=plan, pitch_no=pitch_no)
 
+def do_ui():
+    top = Tk()
+    statev = StringVar(top, 'game-stop')
+    def setstate(s):
+        statev.set(s)
+        if s == "game-stop":
+            s = None
+        latest_world.game_state = s
+    ko_us = Button(top, text="kickoff-us", command=lambda:setstate("kickoff-us"))
+    ko_them = Button(top, text="kickoff-them", command=lambda:setstate("kickoff-them"))
+    pn_def = Button(top, text="penalty-defend", command=lambda:setstate("penalty-defend"))
+    pn_sht = Button(top, text="penalty-shoot", command=lambda:setstate("penalty-shoot"))
+    nm_play = Button(top, text="normal-play", command=lambda:setstate("normal-play"))
+    stp = Button(top, text="game-stop", command=lambda:setstate("game-stop"))
+    statel = Label(top, textvariable=statev)
+    ko_us.pack()
+    ko_them.pack()
+    pn_def.pack()
+    pn_sht.pack()
+    nm_play.pack()
+    stp.pack()
+    statel.pack()
+    top.mainloop()
 
 def run(attacker, defender, plan, pitch_no):
-    thread = Thread(target=start_vision, args=(pitch_no,))
-    thread.daemon = True
-    thread.start()
+    global attack_timer, defence_timer
+    ui_thread = Thread(target=do_ui)
+    ui_thread.daemon = True
+    ui_thread.start()
+
+    vision_thread = Thread(target=start_vision, args=(pitch_no,))
+    vision_thread.daemon = True
+    vision_thread.start()
+
     attack_planner = None
     defence_planner = None
+
+    def run_attack_planner():
+        global attack_timer
+        delay = attack_planner.plan_and_act(latest_world)
+        attack_timer.cancel()
+        attack_timer = Timer(delay, run_attack_planner)
+        attack_timer.daemon = True
+        attack_timer.start()
+
+    def run_defence_planner():
+        global defence_timer
+        delay = defence_planner.plan_and_act(latest_world)
+        defence_timer.cancel()
+        defence_timer = Timer(delay, run_defence_planner)
+        defence_timer.daemon = True
+        defence_timer.start()
+
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
-        interrupts.append(Interrupt(
+        """interrupts.append(Interrupt(
             lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
-            lambda: attack_planner.plan_and_act(latest_world), 2))
+            run_attack_planner, 2))"""
     if defender:
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
-            lambda: defence_planner.plan_and_act(latest_world), 2))
+            run_defence_planner, 2))
+        interrupts.append(Interrupt(
+            lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
+            run_defence_planner, 2))
 
-    def run_planners():
-        delay = None
-        if attack_planner:
-            delay = attack_planner.plan_and_act(latest_world)
-        if defence_planner:
-            delay = defence_planner.plan_and_act(latest_world)
-        timer = Timer(delay, run_planners)
-        timer.daemon = True
-        timer.start()
+    if attack_planner:
+        attack_timer = Timer(INITIAL_PLANNER_DELAY, run_attack_planner)
+        attack_timer.daemon = True
+        attack_timer.start()
+    if defence_planner:
+        defence_timer = Timer(INITIAL_PLANNER_DELAY, run_defence_planner)
+        defence_timer.daemon = True
+        defence_timer.start()
 
-    timer = Timer(INITIAL_PLANNER_DELAY, run_planners)
-    timer.daemon = True
-    timer.start()
 
     # set initial plan
     set_plan(attack_planner, defence_planner, plan)
@@ -243,11 +291,6 @@ def run(attacker, defender, plan, pitch_no):
                 latest_world.our_side = 'right'
             else:
                 latest_world.our_side = 'left'
-        elif task in ['kickoff-them', 'kickoff-us', 'normal-play', 'penalty-defend',
-                'penalty-shoot']:
-            latest_world.game_state = task
-        elif task == 'game-stop':
-            latest_world.game_state = None
         elif task == 'penalty11':
             latest_world.our_defender.penalty = True
         elif task == 'unpenalty11':

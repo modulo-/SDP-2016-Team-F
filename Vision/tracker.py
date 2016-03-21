@@ -374,6 +374,9 @@ class DotTracker(Tracker):
 
         if len(contours) >= 3 and pinkedness > bigThresh:
             return "pink"
+
+        if len(contours) >= 2 and pinkedness > greenness:
+            return "pink"
         
         return "green"
 
@@ -391,6 +394,8 @@ class DotTracker(Tracker):
         except Queue.Empty:
             return None
 
+        if corner == None:
+            return None
         return {"x":corner['x']+x, "y":corner['y']+y}
 
     def crop(self, frame_hsv, (x,y), croprange):

@@ -7,6 +7,7 @@
 #include <math.h>
 
 #define cmdArg(cmd, offset, type) ((type *)((cmd) + (offset)))
+#define ROTATION_EPSILON 1700
 
 namespace hlcmd {
     const uint8_t WAIT          = 0x00;
@@ -214,7 +215,13 @@ namespace hlcmd {
             break;
         case SPIN:
             out[0] = llcmd::SPIN;
-            memcpy(out + 1, in + 1, 2);
+            tmp = *cmdArg(in, 1, int16_t);
+            if(tmp > 0 && tmp < ROTATION_EPSILON) {
+                tmp = ROTATION_EPSILON;
+            } else if(tmp < 0 && tmp > -ROTATION_EPSILON) {
+                tmp = -ROTATION_EPSILON;
+            }
+            *((int16_t *)(out + 1)) = tmp;
             out[3] = llcmd::BRAKE;
             *((uint16_t *)(out + 4)) = 100;
             break;
@@ -236,7 +243,7 @@ namespace hlcmd {
             out[3] = llcmd::GRABBER_OPEN | llcmd::FLAG_UNINTERRUPTABLE;
             *((uint16_t *)(out + 4)) = 100;
             out[6] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
-            *((uint16_t *)(out + 7)) = 300;
+            *((uint16_t *)(out + 7)) = 600;
             out[9] = llcmd::GRABBER_CLOSE | llcmd::FLAG_UNINTERRUPTABLE;
             *((uint16_t *)(out + 10)) = 200;
             out[12] = llcmd::NOP;

@@ -1,4 +1,5 @@
 import math
+import utils
 
 from Polygon.cPolygon import Polygon
 from position import Vector
@@ -20,6 +21,7 @@ GOAL_LOWER = 170
 GOAL_HIGHER = 300
 
 MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 30
+
 
 class PitchObject(object):
     '''
@@ -115,7 +117,7 @@ class Robot(PitchObject):
 
     def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
-        self._catch_distance = 30
+        self._catch_distance = 40
         self._catched_ball = False
         self._catcher = 'OPEN'
         self.penalty = False
@@ -172,8 +174,7 @@ class Robot(PitchObject):
         if self.is_our_team and not self.is_house_robot:
             return (self.catcher == 'CLOSED') and self.can_catch_ball(ball)
         else:
-            return (math.hypot(self.x - ball.x, self.y - ball.y)
-                    < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
+            return (math.hypot(self.x - ball.x, self.y - ball.y) < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
 
     def get_displacement_to_point(self, x, y):
         '''
@@ -217,6 +218,7 @@ class Robot(PitchObject):
     def is_house_robot(self):
         return self._is_house_robot
 
+
 class Defender(Robot):
     @property
     def get_tactical_position(self, world):
@@ -259,8 +261,8 @@ class Attacker(Robot):
         if (possession.x - target.x) == 0:
             error("Robot in possession in line on x!")
             return Vector(0, 0, 0, 0)
-        #m =  (possession.y - target.y) / (possession.x - target.x)
-        #return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
+        # m =  (possession.y - target.y) / (possession.x - target.x)
+        # return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
         return Vector((target.x + possession.x) / 2, (target.y + possession.y) / 2, 0, 0)
         """dx = target.x - possession.x
         dy = target.y - possession.y
@@ -273,10 +275,9 @@ class Attacker(Robot):
 
         l = math.hypot(dx, dy)
         print dx,dy, l
-	print possession.x+dx, possession.y+dy
+        print possession.x+dx, possession.y+dy
 
         return Vector(possession.x+dx, possession.y+dy,0,0)"""
-        
 
 
 class Ball(PitchObject):
@@ -314,12 +315,12 @@ class Pitch(object):
         # TODO Get real pitch size
         self._width = 600
         self._height = 400
+        self._goal_box_x_offset = 190
 
     def is_within_bounds(self, robot, x, y):
         '''
         Checks whether the position/point planned for the robot is reachable
         '''
-        # TODO Add goal boxes
         return x > 0 and x < self._width and y > 0 and y < self._height
 
     @property
@@ -329,6 +330,10 @@ class Pitch(object):
     @property
     def height(self):
         return self._height
+
+    @property
+    def goal_box_x_offset(self):
+        return self._goal_box_x_offset
 
     def __repr__(self):
         return str((self._width, self._height))
@@ -369,8 +374,7 @@ class World(object):
 
     @game_state.setter
     def game_state(self, state):
-        assert state in [None, 'kickoff-them', 'kickoff-us', 'normal-play',
-                'penalty-defend', 'penalty-shoot']
+        assert state in [None, 'kickoff-them', 'kickoff-us', 'normal-play', 'penalty-defend', 'penalty-shoot']
         self._game_state = state
 
     @property
@@ -428,6 +432,15 @@ class World(object):
     def in_their_half(self, robot):
         return not self.in_our_half(robot)
 
+    def is_possible_position(self, robot, x, y):
+        if not self.pitch.is_within_bounds(robot, x, y):
+            return False
+        if robot == self.our_attacker:
+            return x > self.pitch.goal_box_x_offset and x < self.pitch.width - self.pitch.goal_box_x_offset
+        # TODO
+        return True
+            
+
     @property
     def robot_in_possession(self):
         robots = [self.our_defender,
@@ -453,11 +466,28 @@ class World(object):
             else:
                 obj.vector = kwargs[name]
 
+    def get_new_score_zone(self):
+        halfway = self.pitch.width / 2
+        #x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
+        #    else halfway - (halfway - self.pitch.goal_box_x_offset) / 2
+        x = 400 if self._our_side == 'left' else 200
+        y_step = self.pitch.width / 5
+        centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
+        filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
+                                    utils.attacker_can_score_from_position(self, v), centroids)
+        sorted_centroids = sorted(filtered_centroids, key=lambda v: (v.x)**2 + (v.y)**2, reverse=True)
+        if not sorted_centroids:
+            self._score_zone = None
+        else:
+            self._score_zone = sorted_centroids[0]
+        info("Found score zone at {0}".format(self.score_zone))
+        return self.score_zone
+
     @property
     def score_zone(self):
-        # TODO Temporarily use location for milestone 3 passing
-        return self.our_attacker.vector
-        if not self._score_zone:
-            # Calculate score zone
-            raise NotImplementedError
+        try:
+            if not self._score_zone:
+                return self.our_attacker.vector
+        except AttributeError:
+            pass
         return self._score_zone
