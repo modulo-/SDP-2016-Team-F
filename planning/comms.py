@@ -176,7 +176,3 @@ class RFCommsManager (CommsManager):
     def test(self):
         cmd = b"t"
         self._handle.send(cmd, self.robot_id)
-
-    def setDebugLevel(self, level):
-        cmd = b"D" + struct.pack(">h", level)
-        self._handle.send(cmd, self.robot_id)

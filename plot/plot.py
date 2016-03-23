@@ -2,41 +2,57 @@
 #will plot the distance, speed and acceleration of robot
 
 import matplotlib.pyplot as plt
+from os import listdir
+leftDistance=[]
+rightDistance=[]
 distance=[]
 difference=[]
 time=[]
+leftPower=[]
+rightPower=[]
 
-fileName=raw_input("name of file containing data:")
+b=listdir(".")
+i=0
+for d in b:
+    print str(i) + ':' + d
+    i +=1
+fileName = b[int(raw_input("file containing data:"))]
 
 output=open(fileName,'r')
 
 i=0;
+imod=int(raw_input("imod:"))
 counter=0
 for line in output:
     numStr=""
     numLine=False
     for char in line:
         if char.isdigit() or char=='-':
-           numStr+=char 
-           numLine=True
-        elif char==',':
-            if(i<2):
-                i+=1
-            else:
-                i=0
-            break;
+            numStr+=char 
+            numLine=True
     if numLine:
         print str(counter) + ',' + str(i) + ':' + numStr
         if i==0:
-            distance.append((-int(numStr)))
+            leftDistance.append(int(numStr))
+            distance.append(int(numStr))
         if i==1:
-            difference.append(distance[counter]-(-int(numStr)))
-            distance[counter]=(distance[counter]+(-int(numStr)))/2
-            if(counter>0 and distance[counter]-distance[counter-1]<=0):
+            rightDistance.append(int(numStr))
+            difference.append(distance[counter]-int(numStr))
+            distance[counter]=(distance[counter]+int(numStr))/2
+            if(counter>0 and distance[counter]-distance[counter-1]<0):
+                print "distance decreasing"
+                print distance[counter]
+                print distance[counter-1]
                 exit()
         elif i==2:
             time.append((float(numStr)/1000000))
+        elif i==3:
+            leftPower.append(int(numStr))
+        elif i==4:
+            rightPower.append(int(numStr))
+        if i==imod-1:
             counter+=1
+        i=(i+1)%imod
 
 speed=[]
 speedTimes=[]
@@ -67,5 +83,20 @@ plt.show()
 
 plt.plot(accelerationTimes,acceleration)
 plt.ylabel('acceleration')
+plt.xlabel('time')
+plt.show()
+
+plt.plot(time,leftPower)
+plt.ylabel('leftPower')
+plt.xlabel('time')
+plt.show()
+
+plt.plot(time,rightPower)
+plt.ylabel('rightPower')
+plt.xlabel('time')
+plt.show()
+
+plt.plot(time,leftPower, rightPower)
+plt.ylabel('leftPower')
 plt.xlabel('time')
 plt.show()

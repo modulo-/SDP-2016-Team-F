@@ -3,7 +3,7 @@ from planning.comms import RFCommsManager
 import os
 
 
-print "serial devices available"
+print "serial devices available:"
 
 i=0
 b=[]
@@ -38,15 +38,11 @@ while True:
     elif command=='p':
         robot.ping();
         print("robot.ping()"); 
-    elif command=='D':
-        debugLevel= int(raw_input("debugLevel:"));
-        robot.setDebugLevel(debugLevel);
-        print("robot.setDebugLevel("+str(debugLevel)+")");
-    elif command=='t':
+    elif command=='T':
         robot.test();
         print("robot.test()");
     elif command=="q":
         exit();
     else:
-        print("commands: help h, kick k, move m, grab g, release r, q quit, p ping, D DebugLevel, T test")
+        print("commands: help h, kick k, move m, grab g, release r, q quit, p ping, T test")
     
