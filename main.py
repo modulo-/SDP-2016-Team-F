@@ -16,6 +16,7 @@ from planning import utils
 from Tkinter import Tk, Button, Label, StringVar
 
 color = None
+statev = None
 
 
 class Interrupt:
@@ -86,6 +87,7 @@ def new_vision(world):
     if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
             'penalty-shoot'] and not utils.ball_is_static(latest_world):
         latest_world.game_state = 'normal-play'
+        statev.set('normal-play')
 
 
 def start_vision(pitch_no):
@@ -197,13 +199,14 @@ def main():
     run(attacker=attacker, defender=defender, plan=plan, pitch_no=pitch_no)
 
 def do_ui():
+    global statev
     top = Tk()
-    statev = StringVar(top, 'game-stop')
     def setstate(s):
         statev.set(s)
         if s == "game-stop":
             s = None
         latest_world.game_state = s
+    statev = StringVar(top, 'game-stop')
     ko_us = Button(top, text="kickoff-us", command=lambda:setstate("kickoff-us"))
     ko_them = Button(top, text="kickoff-them", command=lambda:setstate("kickoff-them"))
     pn_def = Button(top, text="penalty-defend", command=lambda:setstate("penalty-defend"))
