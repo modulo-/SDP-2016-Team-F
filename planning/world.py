@@ -1,3 +1,4 @@
+from __future__ import division
 import math
 import utils
 
@@ -10,6 +11,8 @@ from logging import debug, info, error
 
 ROBOT_WIDTH = 64
 ROBOT_LENGTH = 64
+# Unintuative, but the height is in cm and not in imaginary vision units.
+ROBOT_HEIGHT = 23
 
 BALL_WIDTH = 5
 BALL_LENGTH = 5
@@ -30,12 +33,13 @@ class PitchObject(object):
     Length measures along the sides of an object
     '''
 
-    def __init__(self, x, y, angle, velocity, width, length, angle_offset=0):
+    def __init__(self, x, y, angle, velocity, width, length, height, angle_offset=0):
         if width < 0 or length < 0:
             raise ValueError('Object dimensions must be positive')
         else:
             self._width = width
             self._length = length
+            self._height = height
             self._angle_offset = angle_offset
             self._vector = Vector(x, y, angle, velocity)
             self._is_missing = True
@@ -47,6 +51,10 @@ class PitchObject(object):
     @property
     def length(self):
         return self._length
+
+    @property
+    def height(self):
+        return self._height
 
     @property
     def angle_offset(self):
@@ -115,8 +123,8 @@ class PitchObject(object):
 
 class Robot(PitchObject):
 
-    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
-        super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
+    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
+        super(Robot, self).__init__(x, y, angle, velocity, width, length, height, angle_offset)
         self._catch_distance = 40
         self._catched_ball = False
         self._catcher = 'OPEN'
@@ -228,9 +236,9 @@ class Defender(Robot):
 
 class Attacker(Robot):
 
-    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
+    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
         self._is_ball_in_grabbers = False
-        super(Attacker, self).__init__(x, y, angle, velocity, is_our_team, is_house_robot, width, length, angle_offset)
+        super(Attacker, self).__init__(x, y, angle, velocity, is_our_team, is_house_robot, width, length, height, angle_offset)
 
     @property
     def is_ball_in_grabbers(self):
@@ -283,7 +291,7 @@ class Attacker(Robot):
 class Ball(PitchObject):
 
     def __init__(self, x, y, angle, velocity):
-        super(Ball, self).__init__(x, y, angle, velocity, BALL_WIDTH, BALL_LENGTH)
+        super(Ball, self).__init__(x, y, angle, velocity, BALL_WIDTH, BALL_LENGTH, 0)
 
 
 class Goal(PitchObject):
@@ -291,7 +299,7 @@ class Goal(PitchObject):
     def __init__(self, x, y, angle, lower_post, higher_post):
         self._lower_post = lower_post
         self._higher_post = higher_post
-        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH)
+        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH, 0)
 
     @property
     def lower_post(self):
@@ -314,7 +322,7 @@ class Pitch(object):
     def __init__(self, pitch_num):
         # TODO Get real pitch size
         self._width = 600
-        self._height = 400
+        self._height = 450
         self._goal_box_x_offset = 190
 
     def is_within_bounds(self, robot, x, y):
@@ -367,6 +375,7 @@ class World(object):
         self._their_side = 'left' if our_side == 'right' else 'right'
         self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
         self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
+        self._camera_height = 255
 
     @property
     def game_state(self):
@@ -450,6 +459,14 @@ class World(object):
                 return r
         return None
 
+    def translate_position(self, obj, v):
+        deltax = v.x - (self._pitch.width / 2)
+        deltay = v.y - (self._pitch.height / 2)
+        factor = (self._camera_height - obj.height) / self._camera_height
+        deltax *= factor
+        deltay *= factor
+        return Vector(deltax + self._pitch.width / 2, deltay + self._pitch.height / 2, v.angle, v.velocity)
+
     def update_positions(self, **kwargs):
         '''
         This method will update the positions of the pitch objects
@@ -464,7 +481,7 @@ class World(object):
             if name not in kwargs or kwargs[name] is None:
                 obj.set_missing()
             else:
-                obj.vector = kwargs[name]
+                obj.vector = self.translate_position(obj, kwargs[name])
 
     def get_new_score_zone(self):
         halfway = self.pitch.width / 2
