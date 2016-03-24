@@ -141,9 +141,15 @@ class RFCommsManager (CommsManager):
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).move(mm_distance)
 
-    # turn by an angle in degrees
+    # turn by an angle in radians
     def turn(self, angle):
         cmd = b"t" + struct.pack(">h", math.degrees(angle))
+        self._handle.send(cmd, self.robot_id)
+        super(RFCommsManager, self).turn(angle)
+
+    # turn by an angle in radians
+    def turnDeg(self, angle):
+        cmd = b"t" + struct.pack(">h", angle)
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).turn(angle)
 
@@ -175,4 +181,14 @@ class RFCommsManager (CommsManager):
 
     def test(self):
         cmd = b"t"
+        self._handle.send(cmd, self.robot_id)
+    
+    # turn by an angle in radians
+    def options(self, option, value):
+        cmd = b"o" + option +  struct.pack(">h", value)
+        self._handle.send(cmd, self.robot_id)
+
+    # turn by an angle in radians
+    def celebrate(self):
+        cmd = b"c"
         self._handle.send(cmd, self.robot_id)

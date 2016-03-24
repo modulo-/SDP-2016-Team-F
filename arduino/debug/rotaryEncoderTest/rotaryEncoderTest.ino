@@ -149,7 +149,7 @@ void react() {
       int motorNumber=Serial.read()-'0' +0;
       Serial.println(motorNumber); 
       if(motorNumber >=0 && motorNumber <=5){
-          motorForward(motorNumber, 100);
+          motorForward(motorNumber, 255);
           Serial.println(motorNumber);
           delay(600);
           Serial.println("off");
