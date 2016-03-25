@@ -73,6 +73,13 @@ class TractorCrabCommsManager(CommsManager):
             [self.CMD_STRAIT] +
             self._16_bitify(self._normalize_dist(distance)))
 
+    def turn_then_kick(self, angle):
+        self._run(
+            [self.CMD_SPIN] +
+            self._16_bitify(self._normalize_angle(angle)) +
+            [self.CMD_KICK] +
+            self._16_bitify(100))
+
     def move(self, distance):
         # NOTE: moves to the right, NOT forward. (We need better support for a different action set).
         # Expects input in cm.
@@ -108,14 +115,24 @@ class TractorCrabCommsManager(CommsManager):
 
 class RFCommsManager (CommsManager):
 
-    def __init__(self, robot, serial_device):
+    def __init__(self, robot, serial_device, grab_callback):
         # group 11 - 1, group 12 - 2
         self.robot_id = 2
         # hex
         rf_channel = "67"
         guard_chars = "~~~"
         self._handle = SerialHandle(serial_device, rf_channel, guard_chars)
+        self._handle.registercb(self.update_grabbers)
+        self.grab_callback = grab_callback
         super(RFCommsManager, self).__init__(robot)
+
+    def update_grabbers(self, data):
+        if data=="NC":
+            self.grab_callback(False)
+            info("Ball not caught")
+        elif data=="BC":
+            self.grab_callback(True)
+            info("Ball caught")
 
     # move a distance in mm
     def move(self, distance):
@@ -124,9 +141,15 @@ class RFCommsManager (CommsManager):
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).move(mm_distance)
 
-    # turn by an angle in degrees
+    # turn by an angle in radians
     def turn(self, angle):
         cmd = b"t" + struct.pack(">h", math.degrees(angle))
+        self._handle.send(cmd, self.robot_id)
+        super(RFCommsManager, self).turn(angle)
+
+    # turn by an angle in radians
+    def turnDeg(self, angle):
+        cmd = b"t" + struct.pack(">h", angle)
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).turn(angle)
 
@@ -151,3 +174,21 @@ class RFCommsManager (CommsManager):
         cmd = b"r"
         self._handle.send(cmd, self.robot_id)
         super(RFCommsManager, self).release_grabbers()
+    
+    def ping(self):
+        cmd = b"p"
+        self._handle.send(cmd, self.robot_id)
+
+    def test(self):
+        cmd = b"t"
+        self._handle.send(cmd, self.robot_id)
+    
+    # turn by an angle in radians
+    def options(self, option, value):
+        cmd = b"o" + option +  struct.pack(">h", value)
+        self._handle.send(cmd, self.robot_id)
+
+    # turn by an angle in radians
+    def celebrate(self):
+        cmd = b"c"
+        self._handle.send(cmd, self.robot_id)

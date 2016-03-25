@@ -16,29 +16,32 @@ class SerialHandle:
         self._callbacks = []
         self._packetlist = []
         self._packetcond = Condition()
-        self._serial = serial.Serial(fname)
-        self._serial.flushInput()
-        self._serial.flushOutput()
-        cmds = [
-            control,
-            'ATEE1\r',
-            'ATAC\r',
-            'ATEK' + ENCKEY + '\r',
-            'ATID' + PANID + '\r',
-            'ATCN' + str(chan) + '\r',
-            'ATAC\r',
-            'ATWR\r',
-            'ATDN\r',
-        ]
+        if fname == '/dev/null':
+            self._serial = open(fname, 'w')
+        else:
+            self._serial = serial.Serial(fname)
+            self._serial.flushInput()
+            self._serial.flushOutput()
+            cmds = [
+                control,
+                'ATEE1\r',
+                'ATAC\r',
+                'ATEK' + ENCKEY + '\r',
+                'ATID' + PANID + '\r',
+                'ATCN' + str(chan) + '\r',
+                'ATAC\r',
+                'ATWR\r',
+                'ATDN\r',
+            ]
 
-        for cmd in cmds:
-            self._lock.acquire()
-            self._serial.write(cmd)
-            self._lock.release()
-            debug('Comm command sent: %r', cmd)
-            self._waitok()
-        if listen:
-            thread.start_new_thread(self._monitor, ())
+            for cmd in cmds:
+                self._lock.acquire()
+                self._serial.write(cmd)
+                self._lock.release()
+                debug('Comm command sent: %r', cmd)
+                self._waitok()
+            if listen:
+                thread.start_new_thread(self._monitor, ())
 
     def _monitor(self):
         while True:
@@ -57,6 +60,7 @@ class SerialHandle:
                 for (i, packet) in enumerate(self._packetlist):
                     if line[2:4] == packet[-4:-2]:
                         debug('Package ACK: %r', line)
+                        print('Package ACK: '+ line + '\n')
                         index = i
                         break
                 if index is not None:
@@ -76,11 +80,13 @@ class SerialHandle:
             data = b64.decode(line[2:-2])
             if line.startswith('d'):
                 info('Debug message recieved: %r', data)
+                print data
             elif line.startswith('e'):
                 error('Error message recieved: %r', data)
             else:
+                print data
                 for callback in self._callbacks:
-                    thread.start_new_thread(callback, (data, ))
+                    thread.start_new_thread(callback, (data,))
 
     def _waitok(self):
         buf = (None, None)

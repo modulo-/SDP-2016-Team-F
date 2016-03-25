@@ -76,6 +76,7 @@ class Vision:
             for i in range(0,5):
             	self.config.colours[all_color_names[i]]['max'] = all_colors[i*2]
             	self.config.colours[all_color_names[i]]['min'] = all_colors[i*2+1]
+            	# print all_color_names[i], all_colors[i*2+1], all_colors[i*2]
 
         self.config.addFilter("overlay", filters.filter_overlay,
                               default=1)
@@ -185,13 +186,28 @@ class Vision:
                     if item['colour'] == 'blue':
                         if item['identification'] == 'green':
                             w.robot_blue_green = Vector(x, y, rad, dis)
+                            
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
+                                w.ball = self.world_previous.ball
+                                
                         elif item['identification'] == 'pink':
                             w.robot_blue_pink = Vector(x, y, rad, dis)
+                            
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
+                                w.ball = self.world_previous.ball
+                                
                     if item['colour'] == 'yellow':
                         if item['identification'] == 'green':
                             w.robot_yellow_green = Vector(x, y, rad, dis)
+                            
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
+                                w.ball = self.world_previous.ball
+                                
                         elif item['identification'] == 'pink':
                             w.robot_yellow_pink = Vector(x, y, rad, dis)
+                            
+                            if w.ball != None and (abs(w.ball.x - x) <= 10 and abs(w.ball.y - y) <= 10):
+                                w.ball = self.world_previous.ball
             
             # quit()
             self.world_latest = w
@@ -207,7 +223,7 @@ class Vision:
 
             cv2.imshow(self.config.OUTPUT_TITLE, frame)
             cv2.setMouseCallback(self.config.OUTPUT_TITLE,
-                                 lambda event, x, y, flags, param: self.p(event, x, y, flags, param, frame))
+                                 lambda event, x, y, flags, param: self.p(event, x, y, flags, param, frame_hsv))
 
             c = cv2.waitKey(50) & 0xFF
             
@@ -233,11 +249,11 @@ class Vision:
         else:
             cv2.destroyAllWindows()
 
-    def p(self, event, x, y, flags, param, frame):
+    def p(self, event, x, y, flags, param, frame_hsv):
         
         if event == cv2.EVENT_LBUTTONDOWN:
             print y, x
-            print frame[y][x]
+            print frame_hsv[y][x]
 
 
 if __name__ == "__main__":

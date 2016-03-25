@@ -1,4 +1,6 @@
+from __future__ import division
 import math
+import utils
 
 from Polygon.cPolygon import Polygon
 from position import Vector
@@ -9,6 +11,8 @@ from logging import debug, info, error
 
 ROBOT_WIDTH = 64
 ROBOT_LENGTH = 64
+# Unintuative, but the height is in cm and not in imaginary vision units.
+ROBOT_HEIGHT = 23
 
 BALL_WIDTH = 5
 BALL_LENGTH = 5
@@ -19,7 +23,8 @@ GOAL_LENGTH = 1
 GOAL_LOWER = 170
 GOAL_HIGHER = 300
 
-MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 100
+MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 30
+
 
 class PitchObject(object):
     '''
@@ -28,12 +33,13 @@ class PitchObject(object):
     Length measures along the sides of an object
     '''
 
-    def __init__(self, x, y, angle, velocity, width, length, angle_offset=0):
+    def __init__(self, x, y, angle, velocity, width, length, height, angle_offset=0):
         if width < 0 or length < 0:
             raise ValueError('Object dimensions must be positive')
         else:
             self._width = width
             self._length = length
+            self._height = height
             self._angle_offset = angle_offset
             self._vector = Vector(x, y, angle, velocity)
             self._is_missing = True
@@ -45,6 +51,10 @@ class PitchObject(object):
     @property
     def length(self):
         return self._length
+
+    @property
+    def height(self):
+        return self._height
 
     @property
     def angle_offset(self):
@@ -113,11 +123,13 @@ class PitchObject(object):
 
 class Robot(PitchObject):
 
-    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, angle_offset=0):
-        super(Robot, self).__init__(x, y, angle, velocity, width, length, angle_offset)
-        self._catch_distance = 30
+    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
+        super(Robot, self).__init__(x, y, angle, velocity, width, length, height, angle_offset)
+        self._catch_distance = 40
         self._catched_ball = False
         self._catcher = 'OPEN'
+        self.penalty = False
+        self._has_grabbed = False
         self._is_our_team = is_our_team
         self._is_house_robot = is_house_robot
 
@@ -168,10 +180,9 @@ class Robot(PitchObject):
         '''
         # TODO Make this work for opponents properly
         if self.is_our_team and not self.is_house_robot:
-            return (self._catcher == 'CLOSED') and self.can_catch_ball(ball)
+            return (self.catcher == 'CLOSED') and self.can_catch_ball(ball)
         else:
-            return (math.hypot(self.x - ball.x, self.y - ball.y)
-                    < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
+            return (math.hypot(self.x - ball.x, self.y - ball.y) < MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD)
 
     def get_displacement_to_point(self, x, y):
         '''
@@ -215,6 +226,7 @@ class Robot(PitchObject):
     def is_house_robot(self):
         return self._is_house_robot
 
+
 class Defender(Robot):
     @property
     def get_tactical_position(self, world):
@@ -223,6 +235,22 @@ class Defender(Robot):
 
 
 class Attacker(Robot):
+
+    def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
+        self._is_ball_in_grabbers = False
+        super(Attacker, self).__init__(x, y, angle, velocity, is_our_team, is_house_robot, width, length, height, angle_offset)
+
+    @property
+    def is_ball_in_grabbers(self):
+        return self._is_ball_in_grabbers
+
+    @is_ball_in_grabbers.setter
+    def is_ball_in_grabbers(self, value):
+        self._is_ball_in_grabbers = value
+
+    def has_ball(self, ball):
+        return self.is_ball_in_grabbers
+
     def get_blocking_position(self, world):
         # Calculate blocking position
         possession = world.robot_in_possession
@@ -241,8 +269,8 @@ class Attacker(Robot):
         if (possession.x - target.x) == 0:
             error("Robot in possession in line on x!")
             return Vector(0, 0, 0, 0)
-        #m =  (possession.y - target.y) / (possession.x - target.x)
-        #return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
+        # m =  (possession.y - target.y) / (possession.x - target.x)
+        # return Vector(self.x, possession.y + m * (self.x - possession.x), 0, 0)
         return Vector((target.x + possession.x) / 2, (target.y + possession.y) / 2, 0, 0)
         """dx = target.x - possession.x
         dy = target.y - possession.y
@@ -255,16 +283,15 @@ class Attacker(Robot):
 
         l = math.hypot(dx, dy)
         print dx,dy, l
-	print possession.x+dx, possession.y+dy
+        print possession.x+dx, possession.y+dy
 
         return Vector(possession.x+dx, possession.y+dy,0,0)"""
-        
 
 
 class Ball(PitchObject):
 
     def __init__(self, x, y, angle, velocity):
-        super(Ball, self).__init__(x, y, angle, velocity, BALL_WIDTH, BALL_LENGTH)
+        super(Ball, self).__init__(x, y, angle, velocity, BALL_WIDTH, BALL_LENGTH, 0)
 
 
 class Goal(PitchObject):
@@ -272,7 +299,7 @@ class Goal(PitchObject):
     def __init__(self, x, y, angle, lower_post, higher_post):
         self._lower_post = lower_post
         self._higher_post = higher_post
-        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH)
+        super(Goal, self).__init__(x, y, angle, 0, GOAL_WIDTH, GOAL_LENGTH, 0)
 
     @property
     def lower_post(self):
@@ -295,13 +322,13 @@ class Pitch(object):
     def __init__(self, pitch_num):
         # TODO Get real pitch size
         self._width = 600
-        self._height = 400
+        self._height = 450
+        self._goal_box_x_offset = 190
 
     def is_within_bounds(self, robot, x, y):
         '''
         Checks whether the position/point planned for the robot is reachable
         '''
-        # TODO Add goal boxes
         return x > 0 and x < self._width and y > 0 and y < self._height
 
     @property
@@ -311,6 +338,10 @@ class Pitch(object):
     @property
     def height(self):
         return self._height
+
+    @property
+    def goal_box_x_offset(self):
+        return self._goal_box_x_offset
 
     def __repr__(self):
         return str((self._width, self._height))
@@ -322,11 +353,11 @@ class World(object):
     Creates our robot
     '''
     _ball = Ball(0, 0, 0, 0)
-    _our_defender = Defender(0, 0, 0, 0, 0, True, True)
-    _our_attacker = Attacker(0, 0, 0, 0, 0, True, False)
+    _our_defender = Defender(0, 0, 0, 0, True, False)
+    _our_attacker = Attacker(0, 0, 0, 0, True, False)
     _their_robots = []
-    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
-    _their_robots.append(Robot(0, 0, 0, 0, 0, False, True))
+    _their_robots.append(Robot(0, 0, 0, 0, False, True))
+    _their_robots.append(Robot(0, 0, 0, 0, False, True))
     _our_defender_index = 0
     _our_attacker_index = 1
     _their_defender_index = 2
@@ -338,12 +369,22 @@ class World(object):
         '''
         Sets the sides and goals
         '''
-        assert our_side in ['left', 'right']
+        self.our_side = our_side
+        self._game_state = None
         self._pitch = Pitch(pitch_num)
-        self._our_side = our_side
         self._their_side = 'left' if our_side == 'right' else 'right'
         self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
         self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
+        self._camera_height = 255
+
+    @property
+    def game_state(self):
+        return self._game_state
+
+    @game_state.setter
+    def game_state(self, state):
+        assert state in [None, 'kickoff-them', 'kickoff-us', 'normal-play', 'penalty-defend', 'penalty-shoot']
+        self._game_state = state
 
     @property
     def our_defender(self):
@@ -370,6 +411,15 @@ class World(object):
         return self._ball
 
     @property
+    def our_side(self):
+        return self._our_side
+
+    @our_side.setter
+    def our_side(self, side):
+        assert side in ['left', 'right']
+        self._our_side = side
+
+    @property
     def our_goal(self):
         return self._goals[0] if self._our_side == 'left' else self._goals[1]
 
@@ -391,6 +441,15 @@ class World(object):
     def in_their_half(self, robot):
         return not self.in_our_half(robot)
 
+    def is_possible_position(self, robot, x, y):
+        if not self.pitch.is_within_bounds(robot, x, y):
+            return False
+        if robot == self.our_attacker:
+            return x > self.pitch.goal_box_x_offset and x < self.pitch.width - self.pitch.goal_box_x_offset
+        # TODO
+        return True
+            
+
     @property
     def robot_in_possession(self):
         robots = [self.our_defender,
@@ -399,6 +458,14 @@ class World(object):
             if r.has_ball(self.ball):
                 return r
         return None
+
+    def translate_position(self, obj, v):
+        deltax = v.x - (self._pitch.width / 2)
+        deltay = v.y - (self._pitch.height / 2)
+        factor = (self._camera_height - obj.height) / self._camera_height
+        deltax *= factor
+        deltay *= factor
+        return Vector(deltax + self._pitch.width / 2, deltay + self._pitch.height / 2, v.angle, v.velocity)
 
     def update_positions(self, **kwargs):
         '''
@@ -414,13 +481,30 @@ class World(object):
             if name not in kwargs or kwargs[name] is None:
                 obj.set_missing()
             else:
-                obj.vector = kwargs[name]
+                obj.vector = self.translate_position(obj, kwargs[name])
+
+    def get_new_score_zone(self):
+        halfway = self.pitch.width / 2
+        #x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
+        #    else halfway - (halfway - self.pitch.goal_box_x_offset) / 2
+        x = 400 if self._our_side == 'left' else 200
+        y_step = self.pitch.width / 5
+        centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
+        filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
+                                    utils.attacker_can_score_from_position(self, v), centroids)
+        sorted_centroids = sorted(filtered_centroids, key=lambda v: (v.x)**2 + (v.y)**2, reverse=True)
+        if not sorted_centroids:
+            self._score_zone = None
+        else:
+            self._score_zone = sorted_centroids[0]
+        info("Found score zone at {0}".format(self.score_zone))
+        return self.score_zone
 
     @property
     def score_zone(self):
-        # TODO Temporarily use location for milestone 3 passing
-        return self.our_attacker.vector
-        if not self._score_zone:
-            # Calculate score zone
-            raise NotImplementedError
+        try:
+            if not self._score_zone:
+                return self.our_attacker.vector
+        except AttributeError:
+            pass
         return self._score_zone

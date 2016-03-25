@@ -8,7 +8,7 @@ colour_profiles = {
     {
         "red": {
             "min": np.array([177, 63, 100]),
-            "max": np.array([196, 255, 255])
+            "max": np.array([192, 255, 255])
         },
         "yellow": {
             "min": np.array([26, 21, 230]),
@@ -32,7 +32,7 @@ colour_profiles = {
     {
         "red": {
             "min": np.array([177, 148, 82]),
-            "max": np.array([196, 255, 255])
+            "max": np.array([192, 255, 255])
         },
         "yellow": {
             "min": np.array([24, 112, 157]),
