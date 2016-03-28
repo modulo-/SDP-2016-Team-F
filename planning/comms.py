@@ -1,7 +1,7 @@
 import math
 from rf_comms import SerialHandle
 import struct
-from logging import info
+from logging import info, error
 
 
 class CommsManager(object):
@@ -135,7 +135,7 @@ class RFCommsManager (CommsManager):
             info("Ball caught")
         elif data == "grabbersOpen":
             self.grab_callback("grabbersOpen")
-            debug("Grabbers open")
+            info("Grabbers open")
         else:
             error("Unknown message from robot")
 
