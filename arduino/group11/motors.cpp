@@ -30,18 +30,11 @@ namespace io {
     }
 
     MotorPowers adjustedMotorPowers(uint16_t front_weight, uint16_t back_weight) {
-        int64_t _max = INT64_MIN;
-        int64_t _min = INT64_MAX;
-        for(uint8_t i = 0; i < 4; i++) {
-            int64_t pos = abs(motor_positions[i] * (i < 2 ? front_weight : back_weight));
-            if(pos > _max) {
-                _max = pos;
-            }
-            if(pos < _min) {
-                _min = pos;
-            }
-        }
-        int64_t delta = _max - _min;
+        int64_t front = (abs(motor_positions[0]) + abs(motor_positions[1]))
+            * front_weight;
+        int64_t back = (abs(motor_positions[2]) + abs(motor_positions[3]))
+            * back_weight;
+        int64_t delta = abs(front - back) / max(front_weight, back_weight);
         if(delta <= 1) {
             return POWER_FULL;
         }
@@ -57,17 +50,21 @@ namespace io {
             low_pow = 0x7f;
         }
         MotorPowers ret;
-        for(uint8_t i = 0; i < 4; i++) {
-            uint32_t pow;
-            if(_max > abs(motor_positions[i])) {
-                pow = high_pow;
-            } else {
-                pow = low_pow;
-            }
-            pow *= i < 2 ? front_weight : back_weight;
-            pow /= max(front_weight, back_weight);
-            ret.powers[i] = pow;
+        int64_t front_multiplier = front_weight / max(front_weight, back_weight);
+        int64_t back_multiplier = back_weight / max(front_weight, back_weight);
+        uint8_t front_pow;
+        uint8_t back_pow;
+        if(front < back) {
+            front_pow = high_pow;
+            back_pow = low_pow;
+        } else {
+            front_pow = low_pow;
+            back_pow = high_pow;
         }
+        ret.powers[0] = front_pow * front_multiplier;
+        ret.powers[1] = front_pow * front_multiplier;
+        ret.powers[2] = back_pow * back_multiplier;
+        ret.powers[3] = back_pow * back_multiplier;
         return ret;
     }
 }
