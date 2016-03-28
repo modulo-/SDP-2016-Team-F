@@ -1,6 +1,7 @@
 #include "SDPArduino.h"
 #include <Wire.h>
 #include "comms.h"
+#include "Timer.h"
 
 // Motor mapping
 #define MOTOR_LEFT 0 // polarity reversed
@@ -166,7 +167,6 @@ void parseOptions(byte* message) {
 void grab() {
     updateMotorPositions();
     //close flippers
-    int time=millis();
     motorForward(MOTOR_GRABBER, 55);
     delay(800);
     motorBrake(MOTOR_GRABBER);
@@ -185,22 +185,32 @@ void release() {
     updateMotorPositions();
     //move flippers away
     motorBackward(MOTOR_GRABBER, motorPower);
-    int time=millis();
+    unsigned long time=millis();
     //open
     while(millis()-time<800&&positions[ENCODER_GRABBER]>0){
         updateMotorPositions();
     } 
-    motorPower=0;
     time=millis();
+    motorForward(MOTOR_GRABBER, motorPower);
     while(millis()-time<800&&positions[ENCODER_GRABBER]==0){
-        motorPower=millis()-time/10;
-        motorForward(MOTOR_GRABBER, motorPower);
         updateMotorPositions();
     } 
     motorBrake(MOTOR_GRABBER);
+    commSend("grabbersOpen");
     updateMotorPositions();
 }
-
+/*
+void grabIfOpen(){
+    updateMotorPositions();
+    if(millis()-lastOpened>=4900 && positions[ENCODER_GRABBER]<7 && lastOpened!=-1){
+        grab();
+        debugSend("closing after timeout");
+    }
+    else{
+        debugSend("not closing after timeout");
+    }
+}
+*/
 void calibrateGrabbers() {
     //move flippers away
     updateMotorPositions();
@@ -347,8 +357,8 @@ void move(int distance) {
 
     int leftPower = 100;
     int rightPower = 100;
-    int prevTime = millis();
-    int time=millis();
+    unsigned long prevTime = millis();
+    unsigned long time=millis();
 
     int prevUltraSoundDistance=1000;    
 
@@ -359,6 +369,7 @@ void move(int distance) {
             if(ultraSoundDistance<ultraSoundThreshold&&prevUltraSoundDistance<ultraSoundThreshold){  
                 motorBrake(MOTOR_LEFT); 
                 motorBrake(MOTOR_RIGHT); 
+                debugSend("something in the way");
                 break;
             }
             prevUltraSoundDistance=ultraSoundDistance;
@@ -430,8 +441,8 @@ void turn(long degs) {
     float deltaL = 0;
     float deltaR = 0;
     int pows[] = {150, 150};
-    int startTime = millis();
-    int prevTime = 0;
+    unsigned long startTime = millis();
+    unsigned long prevTime = 0;
     while (!finished && !Serial.available()) {
         updateMotorPositions();
         deltaL = -(positions[ENCODER_LEFT] - start[0]) * degToDegLR;
@@ -441,7 +452,7 @@ void turn(long degs) {
             deltaL = -deltaL;
             deltaR = -deltaR;
         }
-        int time = millis();
+        unsigned long time = millis();
         if ((deltaL + deltaR) / 2 >= degs) {
             finished = true;
         }
@@ -487,7 +498,6 @@ void kick(int distance) { // distance in cm
     }
     release();
     digitalWrite(PIN_KICKER, HIGH);
-
     delay(kickerTime);
     //put kicker back down
     digitalWrite(PIN_KICKER, LOW);
@@ -566,7 +576,7 @@ void printMotorPositions() {
     for(int i=0;i<positionStr.length();i++){
         positionString[i]=positionStr.charAt(i);
     }
-    positionString[positionStr.length()+1]='\0';
+    positionString[positionStr.length()]='\0';
     debugSend(positionString);
 }
 
