@@ -27,11 +27,11 @@ namespace io {
 
     uint64_t rotDist() {
         // Determined through totally scientific trial-and-error.
-        return (sumMotors() * 25) / 1;
+        return (sumMotors() * 28) / 1;
     }
 
     uint64_t dist() {
         // Determined through totally scientific trial-and-error.
-        return (sumMotors() * 667) / 1000;
+        return (sumMotors() * 9) / 10;
     }
 }

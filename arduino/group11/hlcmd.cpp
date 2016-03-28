@@ -7,7 +7,7 @@
 #include <math.h>
 
 #define cmdArg(cmd, offset, type) ((type *)((cmd) + (offset)))
-#define ROTATION_EPSILON 1700
+#define ROTATION_EPSILON 1000
 
 namespace hlcmd {
     const uint8_t WAIT          = 0x00;
