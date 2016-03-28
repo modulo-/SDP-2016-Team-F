@@ -64,7 +64,7 @@ class AttackPlanner(Planner):
     '''
 
     def actuate(self, action):
-        if isinstance(action, attacker.GrabBall):
+        if isinstance(action, attacker.GrabBall) or isinstance(action, attacker.CloseGrabbers):
             info("Did grab")
             self.grabber_state = 'CLOSED'
         elif isinstance(action, attacker.OpenGrabbers) or isinstance(action, attacker.KickToDefender) or \
@@ -117,18 +117,24 @@ class AttackPlanner(Planner):
             return attacker.AttackerBlock(world, robot)
         elif self.current_task == 'score-zone':
             return attacker.AttackPosition(world, robot)
-        elif self.current_task == 'game':
+        elif world.game_state == 'normal-play':
             if world.our_attacker.has_ball(world.ball):
+                info("Attacker has ball so trying to score")
                 return attacker.Score(world, robot)
             elif world.our_defender.has_ball(world.ball):
+                info("Defender has ball so going to attack position")
                 return attacker.AttackPosition(world, robot)
             elif any([r.has_ball(world.ball) for r in world.their_attackers]):
+                info("Opponent in our half has ball so going to score position")
                 return attacker.AttackPosition(world, robot)
             elif any([r.has_ball(world.ball) for r in world.their_defenders]):
+                info("Opponent in their half has ball so blocking")
                 return attacker.AttackerBlock(world, robot)
             elif world.is_possible_position(world.our_attacker, world.ball.x, world.ball.y):
+                info("Ball is in possible position so getting ball")
                 return attacker.GetBall(world, robot)
             else:
+                info("All else failed so going to attack position")
                 return attacker.AttackPosition(world, robot)
         elif self.current_task == 'test-obstacle':
             print(math.degrees(utils.get_avoiding_angle_to_point(world,
