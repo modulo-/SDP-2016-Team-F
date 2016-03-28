@@ -7,16 +7,16 @@
 #include <stddef.h>
 #include <Arduino.h>
 
-#define MOTOR_FRONT_LEFT  0
-#define MOTOR_FRONT_RIGHT 1
-#define MOTOR_BACK_LEFT   2
-#define MOTOR_BACK_RIGHT  3
-#define MOTOR_GRABBERS    4
+#define MOTOR_FRONT_LEFT  1
+#define MOTOR_FRONT_RIGHT 2
+#define MOTOR_BACK_LEFT   3
+#define MOTOR_BACK_RIGHT  4
+#define MOTOR_GRABBERS    0
 
 #define PIN_KICKER 6
 
 // Defines the forward/backward combinations for a movement command.
-// The least significant 4 bits store this, with 0 being backward and 1 being
+// The least significant 5 bits store this, with 0 being backward and 1 being
 // forward for the corresponding motor ID.
 #define MOVE_LEFT  ((1 << MOTOR_FRONT_RIGHT) | (1 << MOTOR_BACK_RIGHT))
 #define MOVE_RIGHT ((1 << MOTOR_FRONT_LEFT)  | (1 << MOTOR_BACK_LEFT))
@@ -85,11 +85,11 @@ namespace llcmd {
             if((cmds[cmd_at] & 0x7f) == BRAKE) {
                 for(uint8_t i = 0; i < 4; i++) {
                     if(io::motor_positions[i] < -3) {
-                        io::forward(i, 0x7f);
+                        io::forward(i + 1, 0x7f);
                     } else if(io::motor_positions[i] > 3) {
-                        io::backward(i, 0x7f);
+                        io::backward(i + 1, 0x7f);
                     } else {
-                        io::stop(i);
+                        io::brake(i + 1);
                     }
                 }
             }
@@ -127,23 +127,23 @@ namespace llcmd {
         case STRAIT:
         case SPIN:
         case ARC:
-            io::stop(MOTOR_GRABBERS);
-            io::stop(MOTOR_FRONT_LEFT);
-            io::stop(MOTOR_FRONT_RIGHT);
-            io::stop(MOTOR_BACK_LEFT);
-            io::stop(MOTOR_BACK_RIGHT);
+            io::brake(MOTOR_GRABBERS);
+            io::brake(MOTOR_FRONT_LEFT);
+            io::brake(MOTOR_FRONT_RIGHT);
+            io::brake(MOTOR_BACK_LEFT);
+            io::brake(MOTOR_BACK_RIGHT);
             break;
         case KICK:
             digitalWrite(PIN_KICKER, LOW);
             break;
         case GRABBER_OPEN:
             state::grabbers_open = true;
-            io::stop(MOTOR_GRABBERS);
+            io::brake(MOTOR_GRABBERS);
             break;
         case GRABBER_CLOSE:
         case GRABBER_FORCE:
             state::grabbers_open = false;
-            io::stop(MOTOR_GRABBERS);
+            io::brake(MOTOR_GRABBERS);
             break;
         }
         cmd_at += 1 + argLen(cmds[cmd_at]);
@@ -158,7 +158,7 @@ namespace llcmd {
         }
         if(idle()) {
             // Should really be stopped already, but hey, let's make sure.
-            io::stopAll();
+            io::brakeAll();
             return;
         }
         switch(cmds[cmd_at] & 0x7f) {

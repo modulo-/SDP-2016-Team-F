@@ -21,10 +21,10 @@ namespace io {
     void motorSet(uint8_t directions, MotorPowers powers) {
         powers = powerRelative(powers);
         for(int i = 0; i < 4; i++) {
-            if(directions & (1 << i)) {
-                forward(i, powers.powers[i]);
+            if(directions & (2 << i)) {
+                forward(i + 1, powers.powers[i]);
             } else {
-                backward(i, powers.powers[i]);
+                backward(i + 1, powers.powers[i]);
             }
         }
     }
