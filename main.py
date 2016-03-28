@@ -67,7 +67,15 @@ def get_pink_opponent(world):
         return world.robot_blue_pink
 
 def new_grabber_state(value):
-    latest_world.our_attacker.is_ball_in_grabbers = value
+    if value == "NC":
+        latest_world.our_attacker.is_ball_in_grabbers = False
+        latest_world.our_attacker.catcher = "CLOSED"
+    elif value == "BC":
+        latest_world.our_attacker.is_ball_in_grabbers = True
+        latest_world.our_attacker.catcher = "CLOSED"
+    elif value == "grabbersOpen":
+        latest_world.our_attacker.is_ball_in_grabbers = False
+        latest_world.our_attacker.catcher = "OPEN"        
 
 def new_vision(world):
     predictor.update(world)

@@ -127,12 +127,17 @@ class RFCommsManager (CommsManager):
         super(RFCommsManager, self).__init__(robot)
 
     def update_grabbers(self, data):
-        if data=="NC":
-            self.grab_callback(False)
+        if data == "NC":
+            self.grab_callback("NC")
             info("Ball not caught")
-        elif data=="BC":
-            self.grab_callback(True)
+        elif data == "BC":
+            self.grab_callback("BC")
             info("Ball caught")
+        elif data == "grabbersOpen":
+            self.grab_callback("grabbersOpen")
+            debug("Grabbers open")
+        else:
+            error("Unknown message from robot")
 
     # move a distance in mm
     def move(self, distance):
