@@ -451,7 +451,6 @@ class World(object):
             return x > self.pitch.goal_box_x_offset and x < self.pitch.width - self.pitch.goal_box_x_offset
         # TODO
         return True
-            
 
     @property
     def robot_in_possession(self):
@@ -487,8 +486,8 @@ class World(object):
                 obj.vector = self.translate_position(obj, kwargs[name])
 
     def get_new_score_zone(self):
-        halfway = self.pitch.width / 2
-        #x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
+        # halfway = self.pitch.width / 2
+        # x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
         #    else halfway - (halfway - self.pitch.goal_box_x_offset) / 2
         x = 400 if self._our_side == 'left' else 200
         y_step = self.pitch.width / 5

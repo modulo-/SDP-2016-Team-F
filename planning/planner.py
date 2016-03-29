@@ -171,6 +171,8 @@ class DefencePlanner(Planner):
                 return defender.ReturnToDefenceArea(world, robot)
         elif self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
+        elif self.current_task == 'defend':
+            return defender.Defend(world, robot)
         elif self.current_task == 'reactive-grab':
             return defender.ReactiveGrabGoal(world, robot)
         elif self.current_task == 'm1':

@@ -5,7 +5,7 @@ import numpy as np
 
 from position import Vector
 from math import pi
-from IPython import embed
+# from IPython import embed
 
 AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
@@ -46,8 +46,8 @@ def get_defence_point(world):
 
 def get_avoiding_angle_to_point(world, vec1, vec2):
     straight_angle = get_rotation_to_point(vec1, vec2)
-    straight_distance = dist(vec1, vec2)
-    straight_vector = Vector(vec1.x, vec1.y, vec1.angle, 0)
+    # straight_distance = dist(vec1, vec2)
+    # straight_vector = Vector(vec1.x, vec1.y, vec1.angle, 0)
     obstacle = find_obstacle(world, vec1, vec2)
     if not obstacle:
         return straight_angle
@@ -67,7 +67,7 @@ def get_avoiding_angle_to_point(world, vec1, vec2):
     delta_length = AVOID_DISTANCE / 2
     dx = (obstacle.x - ix) / obstacle_from_line * delta_length
     dy = (obstacle.y - iy) / obstacle_from_line * delta_length
-    
+
     closest = None
     for j in range(-10, 10):
         v = Vector(ix + dx * j, iy + dy * j, 0, 0)
@@ -80,7 +80,7 @@ def get_avoiding_angle_to_point(world, vec1, vec2):
     else:
         logging.info("Found suitable angle {0}".format(closest))
     return closest
-            
+
 
 def get_rotation_to_point(vec1, vec2):
     '''
@@ -386,7 +386,7 @@ def defender_can_pass_to_position(world, position, enemy_zone_radius=40):
 # Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
     assert(position.angle == 0)
-    goal_points = [Vector(world.their_goal.x, world.their_goal.y + (world.their_goal.width / 4) * i, 0, 0) for i in [1,2,3]]
+    goal_points = [Vector(world.their_goal.x, world.their_goal.y + (world.their_goal.width / 4) * i, 0, 0) for i in [1, 2, 3]]
     for point in goal_points:
         obstacle = find_obstacle(world, position, point)
         if not obstacle:
@@ -629,7 +629,7 @@ def line_intersects_circle(line, circle):
 
 def segment_to_point_distance(s1, s2, point):
 
-    def pdist(x1, y1, x2, y2, x3, y3): # x3,y3 is the point
+    def pdist(x1, y1, x2, y2, x3, y3):  # x3,y3 is the point
         px = x2 - x1
         py = y2 - y1
 
@@ -654,7 +654,7 @@ def segment_to_point_distance(s1, s2, point):
     return pdist(s1[0], s1[1], s2[0], s2[1], point[0], point[1])
 
 
-class testRobot:
+class TestRobot:
 
     def __init__(self, x, y, angle=0):
         self.vector = Vector(x, y, angle, 0)
@@ -663,21 +663,21 @@ class testRobot:
         return False
 
 
-class testWorld:
+class TestWorld:
 
     def __init__(self):
-        self.our_attacker = testRobot(282, 200)
+        self.our_attacker = TestRobot(282, 200)
         self.their_robots = [
-            testRobot(400, 300),
-            testRobot(400, 200),
-            testRobot(400, 150),
+            TestRobot(400, 300),
+            TestRobot(400, 200),
+            TestRobot(400, 150),
         ]
         self.our_side = "left"
 
 if __name__ == "__main__":
-    world = testWorld()
+    world = TestWorld()
 
-    defender = testRobot(0, 200, math.radians(90)).vector
+    defender = TestRobot(0, 200, math.radians(90)).vector
     b = defender_scan_angle_to_pass_absolute(world, defender)
     print b
 
