@@ -28,6 +28,10 @@ class Interrupt:
 
 INITIAL_PLANNER_DELAY = 4
 
+attacker_grabber_close = None
+ATTACKER_GRABBERS_CLOSE_TIME = 4
+attacker_grabbers_close_timer = None
+
 predictor = Predictor()
 # TODO: formally, the 0 should be the command-line set pitch number.
 # But, since it isn't used, it doesn't really matter.
@@ -37,7 +41,6 @@ latest_world.our_defender._receiving_area = {'width': 50, 'height': 35, 'front_o
 interrupts = []
 attack_timer = None
 defence_timer = None
-
 
 def get_attacker(world):
     if color == 'b':
@@ -64,18 +67,29 @@ def get_pink_opponent(world):
     if color == 'b':
         return world.robot_yellow_pink
     else:
-        return world.robot_blue_pink
+        return world.robot_blue_pink    
 
 def new_grabber_state(value):
-    if value == "NC":
+    global attacker_grabbers_close_timer
+    if value == "grabbersOpen":
+        print ("Got grabbersOpen")
         latest_world.our_attacker.is_ball_in_grabbers = False
+        latest_world.our_attacker.catcher = "OPEN"
+        try:
+            attacker_grabbers_close_timer.start()
+        except RuntimeError:
+            # Timer already running, shouldn't happen
+            pass
+    else:
+        if value == "NC":
+            latest_world.our_attacker.is_ball_in_grabbers = False
+        elif value == "BC":
+            latest_world.our_attacker.is_ball_in_grabbers = True
         latest_world.our_attacker.catcher = "CLOSED"
-    elif value == "BC":
-        latest_world.our_attacker.is_ball_in_grabbers = True
-        latest_world.our_attacker.catcher = "CLOSED"
-    elif value == "grabbersOpen":
-        latest_world.our_attacker.is_ball_in_grabbers = False
-        latest_world.our_attacker.catcher = "OPEN"        
+        attacker_grabbers_close_timer.cancel()
+        attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
+                                              attacker_grabbers_close)
+
 
 def new_vision(world):
     predictor.update(world)
@@ -155,7 +169,7 @@ def set_plan(attack_planner, defence_planner, plan):
 
 def main():
     global color
-    pitch_no = 0
+    pitch_no = 1
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:g:", ["help",
@@ -232,7 +246,8 @@ def do_ui():
     top.mainloop()
 
 def run(attacker, defender, plan, pitch_no):
-    global attack_timer, defence_timer
+    global attack_timer, defence_timer, attacker_grabbers_close_timer,\
+        attacker_grabbers_close
     ui_thread = Thread(target=do_ui)
     ui_thread.daemon = True
     ui_thread.start()
@@ -260,11 +275,20 @@ def run(attacker, defender, plan, pitch_no):
         defence_timer.daemon = True
         defence_timer.start()
 
+    def close_attacker_grabbers():
+        print("Time out - closing grabbers")
+        attacker.close_grabbers()
+        attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
+                                              close_attacker_grabbers)
+    attacker_grabbers_close = close_attacker_grabbers
+
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
         """interrupts.append(Interrupt(
             lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
             run_attack_planner, 2))"""
+        attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
+                                              close_attacker_grabbers)
     if defender:
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
