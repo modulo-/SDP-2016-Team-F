@@ -11,19 +11,20 @@ AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
 SMALL_VALUE = 0.001
 
+
 def defender_move_delay(dist):
     if abs(dist) > 150:
-        return 2.5
-    elif abs(dist) > 100:
         return 2
-    elif abs(dist) > 60:
+    elif abs(dist) > 100:
         return 1.5
+    elif abs(dist) > 60:
+        return 1
     else:
         return 1
 
 
 def defender_turn_delay(angle):
-    return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+    return 0.25 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
 
 
 def defender_move_vec(vec):
@@ -195,9 +196,11 @@ def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
     # returns the rotation angle that is shorter
     if abs(first_relative_angle) < abs(second_relative_angle):
         logging.debug("Returning first:" + str(first_relative_angle) + " in degrees " + str(math.degrees(first_relative_angle)))
+        # logging.info(">>>>>>>>> LEFT")
         return (first_relative_angle, "left")
     else:
         logging.debug("Returning second:" + str(second_relative_angle) + " in degrees " + str(math.degrees(second_relative_angle)))
+        # logging.info(">>>>>>>>> RIGHT")
         return (second_relative_angle, "right")
 
 

@@ -14,7 +14,7 @@ from time import time
 
 
 ROTATION_BALL_THRESHOLD = 0.2
-ROTATION_THRESHOLD = 0.2
+ROTATION_THRESHOLD = 0.10
 MOVEMENT_THRESHOLD = 10
 DEFENCE_AREA_THRESHOLD = 30
 FACING_ROTATION_THRESHOLD = 0.2
@@ -512,6 +512,11 @@ class GoToStaticBall(Action):
                      (lambda w, r: utils.ball_is_static(w), "Ball is static.")]
 
     def perform(self, comms):
+        # reset dynamic threshold
+        # TODO: has to be restarted everywhere!
+        global ROTATION_THRESHOLD
+        ROTATION_THRESHOLD = 0.1
+
         dx = self.world.ball.x - self.robot.x
         dy = self.world.ball.y - self.robot.y
         displacement = math.hypot(dx, dy)
@@ -568,11 +573,17 @@ class TurnToCatchPoint(Action):
     preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
 
     def perform(self, comms):
+        logging.info('---- ' + str(ROTATION_THRESHOLD))
         x = self.world.ball.x
         y = self.world.ball.y
         angle = utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0), self.robot.catch_distance)[0]
         logging.info("Wants to rotate by: " + str(angle))
+
         comms.turn(angle)
+
+        global ROTATION_THRESHOLD
+        if ROTATION_THRESHOLD < 0.30:
+            ROTATION_THRESHOLD += 0.07
 
         return utils.defender_turn_delay(angle)
 
