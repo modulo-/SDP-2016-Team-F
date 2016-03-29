@@ -1,6 +1,7 @@
 #include "sensors.h"
 #include <stdint.h>
 #include <Wire.h>
+#include <Arduino.h>
 
 #define ROTARY_BOARD_I2C 5
 #define ROTARY_COUNT 6
@@ -27,11 +28,22 @@ namespace io {
 
     uint64_t rotDist() {
         // Determined through totally scientific trial-and-error.
-        return (sumMotors() * 28) / 1;
+        uint64_t s = sumMotors();
+        if(s < 120) {
+            return (max(30, s) - 30) * 30;
+        } else if(s < 450) {
+            return (s - 120) * 540 / 22 + 2700;
+        } else if(s < 700) {
+            return (s - 450) * 108 / 5 + 10800;
+        } else {
+            return (s - 700) * 18 + 16200;
+        }
     }
 
     uint64_t dist() {
         // Determined through totally scientific trial-and-error.
-        return (sumMotors() * 9) / 10;
+        // TODO: TMP
+        return sumMotors();
+        //return (sumMotors() * 9) / 10;
     }
 }

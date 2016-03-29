@@ -2,6 +2,7 @@
 #include "io.h"
 #include "sensors.h"
 #include "state.h"
+#include "comms.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <Arduino.h>
@@ -40,24 +41,28 @@ namespace io {
         }
         uint8_t high_pow = 255;
         uint8_t low_pow;
-        if(delta < 4) {
+        if(delta < 2) {
             low_pow = 230;
-        } else if(delta < 10) {
+        } else if(delta < 4) {
             low_pow = 204;
-        } else if(delta < 20) {
+        } else if(delta < 10) {
             low_pow = 178;
         } else {
             low_pow = 0x7f;
         }
         MotorPowers ret;
-        int64_t front_multiplier = front_weight / max(front_weight, back_weight);
-        int64_t back_multiplier = back_weight / max(front_weight, back_weight);
+        double front_multiplier = (double)front_weight /
+            (double)max(front_weight, back_weight);
+        double back_multiplier = (double)back_weight /
+            (double)max(front_weight, back_weight);
         uint8_t front_pow;
         uint8_t back_pow;
         if(front < back) {
+            digitalWrite(13, HIGH);
             front_pow = high_pow;
             back_pow = low_pow;
         } else {
+            digitalWrite(13, LOW);
             front_pow = low_pow;
             back_pow = high_pow;
         }
