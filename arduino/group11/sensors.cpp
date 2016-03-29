@@ -42,8 +42,29 @@ namespace io {
 
     uint64_t dist() {
         // Determined through totally scientific trial-and-error.
-        // TODO: TMP
-        return sumMotors();
-        //return (sumMotors() * 9) / 10;
+        uint64_t s = sumMotors();
+        if(s < 50) {
+            return (max(17, s) - 17) * 35 / 25;
+        } else if(s < 75) {
+            return (s - 50) * 35 / 25 + 45;
+        } else if(s < 100) {
+            return (s - 75) * 23 / 25 + 77;
+        } else if(s < 150) {
+            return (s - 100) * 40 / 50 + 100;
+        } else if(s < 200) {
+            return (s - 150) * 32 / 50 + 140;
+        } else if(s < 250) {
+            return (s - 200) * 38 / 50 + 172;
+        } else if(s < 300) {
+            return (s - 250) * 30 / 50 + 210;
+        } else if(s < 400) {
+            return (s - 300) * 65 / 100 + 240;
+        } else if(s < 500) {
+            return (s - 400) * 50 / 100 + 305;
+        } else if(s < 750) {
+            return (s - 500) * 175 / 250 + 355;
+        } else {
+            return (s - 750) * 170 / 250 + 530;
+        }
     }
 }

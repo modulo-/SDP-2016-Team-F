@@ -85,7 +85,6 @@ namespace hlcmd {
             return 10;
         case STRAIT:
         case SPIN:
-            // TODO:TMP
             return 3;
         case HOLD_SPIN:
             // An implicit 100ms brake
@@ -195,7 +194,6 @@ namespace hlcmd {
         case STRAIT:
             out[0] = llcmd::STRAIT;
             memcpy(out + 1, in + 1, 2);
-            // TODO: TMP
             //out[3] = llcmd::BRAKE;
             //*((uint16_t *)(out + 4)) = 100;
             break;
@@ -225,7 +223,6 @@ namespace hlcmd {
                 tmp = -ROTATION_EPSILON;
             }
             *((int16_t *)(out + 1)) = tmp;
-            // TODO: TMP
             //out[3] = llcmd::BRAKE;
             //*((uint16_t *)(out + 4)) = 100;
             break;
