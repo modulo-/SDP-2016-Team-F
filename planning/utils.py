@@ -9,7 +9,7 @@ from IPython import embed
 
 AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
-
+SMALL_VALUE = 0.001
 
 def defender_move_delay(dist):
     if abs(dist) > 150:
@@ -393,12 +393,20 @@ def attacker_can_score_from_position(world, position):
 
 def find_obstacle(world, vec1, vec2):
     def check_object(vec3):
-        m_straight = float(vec2.y - vec1.y) / ((vec2.x - vec1.x) + 1)
+        dx = vec2.x - vec1.x
+        if dx == 0:
+            dx = SMALL_VALUE
+        m_straight = float(vec2.y - vec1.y) / dx
+        if m_straight == 0:
+            m_straight = SMALL_VALUE
         c_straight = vec1.y - vec1.x * m_straight
         m_perp = float(-1) / m_straight
         c_perp = vec3.y - vec3.x * m_perp
 
-        ix = -(c_straight - c_perp) / ((m_straight - m_perp) + 1)
+        dm = m_straight - m_perp
+        if dm == 0:
+            dm = SMALL_VALUE
+        ix = -(c_straight - c_perp) / dm
         iy = m_straight * ix + c_straight
         intercept = Vector(ix, iy, 0, 0)
         if dist(vec1, intercept) > dist(vec1, vec2):
