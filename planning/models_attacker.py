@@ -11,7 +11,7 @@ ROTATION_THRESHOLD = 0.2
 FACING_ROTATION_THRESHOLD = 0.2
 ROTATION_TIME_FACTOR = 1
 ROTATION_EXTRA_TIME = 0.3
-GRAB_DISTANCE = 15
+GRAB_DISTANCE = 25
 GRAB_DELAY = 1.5
 
 def is_robot_facing_position(world, r, pos):
@@ -31,8 +31,7 @@ class GetBall(Goal):
                         GoToGrabStaticBall(world, robot),
                         OpenGrabbers(world, robot),
                         GoToBallOpeningDistance(world, robot),
-                        TurnToBall(world, robot),
-                        CloseGrabbers(world, robot)]
+                        TurnToBall(world, robot)]
         super(GetBall, self).__init__(world, robot)
 
 
@@ -115,7 +114,8 @@ class GoToBallOpeningDistance(Action):
 
 
 class OpenGrabbers(Action):
-    preconditions = [(lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80, "Ball is in attacker's grabber range")]
+    preconditions = [(lambda w, r: r.get_displacement_to_point(w.ball.x, w.ball.y) < 80, "Ball is in attacker's grabber range"),
+                     (lambda w, r: is_robot_facing_position(w, r, w.ball), "Robot is facing ball")]
 
     def perform(self, comms):
         comms.release_grabbers()
@@ -165,8 +165,6 @@ class TurnToDefenderToGive(Action):
         return abs(self.angle) * ROTATION_TIME_FACTOR + ROTATION_EXTRA_TIME
 
 class TurnToBall(Action):
-    preconditions = [(lambda w, r: r.catcher == 'CLOSED', "Attacker's grabbers are closed")]
-
     def __init__(self, world, robot):
         self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, world.ball.vector)
         #self.angle = utils.attacker_get_rotation_to_point(robot.vector, world.ball.vector)
@@ -190,11 +188,6 @@ class Shoot(Action):
 
     def get_delay(self):
         return GRAB_DELAY
-
-
-class CloseGrabbers(Action):
-    def perform(self, comms):
-        comms.close_grabbers()
 
 
 class KickToDefender(Action):
