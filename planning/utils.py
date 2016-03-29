@@ -7,6 +7,7 @@ from position import Vector
 from math import pi
 # from IPython import embed
 
+
 AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
 SMALL_VALUE = 0.001
@@ -42,6 +43,20 @@ def get_defence_point(world):
         x = world.pitch.width - 100
     y = world.pitch.height / 2
     return Vector(x, y, 0, 0)
+
+
+def defender_get_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius):
+    dx = ball_vec.x - center.x
+    dy = ball_vec.y - center.y
+    alpha = math.atan2(dx, dy) % (math.pi * 2)
+
+    print math.degrees(alpha)
+
+    x = center.x + center_radius * math.sin(alpha)
+    y = center.y + center_radius * math.cos(alpha)
+
+    return x, y
+    # return get_rotation_to_point(robot_vec, Vector(x, y, 0, 0))
 
 
 def get_avoiding_angle_to_point(world, vec1, vec2):

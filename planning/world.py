@@ -322,7 +322,7 @@ class Pitch(object):
     def __init__(self, pitch_num):
         # TODO Get real pitch size
         self._width = 600
-        self._height = 450
+        self._height = 470 # before: 450
         if pitch_num == 0:
             self._goal_box_x_offset = 190
         else:

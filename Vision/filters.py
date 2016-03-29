@@ -6,31 +6,31 @@ import numpy as np
 from colors import BGR_COMMON
 
 
+D_POINT = None
+
+
 def filter_dummy(frame, config):
     return frame
 
 
 def filter_overlay(frame, config):
     world = config.vision.world_latest
-    #try:
-        #print world.ball.__dict__
-        #print config.vision.world_previous.ball.__dict__
-    #except AttributeError:
-    #    pass
+    global D_POINT
+    if D_POINT is not None:
+        cv2.circle(frame, (int(D_POINT.x), int(D_POINT.y)), 5, BGR_COMMON['blue'], 3)
 
     if world.ball is not None:
         ball = world.ball
 
-        cv2.circle(frame, (int(ball.x),int(ball.y)), 6, BGR_COMMON['red'], 3)
-        
+        cv2.circle(frame, (int(ball.x), int(ball.y)), 6, BGR_COMMON['red'], 3)
+
         if(config.vision.world_previous.ball is not None):
 
-        	x = world.ball.x - config.vision.world_previous.ball.x
-        	y = world.ball.y - config.vision.world_previous.ball.y
-        	#print x,y
+            x = world.ball.x - config.vision.world_previous.ball.x
+            y = world.ball.y - config.vision.world_previous.ball.y
 
-        	arrowhead = (int(x*10+world.ball.x), int(y*10+world.ball.y))
-        	cv2.arrowedLine(frame, ball.centre, arrowhead, BGR_COMMON['red'], 2, cv2.LINE_AA)
+            arrowhead = (int(x * 10 + world.ball.x), int(y * 10 + world.ball.y))
+            cv2.arrowedLine(frame, ball.centre, arrowhead, BGR_COMMON['red'], 2, cv2.LINE_AA)
 
     for team in ['blue', 'yellow']:
         for colour in ['pink', 'green']:
@@ -39,8 +39,8 @@ def filter_overlay(frame, config):
             if robot is None:
                 continue
 
-            cv2.circle(frame, (int(robot.x),int(robot.y)), 10, BGR_COMMON[colour], 3)
-            cv2.circle(frame, (int(robot.x),int(robot.y)), 6, BGR_COMMON[team], 3)
+            cv2.circle(frame, (int(robot.x), int(robot.y)), 10, BGR_COMMON[colour], 3)
+            cv2.circle(frame, (int(robot.x), int(robot.y)), 6, BGR_COMMON[team], 3)
 
             length = 15
             complex = cmath.rect(length, robot.angle)
@@ -48,10 +48,8 @@ def filter_overlay(frame, config):
             x = complex.real
 
             if robot.velocity != 0:
-                arrowhead = (int(x + robot.x), int(y+robot.y))
+                arrowhead = (int(x + robot.x), int(y + robot.y))
                 cv2.arrowedLine(frame, robot.centre, arrowhead, BGR_COMMON['black'], 2, cv2.LINE_AA)
-
-
 
     return frame
 
@@ -111,7 +109,7 @@ def filter_colour(colour, frame, config):
     # mask_hsv = cv2.inRange(hsv, hsv_low, hsv_high)
     # Bitwise-AND mask and original image
     # frame_mask = mask_hsv
-    
+
     if config.colours[colour]['max'][0] < 180:
         frame_mask = cv2.inRange(hsv,
                                  config.colours[colour]['min'],
@@ -124,7 +122,7 @@ def filter_colour(colour, frame, config):
         frame_mask = cv2.inRange(hsv,
                                  lower,
                                  upper)
-                
+
         if config.colours[colour]['min'][0] < 180:
             upper = copy.deepcopy(config.colours[colour]['max'])
             upper[0] = 179
@@ -155,9 +153,7 @@ def filter_colour(colour, frame, config):
 
     if adjustments['erode'] >= 1:
         kernel = np.ones((2,2),np.uint8)
-        frame_mask = cv2.erode(frame_mask,
-                                kernel,
-                                iterations=adjustments['erode'])
+        frame_mask = cv2.erode(frame_mask, kernel, iterations=adjustments['erode'])
 
     if adjustments['dilate'] >= 1:
         kernel = np.ones((2,2),np.uint8)

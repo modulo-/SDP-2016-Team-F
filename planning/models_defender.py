@@ -7,12 +7,16 @@ from models_common import Goal, Action, are_equivalent_positions
 from math import pi
 from time import time
 
+import cv2
+
+
 
 '''
 > CONSTANTS
 '''
 
 
+DEFEND_POINT = Vector(2, 2, 0, 0)
 ROTATION_BALL_THRESHOLD = 0.2
 ROTATION_THRESHOLD = 0.10
 MOVEMENT_THRESHOLD = 10
@@ -24,6 +28,23 @@ MILESTONE_BALL_AWAY_FROM_HOUSEROBOT_THRESHOLD = 45
 '''
 > GOALS
 '''
+
+
+class Defend(Goal):
+    '''
+    The first task of Milestone 3
+    Receiving a pass
+    '''
+
+    def __init__(self, world, robot):
+        self.start_time = time()
+
+        self.actions = [GrabBall(world, robot),
+                        # GoToDefendPoint(world, robot),
+                        RotateToDefendPoint(world, robot),
+                        # FaceBall(world, robot)
+                        ]
+        super(Defend, self).__init__(world, robot)
 
 
 class ReceivingPass(Goal):
@@ -166,9 +187,121 @@ class ReturnToDefenceArea(Goal):
                         RotateToDefenceArea(world, robot)]
 
 
+
+
+
 '''
 > ACTIONS
 '''
+
+
+# RoToDefendPoint
+
+class RotateToDefendPoint(Action):
+    preconditions = []
+
+    def perform(self, comms):
+        x, y = utils.defender_get_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, 100)
+
+        global DEFEND_POINT
+        DEFEND_POINT = Vector(x, 470 - y, 0, 0)
+
+        logging.info("Facing defend point: Rotating %f %f" % (x, y))
+        # comms.turn(angle)
+
+
+class FaceBall(Action):
+    preconditions = []
+
+    def perform(self, comms):
+        angle = utils.get_rotation_to_point(self.robot.vector, self.world.ball.vector)
+        logging.info("Facing ball: Rotating %f" % angle)
+        comms.turn(angle)
+
+
+class GoToStaticBall(Action):
+    '''
+    Move defender to the ball when static
+    '''
+    preconditions = [(lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)[0]) < ROTATION_THRESHOLD, "Defender is facing ball"),
+                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
+                     (lambda w, r: utils.ball_is_static(w), "Ball is static.")]
+
+    def perform(self, comms):
+        # reset dynamic threshold
+        # TODO: has to be restarted everywhere!
+        global ROTATION_THRESHOLD
+        ROTATION_THRESHOLD = 0.1
+
+        dx = self.world.ball.x - self.robot.x
+        dy = self.world.ball.y - self.robot.y
+        displacement = math.hypot(dx, dy)
+
+        if displacement == 0:
+            alpha = 0
+        else:
+            # TODO: has to handle this edge case better
+            try:
+                alpha = math.degrees(math.asin(self.robot.catch_distance / float(displacement)))
+            except ValueError as er:
+                print(er)
+                x = self.world.ball.x
+                y = self.world.ball.y
+                angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
+                logging.info("Wants to close-rotate by: " + str(angle))
+                comms.turn(angle)
+                return 1  # TODO: NO FIXED DELAY
+        beta = 90 - alpha
+
+        if math.sin(math.radians(alpha)) == 0:
+            distance_to_move = 15  # something is obviously wrong so we have to move a bit
+        else:
+            distance_to_move = math.sin(math.radians(beta)) * self.robot.catch_distance / math.sin(math.radians(alpha))
+
+        # Find the movement side
+        angle, side = utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(self.world.ball.x, self.world.ball.y, 0, 0), self.robot.catch_distance)
+        if side == "left":
+            distance_to_move = -distance_to_move
+
+        logging.info("Wants to move by: " + str(distance_to_move))
+        comms.move(distance_to_move)
+
+        return utils.defender_move_delay(distance_to_move)
+
+
+class TurnToBall(Action):
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+
+    def perform(self, comms):
+        x = self.world.ball.x
+        y = self.world.ball.y
+        angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
+        logging.info("Wants to rotate by: " + str(angle))
+        comms.turn(angle)
+
+        return utils.defender_turn_delay(angle)
+
+
+class TurnToCatchPoint(Action):
+    '''
+    Turn to point for catching ball
+    '''
+    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
+
+    def perform(self, comms):
+        logging.info('---- ' + str(ROTATION_THRESHOLD))
+        x = self.world.ball.x
+        y = self.world.ball.y
+        angle = utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0), self.robot.catch_distance)[0]
+        logging.info("Wants to rotate by: " + str(angle))
+
+        comms.turn(angle)
+
+        global ROTATION_THRESHOLD
+        if ROTATION_THRESHOLD < 0.30:
+            ROTATION_THRESHOLD += 0.07
+
+        return utils.defender_turn_delay(angle)
 
 
 class PassAction(Action):
@@ -432,91 +565,6 @@ class TurnToBallIfClose(Action):
         angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
         logging.info("Wants to close-rotate by: " + str(angle))
         comms.turn(angle)
-
-
-class GoToStaticBall(Action):
-    '''
-    Move defender to the ball when static
-    '''
-    preconditions = [(lambda w, r: abs(utils.defender_get_rotation_to_catch_point(Vector(r.x, r.y, r.angle, 0), Vector(w.ball.x, w.ball.y, 0, 0), r.catch_distance)[0]) < ROTATION_THRESHOLD, "Defender is facing ball"),
-                     (lambda w, r: r.catcher == 'OPEN', "Grabbers are open."),
-                     (lambda w, r: utils.ball_is_static(w), "Ball is static.")]
-
-    def perform(self, comms):
-        # reset dynamic threshold
-        # TODO: has to be restarted everywhere!
-        global ROTATION_THRESHOLD
-        ROTATION_THRESHOLD = 0.1
-
-        dx = self.world.ball.x - self.robot.x
-        dy = self.world.ball.y - self.robot.y
-        displacement = math.hypot(dx, dy)
-
-        if displacement == 0:
-            alpha = 0
-        else:
-            # TODO: has to handle this edge case better
-            try:
-                alpha = math.degrees(math.asin(self.robot.catch_distance / float(displacement)))
-            except ValueError as er:
-                print(er)
-                x = self.world.ball.x
-                y = self.world.ball.y
-                angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
-                logging.info("Wants to close-rotate by: " + str(angle))
-                comms.turn(angle)
-                return 1  # TODO: NO FIXED DELAY
-        beta = 90 - alpha
-
-        if math.sin(math.radians(alpha)) == 0:
-            distance_to_move = 15  # something is obviously wrong so we have to move a bit
-        else:
-            distance_to_move = math.sin(math.radians(beta)) * self.robot.catch_distance / math.sin(math.radians(alpha))
-
-        # Find the movement side
-        angle, side = utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(self.world.ball.x, self.world.ball.y, 0, 0), self.robot.catch_distance)
-        if side == "left":
-            distance_to_move = -distance_to_move
-
-        logging.info("Wants to move by: " + str(distance_to_move))
-        comms.move(distance_to_move)
-
-        return utils.defender_move_delay(distance_to_move)
-
-
-class TurnToBall(Action):
-    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
-
-    def perform(self, comms):
-        x = self.world.ball.x
-        y = self.world.ball.y
-        angle = utils.get_rotation_to_point(self.robot.vector, Vector(x, y, 0, 0))
-        logging.info("Wants to rotate by: " + str(angle))
-        comms.turn(angle)
-
-        return utils.defender_turn_delay(angle)
-
-
-class TurnToCatchPoint(Action):
-    '''
-    Turn to point for catching ball
-    '''
-    preconditions = [(lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")]
-
-    def perform(self, comms):
-        logging.info('---- ' + str(ROTATION_THRESHOLD))
-        x = self.world.ball.x
-        y = self.world.ball.y
-        angle = utils.defender_get_rotation_to_catch_point(Vector(self.robot.x, self.robot.y, self.robot.angle, 0), Vector(x, y, 0, 0), self.robot.catch_distance)[0]
-        logging.info("Wants to rotate by: " + str(angle))
-
-        comms.turn(angle)
-
-        global ROTATION_THRESHOLD
-        if ROTATION_THRESHOLD < 0.30:
-            ROTATION_THRESHOLD += 0.07
-
-        return utils.defender_turn_delay(angle)
 
 
 class OpenGrabbers(Action):
