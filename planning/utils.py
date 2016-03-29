@@ -7,7 +7,7 @@ from position import Vector
 from math import pi
 from IPython import embed
 
-AVOID_DISTANCE = 30
+AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
 
 

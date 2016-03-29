@@ -323,7 +323,10 @@ class Pitch(object):
         # TODO Get real pitch size
         self._width = 600
         self._height = 450
-        self._goal_box_x_offset = 190
+        if pitch_num == 0:
+            self._goal_box_x_offset = 190
+        else:
+            self._goal_box_x_offset = 100
 
     def is_within_bounds(self, robot, x, y):
         '''
