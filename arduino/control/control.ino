@@ -167,7 +167,7 @@ void parseOptions(byte* message) {
 void grab() {
     updateMotorPositions();
     //close flippers
-    motorForward(MOTOR_GRABBER, 55);
+    motorForward(MOTOR_GRABBER, 85);
     delay(800);
     motorBrake(MOTOR_GRABBER);
     updateMotorPositions();
@@ -496,14 +496,16 @@ void kick(int distance) { // distance in cm
             kickerTime = 6+ ((distance-50)/50);
             break;
     }
+    grab();
     release();
     digitalWrite(PIN_KICKER, HIGH);
     delay(kickerTime);
     //put kicker back down
     digitalWrite(PIN_KICKER, LOW);
     //put grabbers back in
-    delay(200);
+    delay(400);
     grab();
+    Serial.flush();
 }
 
 
