@@ -21,7 +21,6 @@ statev = None
 
 # DEFEND_POINT
 import Vision.filters as filters
-import planning.models_defender as models_def
 from planning.position import Vector
 DEFEND_POINT = Vector(1, 1, 0, 0)
 
@@ -101,7 +100,7 @@ def new_grabber_state(value):
 
 
 def new_vision(world):
-    filters.D_POINT = models_def.DEFEND_POINT
+    filters.D_POINT = utils.DEFEND_POINT
 
     predictor.update(world)
     world = predictor.predict()

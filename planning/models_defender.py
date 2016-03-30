@@ -7,8 +7,6 @@ from models_common import Goal, Action, are_equivalent_positions
 from math import pi
 from time import time
 
-import cv2
-
 
 
 '''
@@ -16,7 +14,7 @@ import cv2
 '''
 
 
-DEFEND_POINT = Vector(2, 2, 0, 0)
+ROTATION_DEFEND_POINT_THRESHOLD = 0.2
 ROTATION_BALL_THRESHOLD = 0.2
 ROTATION_THRESHOLD = 0.10
 MOVEMENT_THRESHOLD = 10
@@ -40,9 +38,9 @@ class Defend(Goal):
         self.start_time = time()
 
         self.actions = [GrabBall(world, robot),
-                        # GoToDefendPoint(world, robot),
+                        GoToDefendPoint(world, robot),
                         RotateToDefendPoint(world, robot),
-                        # FaceBall(world, robot)
+                        FaceBall(world, robot)
                         ]
         super(Defend, self).__init__(world, robot)
 
@@ -195,19 +193,31 @@ class ReturnToDefenceArea(Goal):
 '''
 
 
-# RoToDefendPoint
-
-class RotateToDefendPoint(Action):
-    preconditions = []
+class GoToDefendPoint(Action):
+    preconditions = [(lambda w, r: abs(utils.defender_rotation_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, 100)[0]) < ROTATION_DEFEND_POINT_THRESHOLD, "Defender is facing defending point"),
+                        ]
 
     def perform(self, comms):
-        x, y = utils.defender_get_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, 100)
+        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, 100)
 
-        global DEFEND_POINT
-        DEFEND_POINT = Vector(x, 470 - y, 0, 0)
+        dx = defend_point.x - self.robot.x
+        dy = defend_point.y - self.robot.y
+        distance_to_move = math.hypot(dx, dy)
 
-        logging.info("Facing defend point: Rotating %f %f" % (x, y))
-        # comms.turn(angle)
+        if side == "left":
+            distance_to_move = -distance_to_move
+
+        logging.info("Wants to move by: " + str(distance_to_move))
+        comms.move(distance_to_move)
+
+class RotateToDefendPoint(Action):
+    preconditions = [(lambda w, r: abs(utils.defender_distance_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, 100)) > 20, "Defender close to defending point")]
+
+    def perform(self, comms):
+        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, 100)
+
+        logging.info("Facing defend point: Rotating %f degrees to %f %f" % (math.degrees(angle), defend_point.x, defend_point.y))
+        comms.turn(angle)
 
 
 class FaceBall(Action):

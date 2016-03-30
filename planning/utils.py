@@ -8,6 +8,7 @@ from math import pi
 # from IPython import embed
 
 
+DEFEND_POINT = Vector(2, 2, 0, 0)
 AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
 SMALL_VALUE = 0.001
@@ -45,18 +46,27 @@ def get_defence_point(world):
     return Vector(x, y, 0, 0)
 
 
-def defender_get_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius):
-    dx = ball_vec.x - center.x
-    dy = ball_vec.y - center.y
-    alpha = math.atan2(dx, dy) % (math.pi * 2)
+def defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius):
+    def defender_get_defend_point(robot_vec, ball_vec, center, center_radius):
+        dx = ball_vec.x - center.x
+        dy = ball_vec.y - center.y
+        alpha = math.atan2(dx, dy) % (math.pi * 2)
 
-    print math.degrees(alpha)
+        print math.degrees(alpha)
 
-    x = center.x + center_radius * math.sin(alpha)
-    y = center.y + center_radius * math.cos(alpha)
+        x = center.x + center_radius * math.sin(alpha)
+        y = center.y + center_radius * math.cos(alpha)
 
-    return x, y
-    # return get_rotation_to_point(robot_vec, Vector(x, y, 0, 0))
+        return Vector(x, y, 0, 0)
+
+    defend_point = defender_get_defend_point(robot_vec, ball_vec, center, center_radius)
+
+    global DEFEND_POINT
+    DEFEND_POINT = Vector(defend_point.x, 470 - defend_point.y, 0, 0)
+
+    angle, side = defender_get_rotation_to_catch_point(robot_vec, defend_point, 1)
+
+    return (angle, side, defend_point)
 
 
 def get_avoiding_angle_to_point(world, vec1, vec2):
@@ -295,6 +305,16 @@ def robot_can_reach_ball(ball, robot):
 
     # threshold = 30
     return True
+
+
+def defender_distance_to_defend_point(robot_vec, ball_vec, center, center_radius):
+
+    angle, side, defend_point = defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius)
+    dx = defend_point.x - robot_vec.x
+    dy = defend_point.y - robot_vec.y
+    distance = math.hypot(dx, dy)
+
+    return distance
 
 
 def defender_distance_to_line(axis, robot_vec, point):
