@@ -449,7 +449,7 @@ class World(object):
         return self._pitch
 
     def in_our_half(self, robot):
-        halfway = self._pitch.width / 2
+        halfway = self._pitch.centre_line_x
         if self._our_side == 'left':
             return robot.x < halfway
         else:
