@@ -136,7 +136,12 @@ class RFCommsManager (CommsManager):
         elif data == "grabbersOpen":
             self.grab_callback("grabbersOpen")
             info("Grabbers open")
+        elif data == "finished":
+            pass
+        elif data == "something in the way":
+            self.grab_callback("something in the way")
         else:
+            print(data)
             error("Unknown message from robot")
 
     # move a distance in mm

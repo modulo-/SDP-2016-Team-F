@@ -125,7 +125,7 @@ class Robot(PitchObject):
 
     def __init__(self, x, y, angle, velocity, is_our_team, is_house_robot, width=ROBOT_WIDTH, length=ROBOT_LENGTH, height=ROBOT_HEIGHT, angle_offset=0):
         super(Robot, self).__init__(x, y, angle, velocity, width, length, height, angle_offset)
-        self._catch_distance = 40
+        self._catch_distance = 30
         self._catched_ball = False
         self._catcher = 'OPEN'
         self.penalty = False
@@ -233,6 +233,12 @@ class Defender(Robot):
         # Calculate tactical position
         raise NotImplementedError
 
+    def has_ball(self, ball):
+        '''
+        Gets if the robot has possession of the ball
+        '''
+        return self.catcher == 'CLOSED'
+
 
 class Attacker(Robot):
 
@@ -322,7 +328,7 @@ class Pitch(object):
     def __init__(self, pitch_num):
         # TODO Get real pitch size
         self._width = 600
-        self._height = 450
+        self._height = 470  # before: 450
         if pitch_num == 0:
             self._goal_box_x = {'left':179, 'right':484}
             self._goal_line_x = {'left':36, 'right':618}
@@ -475,7 +481,6 @@ class World(object):
                 and y < self.pitch.top and y > self.pitch.bottom
         # TODO
         return True
-            
 
     @property
     def robot_in_possession(self):
@@ -517,7 +522,8 @@ class World(object):
         y_step = (self.pitch.top - self.pitch.bottom) / 5
         centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
         filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
-                                    utils.attacker_can_score_from_position(self, v), centroids)
+                                    utils.attacker_can_score_from_position(self, v) and
+                                    self.is_possible_position(self.our_attacker, v.x, v.y), centroids)
         sorted_centroids = sorted(filtered_centroids, key=lambda v: (v.x)**2 + (v.y)**2, reverse=True)
         if not sorted_centroids:
             self._score_zone = None
