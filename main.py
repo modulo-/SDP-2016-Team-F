@@ -4,19 +4,26 @@ import getopt
 import logging
 import sys
 
+
 from Vision.vision import Vision
 from planning.planner import AttackPlanner, DefencePlanner
 from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
+from planning import models_defender
 from threading import Timer, Thread
 from planning.predictor import Predictor
 from time import time
-from math import pi
 from planning import utils
 from Tkinter import Tk, Button, Label, StringVar
 
+
 color = None
 statev = None
+
+# DEFEND_POINT
+import Vision.filters as filters
+from planning.position import Vector
+DEFEND_POINT = Vector(1, 1, 0, 0)
 
 
 class Interrupt:
@@ -42,11 +49,12 @@ predictor = Predictor()
 # TODO: formally, the 0 should be the command-line set pitch number.
 # But, since it isn't used, it doesn't really matter.
 latest_world = World('left', 0)
-latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
+latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}
 latest_world.our_defender._receiving_area = {'width': 50, 'height': 35, 'front_offset': 0}
 interrupts = []
 attack_timer = None
 defence_timer = None
+
 
 def get_attacker(world):
     if color == 'b':
@@ -73,7 +81,8 @@ def get_pink_opponent(world):
     if color == 'b':
         return world.robot_yellow_pink
     else:
-        return world.robot_blue_pink    
+        return world.robot_blue_pink
+
 
 def robot_callback(value):
     global attacker_grabbers_close_timer, holding_ball_release_timer
@@ -110,6 +119,8 @@ def robot_callback(value):
 
 
 def new_vision(world):
+    filters.D_POINT = utils.DEFEND_POINT
+
     predictor.update(world)
     world = predictor.predict()
     latest_world.update_positions(
@@ -117,15 +128,14 @@ def new_vision(world):
         our_attacker=get_attacker(world),
         their_robot_0=get_green_opponent(world),
         their_robot_1=get_pink_opponent(world),
-        ball=world.ball,
+        ball=world.ball
     )
     t = time()
     for interrupt in interrupts:
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
-    if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
-            'penalty-shoot'] and not utils.ball_is_static(latest_world):
+    if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend', 'penalty-shoot'] and not utils.ball_is_static(latest_world):
         latest_world.game_state = 'normal-play'
         statev.set('normal-play')
 
@@ -329,6 +339,8 @@ def run(attacker, defender, plan, pitch_no):
         interrupts.append(Interrupt(
             lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
             run_defence_planner, 2))
+        interrupts.append(Interrupt(
+            lambda: utils.defender_distance_to_ball(latest_world.our_defender.vector, latest_world.ball.vector) < models_defender.FOLLOW_BALL_DISTANCE_THRESHOLD, run_defence_planner, 2))
 
     if attack_planner:
         attack_timer = Timer(INITIAL_PLANNER_DELAY, run_attack_planner)

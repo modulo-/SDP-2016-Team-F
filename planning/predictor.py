@@ -73,6 +73,7 @@ class Predictor:
                 if p[0].angle != None:
                     angle = p[0].angle
                     break
+        # return Position(c[-1][0].x, c[-1][0].y, angle, math.hypot(vec[0], vec[1]))
         return Position(c[-1][0].x + vec[0]*tdelta, c[-1][0].y + vec[1]*tdelta,
                 angle, math.hypot(vec[0], vec[1]))
 

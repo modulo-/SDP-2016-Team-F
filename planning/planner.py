@@ -150,6 +150,17 @@ class DefencePlanner(Planner):
         if robot.penalty:
             return None
         elif self.current_task == 'game' and world.game_state is not None:
+            utils.defender_rotation_to_defend_point(robot, world.ball, world.our_goal.vector, defender.GOAL_RADIUS)
+            if robot.has_ball(world.ball):
+                info("Defender goal choice: Pass the ball")
+                return defender.Pass(world, robot)
+            elif not utils.ball_heading_to_our_goal(world) and utils.defender_should_grab_ball(world):
+                info("Defender goal choice: Retrieve the ball")
+                return defender.GetBall(world, robot)
+            else:
+                info("Defender goal choice: Do the wiggle dance!")
+                return defender.Defend(world, robot)
+        elif self.current_task == 'oldgame' and world.game_state is not None:
             if robot.has_ball(world.ball):
                 info("Defender goal choice: kick the ball")
                 return defender.Pass(world, robot)
@@ -171,6 +182,8 @@ class DefencePlanner(Planner):
                 return defender.ReturnToDefenceArea(world, robot)
         elif self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
+        elif self.current_task == 'defend':
+            return defender.Defend(world, robot)
         elif self.current_task == 'reactive-grab':
             return defender.ReactiveGrabGoal(world, robot)
         elif self.current_task == 'm1':
