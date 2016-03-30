@@ -17,6 +17,7 @@ DEFEND_POINT_DISTANCE_TTHRESHOLD = 20
 ROTATION_BALL_THRESHOLD = 0.2
 ROTATION_THRESHOLD = 0.2
 WIGGLE_EFFECT = 15
+FOLLOW_BALL_DISTANCE_THRESHOLD = 50
 ROTATION_DEFEND_BALL_THRESHOLD = 0.4
 MOVEMENT_THRESHOLD = 15
 FACING_ROTATION_THRESHOLD = 0.2
@@ -145,6 +146,18 @@ class Wiggle(Action):
 
         logging.info("Wants to wiggle by: " + str(wiggeled_distance_to_move))
         comms.move(wiggeled_distance_to_move)
+
+
+class FollowBall(Action):
+    preconditions = [
+        (lambda w, r: abs(utils.defender_distance_to_ball(r.vector, w.ball.vector) < FOLLOW_BALL_DISTANCE_THRESHOLD, "Defender close to kicked ball")
+    ]
+
+    def perform(self, comms):
+        distance_to_move = defender_fellow_ball_distance(self.robot.vector, self.world.ball.vector)
+
+        logging.info("Wants to follow ball by: " + str(distance_to_move))
+        comms.move(distance_to_move)
 
 
 class GoToStaticBall(Action):

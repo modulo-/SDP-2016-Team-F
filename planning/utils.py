@@ -46,7 +46,31 @@ def get_defence_point(world):
     return Vector(x, y, 0, 0)
 
 
+def defender_fellow_ball_distance(robot_vec, ball_vec):
+    robot_vec_left = Vector(robot_vec.x, robot_vec.y, robot_vec.angle - math.pi / 2, 0)
+    alpha_left = get_rotation_to_point(robot_vec_left, ball_vec)
+
+    robot_vec_right = Vector(robot_vec.x, robot_vec.y, robot_vec.angle + math.pi / 2, 0)
+    alpha_right = get_rotation_to_point(robot_vec_right, ball_vec)
+
+    # Find the closes angle (side to move)
+    side = -1
+    alpha = alpha_left
+    if alpha_left > alpha_right:
+        side = 1
+        alpha = alpha_right
+
+    dx = ball_vec.x - robot_vec.x
+    dy = ball_vec.y - robot_vec.y
+    hypotenus = math.hypot(dx, dy)
+
+    distance_to_move = math.cos(alpha) * hypotenus * side
+
+    return distance_to_move
+
+
 def defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius):
+
     def defender_get_defend_point(robot_vec, ball_vec, center, center_radius):
         dx = ball_vec.x - center.x
         dy = ball_vec.y - center.y
@@ -312,6 +336,15 @@ def defender_distance_to_defend_point(robot_vec, ball_vec, center, center_radius
     angle, side, defend_point = defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius)
     dx = defend_point.x - robot_vec.x
     dy = defend_point.y - robot_vec.y
+    distance = math.hypot(dx, dy)
+
+    return distance
+
+
+def defender_distance_to_ball(robot_vec, ball_vec):
+
+    dx = ball_vec.x - robot_vec.x
+    dy = ball_vec.y - robot_vec.y
     distance = math.hypot(dx, dy)
 
     return distance
