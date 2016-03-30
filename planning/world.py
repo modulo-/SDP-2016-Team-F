@@ -324,9 +324,15 @@ class Pitch(object):
         self._width = 600
         self._height = 450
         if pitch_num == 0:
-            self._goal_box_x_offset = 190
+            self._goal_box_x = {'left':179, 'right':484}
+            self._goal_line_x = {'left':36, 'right':618}
+            self._centre_line_x = 276
         else:
-            self._goal_box_x_offset = 100
+            # TODO add values for other pitch room
+            assert(False)
+            self._goal_box_x = {'left':100, 'right':200}
+            self._goal_line_x = {'left':0, 'right':200}
+            self._centre_line_x = 400
 
     def is_within_bounds(self, robot, x, y):
         '''
@@ -343,8 +349,16 @@ class Pitch(object):
         return self._height
 
     @property
-    def goal_box_x_offset(self):
-        return self._goal_box_x_offset
+    def goal_box_x(self):
+        return self._goal_box_x
+
+    @property
+    def goal_line_x(self):
+        return self._goal_line_x
+
+    @property
+    def centre_line_x(self):
+        return self._centre_line_x
 
     def __repr__(self):
         return str((self._width, self._height))
@@ -376,8 +390,8 @@ class World(object):
         self._game_state = None
         self._pitch = Pitch(pitch_num)
         self._their_side = 'left' if our_side == 'right' else 'right'
-        self._goals.append(Goal(0, self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
-        self._goals.append(Goal(self._pitch.width, self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
+        self._goals.append(Goal(self._pitch.goal_line_x['left'], self._pitch.height / 2.0, 0, GOAL_LOWER, GOAL_HIGHER))
+        self._goals.append(Goal(self._pitch.goal_line_x['right'], self._pitch.height / 2.0, math.pi, GOAL_LOWER, GOAL_HIGHER))
         self._camera_height = 255
 
     @property
@@ -448,7 +462,7 @@ class World(object):
         if not self.pitch.is_within_bounds(robot, x, y):
             return False
         if robot == self.our_attacker:
-            return x > self.pitch.goal_box_x_offset and x < self.pitch.width - self.pitch.goal_box_x_offset
+            return x > self.pitch.goal_box_x['left'] and x < self.pitch.goal_box_x['right']
         # TODO
         return True
             
@@ -487,10 +501,9 @@ class World(object):
                 obj.vector = self.translate_position(obj, kwargs[name])
 
     def get_new_score_zone(self):
-        halfway = self.pitch.width / 2
-        #x = halfway + (halfway - self.pitch.goal_box_x_offset) / 2 if self._our_side == 'left'\
-        #    else halfway - (halfway - self.pitch.goal_box_x_offset) / 2
-        x = 400 if self._our_side == 'left' else 200
+        halfway = self.pitch.centre_line_x
+        x = halfway + (halfway - self.pitch.goal_box_x['left']) / 2 if self._our_side == 'left'\
+            else halfway - (halfway - self.pitch.goal_box_x['right']) / 2
         y_step = self.pitch.width / 5
         centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
         filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
