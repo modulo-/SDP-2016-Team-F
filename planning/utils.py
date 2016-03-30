@@ -28,6 +28,12 @@ def defender_should_grab_ball(world):
         d = dist(world.their_robots[1], world.ball)
         if d < grabdist:
             return False
+    if not world.our_attacker.is_missing():
+        if dist(world.our_goal, world.our_attacker) < balldist:
+            return False
+        d = dist(world.our_attacker, world.ball)
+        if d < grabdist:
+            return False
     return True
 
 def defender_move_delay(dist):
