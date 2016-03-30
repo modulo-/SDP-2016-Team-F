@@ -216,14 +216,21 @@ class TurnToScoreZone(Action):
 
 
 class GoToScoreZone(Action):
-    preconditions = [(lambda w, r: is_robot_facing_position(w, r, w.get_new_score_zone()),
+    def __init__(self, world, robot):
+        self.position = world.get_new_score_zone()
+        self.preconditions = [(lambda w, r: is_robot_facing_position(w, r, position),
                       "Attacker is facing score zone")]
-    def perform(self, comms):
-        raise NotImplementedError
+        super(GoToScoreZone, self).__init__(world, robot)
 
+    def perform(self, comms):
+        dx = self.position.x - self.robot.x
+        dy = self.position.y - self.robot.y
+        d = math.sqrt(dx**2 + dy**2)
+        comms.move(d)
+    
 
 class TurnToDefenderToReceive(Action):
-    precondtions = [(lambda w, r: r.are_equivalent_positions(r.vector, w.get_new_score_zone()), "Attacker in score zone")]
+    preconditions = [(lambda w, r: are_equivalent_positions(r.vector, w.get_new_score_zone()), "Attacker in score zone")]
 
     def __init__(self, world, robot):
         self.angle = utils.get_avoiding_angle_to_point(world, robot.vector, world.our_defender.vector)
