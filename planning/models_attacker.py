@@ -216,15 +216,15 @@ class TurnToScoreZone(Action):
 
 
 class GoToScoreZone(Action):
-    def __init__(self, world, robot):
-        self.position = world.get_new_score_zone()
-        self.preconditions = [(lambda w, r: is_robot_facing_position(w, r, self.position),
+    preconditions = [(lambda w, r: is_robot_facing_position(w, r, w.get_new_score_zone()),
                       "Attacker is facing score zone")]
+    def __init__(self, world, robot):
+        self.score_zone = world.get_new_score_zone()
         super(GoToScoreZone, self).__init__(world, robot)
 
     def perform(self, comms):
-        dx = self.position.x - self.robot.x
-        dy = self.position.y - self.robot.y
+        dx = self.score_zone.x - self.robot.x
+        dy = self.score_zone.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
         comms.move(d)
 
