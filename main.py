@@ -32,6 +32,10 @@ attacker_grabber_close = None
 ATTACKER_GRABBERS_CLOSE_TIME = 4
 attacker_grabbers_close_timer = None
 
+holding_ball_release = None
+HOLDING_BALL_RELEASE_TIME = 4
+holding_ball_release_timer = None
+
 predictor = Predictor()
 # TODO: formally, the 0 should be the command-line set pitch number.
 # But, since it isn't used, it doesn't really matter.
@@ -70,7 +74,7 @@ def get_pink_opponent(world):
         return world.robot_blue_pink    
 
 def new_grabber_state(value):
-    global attacker_grabbers_close_timer
+    global attacker_grabbers_close_timer, holding_ball_release_timer
     if value == "grabbersOpen":
         print ("Got grabbersOpen")
         latest_world.our_attacker.is_ball_in_grabbers = False
@@ -80,11 +84,19 @@ def new_grabber_state(value):
         except RuntimeError:
             # Timer already running, shouldn't happen
             pass
+        holding_ball_release_timer.cancel()
+        holding_ball_release_timer = Timer(HOLDING_BALL_RELEASE_TIME,
+                                           holding_ball_release)
     else:
         if value == "NC":
             latest_world.our_attacker.is_ball_in_grabbers = False
         elif value == "BC":
             latest_world.our_attacker.is_ball_in_grabbers = True
+            try:
+                holding_ball_release_timer.start()
+            except RuntimerError:
+                # Timer already running, shouldn't happen
+                pass
         latest_world.our_attacker.catcher = "CLOSED"
         attacker_grabbers_close_timer.cancel()
         attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
@@ -247,7 +259,8 @@ def do_ui():
 
 def run(attacker, defender, plan, pitch_no):
     global attack_timer, defence_timer, attacker_grabbers_close_timer,\
-        attacker_grabbers_close
+        attacker_grabbers_close, holding_ball_release_timer,\
+        holding_ball_release
     ui_thread = Thread(target=do_ui)
     ui_thread.daemon = True
     ui_thread.start()
@@ -276,11 +289,18 @@ def run(attacker, defender, plan, pitch_no):
         defence_timer.start()
 
     def close_attacker_grabbers():
-        print("Time out - closing grabbers")
+        logging.info("Time out - closing grabbers")
         attacker.close_grabbers()
         attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
                                               close_attacker_grabbers)
     attacker_grabbers_close = close_attacker_grabbers
+
+    def release_held_ball():
+        logging.info("Time out - releasing ball")
+        attacker.kick_full_power()
+        holding_ball_release_timer = Timer(HOLDING_BALL_RELEASE_TIME,
+                                           release_held_ball)
+    holding_ball_release = release_held_ball
 
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
@@ -289,6 +309,8 @@ def run(attacker, defender, plan, pitch_no):
             run_attack_planner, 2))"""
         attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
                                               close_attacker_grabbers)
+        holding_ball_release_timer = Timer(HOLDING_BALL_RELEASE_TIME,
+                                           release_held_ball)
     if defender:
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
