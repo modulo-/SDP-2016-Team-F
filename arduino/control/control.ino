@@ -369,7 +369,7 @@ void move(int distance) {
             if(ultraSoundDistance<ultraSoundThreshold&&prevUltraSoundDistance<ultraSoundThreshold){  
                 motorBrake(MOTOR_LEFT); 
                 motorBrake(MOTOR_RIGHT); 
-                debugSend("something in the way");
+                commSend("something in the way");
                 break;
             }
             prevUltraSoundDistance=ultraSoundDistance;
@@ -410,7 +410,7 @@ void move(int distance) {
             motorForward(MOTOR_RIGHT, rightPower);
         }
     }
-    debugSend("finished");
+    commSend("finished");
     motorBrake(MOTOR_LEFT);
     motorBrake(MOTOR_RIGHT);
     updateMotorPositions();
