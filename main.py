@@ -303,8 +303,8 @@ def run(attacker, defender, plan, pitch_no):
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
             run_defence_planner, 2))
-        interrupts.append(Interrupt(
-            lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
+        #interrupts.append(Interrupt(
+        #    lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
             run_defence_planner, 2))
 
     if attack_planner:

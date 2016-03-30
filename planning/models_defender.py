@@ -43,7 +43,8 @@ class Defend(Goal):
                         GoToDefendPoint(world, robot),
                         RotateToDefendPoint(world, robot),
                         FaceBall(world, robot),
-                        Wiggle(world, robot)
+                        Wiggle(world, robot),
+                        OpenGrabbers(world, robot)
                         ]
         super(Defend, self).__init__(world, robot)
 
@@ -91,7 +92,8 @@ class GrabBall(Action):
 class GoToDefendPoint(Action):
     preconditions = [
         (lambda w, r: abs(utils.defender_rotation_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS)[0]) < ROTATION_DEFEND_POINT_THRESHOLD, "Defender is facing defending point"),
-        (lambda w, r: abs(utils.defender_distance_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS)) > DEFEND_POINT_DISTANCE_THRESHOLD, "Defender far away from defending point")
+        (lambda w, r: abs(utils.defender_distance_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS)) > DEFEND_POINT_DISTANCE_THRESHOLD, "Defender far away from defending point"),
+        (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")
     ]
 
     def perform(self, comms):
@@ -110,7 +112,8 @@ class GoToDefendPoint(Action):
 
 class RotateToDefendPoint(Action):
     preconditions = [
-        (lambda w, r: abs(utils.defender_distance_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS)) > DEFEND_POINT_DISTANCE_THRESHOLD, "Defender far away from defending point")
+        (lambda w, r: abs(utils.defender_distance_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS)) > DEFEND_POINT_DISTANCE_THRESHOLD, "Defender far away from defending point"),
+        (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")
     ]
 
     def perform(self, comms):
@@ -122,7 +125,8 @@ class RotateToDefendPoint(Action):
 
 class FaceBall(Action):
     preconditions = [
-        (lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.ball.vector)) < ROTATION_DEFEND_BALL_THRESHOLD, "Defender is facing ball")
+        (lambda w, r: abs(utils.get_rotation_to_point(r.vector, w.ball.vector)) > ROTATION_DEFEND_BALL_THRESHOLD, "Defender is not facing ball"),
+        (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")
     ]
 
     def perform(self, comms):
@@ -132,7 +136,9 @@ class FaceBall(Action):
 
 
 class Wiggle(Action):
-    preconditions = []
+    preconditions = [
+        (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")
+    ]
 
     def perform(self, comms):
         angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, GOAL_RADIUS)

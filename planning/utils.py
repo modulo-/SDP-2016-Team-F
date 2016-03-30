@@ -13,6 +13,13 @@ AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
 SMALL_VALUE = 0.001
 
+def defender_should_grab_ball(world):
+    balldist = dist(world.our_goal, world.ball)
+    if not world.their_robots[0].is_missing() and dist(world.our_goal, world.their_robots[0]) < balldist):
+        return False
+    if not world.their_robots[1].is_missing() and dist(world.our_goal, world.their_robots[1]) < balldist):
+        return False
+    return True
 
 def defender_move_delay(dist):
     if abs(dist) > 150:
