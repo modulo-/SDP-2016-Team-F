@@ -517,7 +517,8 @@ class World(object):
         y_step = (self.pitch.top - self.pitch.bottom) / 5
         centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
         filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
-                                    utils.attacker_can_score_from_position(self, v), centroids)
+                                    utils.attacker_can_score_from_position(self, v) and
+                                    self.is_possible_position(self.our_attacker, v.x, v.y), centroids)
         sorted_centroids = sorted(filtered_centroids, key=lambda v: (v.x)**2 + (v.y)**2, reverse=True)
         if not sorted_centroids:
             self._score_zone = None
