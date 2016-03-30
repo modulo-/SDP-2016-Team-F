@@ -371,13 +371,15 @@ def can_score(world, our_robot, their_goal, turn=0):
 
     # return goal_posts[0][1] < predicted_y < goal_posts[1][1]
     return their_goal.lower_post < predicted_y < their_goal.higher_post
+# and\
+#        not find_obstacle(world, our_robot, their_goal.vector, exclude=[world.our_attacker])
 
 
 def defender_can_pass_to_position(world, position, enemy_zone_radius=40):
     '''
     Test if a robot at 'position' could be passed to
     '''
-    return not find_obstacle(world, world.our_defender, position)
+    return not find_obstacle(world, world.our_defender, position, exclude=[world.our_attacker, world.our_defender])
 
 
 # Test if a robot at 'position' could score
@@ -385,13 +387,13 @@ def attacker_can_score_from_position(world, position):
     assert(position.angle == 0)
     goal_points = [Vector(world.their_goal.x, world.their_goal.y + (world.their_goal.width / 4) * i, 0, 0) for i in [1,2,3]]
     for point in goal_points:
-        obstacle = find_obstacle(world, position, point)
+        obstacle = find_obstacle(world, position, point, exclude=[world.our_attacker])
         if not obstacle:
             return True
     return False
 
 
-def find_obstacle(world, vec1, vec2):
+def find_obstacle(world, vec1, vec2, exclude=[]):
     def check_object(vec3):
         dx = vec2.x - vec1.x
         if dx == 0:
@@ -418,8 +420,8 @@ def find_obstacle(world, vec1, vec2):
         else:
             return None
     closest = (None, 10000)
-    for obj in [world.our_defender, world.our_attacker,
-                world.their_robots[0], world.their_robots[1]]:
+    for obj in [r for r in [world.our_defender, world.our_attacker,
+                            world.their_robots[0], world.their_robots[1]] if not r in exclude]:
         if (obj.x == vec1.x and obj.y == vec1.y) or (obj.x == vec2.x and obj.y == vec2.y):
             continue
         result = check_object(obj.vector)
