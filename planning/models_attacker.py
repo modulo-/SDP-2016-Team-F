@@ -218,7 +218,7 @@ class TurnToScoreZone(Action):
 class GoToScoreZone(Action):
     def __init__(self, world, robot):
         self.position = world.get_new_score_zone()
-        self.preconditions = [(lambda w, r: is_robot_facing_position(w, r, position),
+        self.preconditions = [(lambda w, r: is_robot_facing_position(w, r, self.position),
                       "Attacker is facing score zone")]
         super(GoToScoreZone, self).__init__(world, robot)
 
@@ -227,7 +227,7 @@ class GoToScoreZone(Action):
         dy = self.position.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
         comms.move(d)
-    
+
 
 class TurnToDefenderToReceive(Action):
     preconditions = [(lambda w, r: are_equivalent_positions(r.vector, w.get_new_score_zone()), "Attacker in score zone")]
