@@ -327,12 +327,12 @@ class Pitch(object):
             self._goal_box_x = {'left':179, 'right':484}
             self._goal_line_x = {'left':36, 'right':618}
             self._centre_line_x = 276
+            self._top = 450
+            self._bottom = 24
+            # Could find actual pitch width and height
         else:
             # TODO add values for other pitch room
-            assert(False)
-            self._goal_box_x = {'left':100, 'right':200}
-            self._goal_line_x = {'left':0, 'right':200}
-            self._centre_line_x = 400
+            raise NotImplementedError
 
     def is_within_bounds(self, robot, x, y):
         '''
@@ -359,6 +359,14 @@ class Pitch(object):
     @property
     def centre_line_x(self):
         return self._centre_line_x
+
+    @property
+    def top(self):
+        return self._top
+
+    @property
+    def bottom(self):
+        return self._bottom
 
     def __repr__(self):
         return str((self._width, self._height))
@@ -462,7 +470,9 @@ class World(object):
         if not self.pitch.is_within_bounds(robot, x, y):
             return False
         if robot == self.our_attacker:
-            return x > self.pitch.goal_box_x['left'] and x < self.pitch.goal_box_x['right']
+            return x > self.pitch.goal_box_x['left'] and \
+                x < self.pitch.goal_box_x['right'] \
+                and y < self.pitch.top and y > self.pitch.bottom
         # TODO
         return True
             
@@ -502,9 +512,9 @@ class World(object):
 
     def get_new_score_zone(self):
         halfway = self.pitch.centre_line_x
-        x = halfway + (halfway - self.pitch.goal_box_x['left']) / 2 if self._our_side == 'left'\
-            else halfway - (halfway - self.pitch.goal_box_x['right']) / 2
-        y_step = self.pitch.width / 5
+        x = halfway + (self.pitch.goal_box_x['right'] - halfway) / 2 if self._our_side == 'left'\
+            else halfway - (halfway - self.pitch.goal_box_x['left']) / 2
+        y_step = (self.pitch.top - self.pitch.bottom) / 5
         centroids = [Vector(x, y_step * i, 0, 0) for i in range(1, 5)]
         filtered_centroids = filter(lambda v: utils.defender_can_pass_to_position(self, v) and
                                     utils.attacker_can_score_from_position(self, v), centroids)
