@@ -112,7 +112,7 @@ def robot_callback(value):
         attacker_grabbers_close_timer.cancel()
         attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
                                               attacker_grabbers_close)
-    elif value == "finished":
+    elif value == "something in the way":
         if move_from_block:
             move_from_block()
             logging.info("Moving back from obstacle")
@@ -276,7 +276,7 @@ def do_ui():
 def run(attacker, defender, plan, pitch_no):
     global attack_timer, defence_timer, attacker_grabbers_close_timer,\
         attacker_grabbers_close, holding_ball_release_timer,\
-        holding_ball_release
+        holding_ball_release, move_from_block
     ui_thread = Thread(target=do_ui)
     ui_thread.daemon = True
     ui_thread.start()
@@ -312,7 +312,7 @@ def run(attacker, defender, plan, pitch_no):
     attacker_grabbers_close = close_attacker_grabbers
 
     def move_attacker_backwards():
-        attacker.move(-30)
+        attacker.move(-60)
     move_from_block = move_attacker_backwards
 
     def release_held_ball():
