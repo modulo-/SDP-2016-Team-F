@@ -36,6 +36,8 @@ holding_ball_release = None
 HOLDING_BALL_RELEASE_TIME = 4
 holding_ball_release_timer = None
 
+move_from_block = None
+
 predictor = Predictor()
 # TODO: formally, the 0 should be the command-line set pitch number.
 # But, since it isn't used, it doesn't really matter.
@@ -73,7 +75,7 @@ def get_pink_opponent(world):
     else:
         return world.robot_blue_pink    
 
-def new_grabber_state(value):
+def robot_callback(value):
     global attacker_grabbers_close_timer, holding_ball_release_timer
     if value == "grabbersOpen":
         print ("Got grabbersOpen")
@@ -87,7 +89,7 @@ def new_grabber_state(value):
         holding_ball_release_timer.cancel()
         holding_ball_release_timer = Timer(HOLDING_BALL_RELEASE_TIME,
                                            holding_ball_release)
-    else:
+    elif value in ["NC", "BC"]:
         if value == "NC":
             latest_world.our_attacker.is_ball_in_grabbers = False
         elif value == "BC":
@@ -101,6 +103,10 @@ def new_grabber_state(value):
         attacker_grabbers_close_timer.cancel()
         attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
                                               attacker_grabbers_close)
+    elif value == "finished":
+        if move_from_block:
+            move_from_block()
+            logging.info("Moving back from obstacle")
 
 
 def new_vision(world):
@@ -206,7 +212,7 @@ def main():
         elif o in ("-1", "--defender"):
             defender = TractorCrabCommsManager(0, a)
         elif o in ("-2", "--attacker"):
-            attacker = RFCommsManager(0, a, new_grabber_state)
+            attacker = RFCommsManager(0, a, robot_callback)
         elif o in ("-l", "--logging"):
             logging_modes = a.split(",")
             for mode in logging_modes:
@@ -294,6 +300,10 @@ def run(attacker, defender, plan, pitch_no):
         attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
                                               close_attacker_grabbers)
     attacker_grabbers_close = close_attacker_grabbers
+
+    def move_attacker_backwards():
+        attacker.move(-30)
+    move_from_block = move_attacker_backwards
 
     def release_held_ball():
         logging.info("Time out - releasing ball")
