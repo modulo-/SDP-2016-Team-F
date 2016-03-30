@@ -13,11 +13,12 @@ from time import time
 
 
 GOAL_RADIUS = 100
-DEFEND_POINT_DISTANCE_TTHRESHOLD = 20
+DEFEND_POINT_DISTANCE_THRESHOLD = 20
 ROTATION_BALL_THRESHOLD = 0.2
 ROTATION_THRESHOLD = 0.2
 WIGGLE_EFFECT = 15
-FOLLOW_BALL_DISTANCE_THRESHOLD = 50
+FOLLOW_BALL_DISTANCE_THRESHOLD = 100
+ROTATION_DEFEND_POINT_THRESHOLD = 0.5
 ROTATION_DEFEND_BALL_THRESHOLD = 0.4
 MOVEMENT_THRESHOLD = 15
 FACING_ROTATION_THRESHOLD = 0.2
@@ -40,6 +41,7 @@ class Defend(Goal):
         self.start_time = time()
 
         self.actions = [GrabBall(world, robot),
+                        FollowBall(world, robot),
                         GoToDefendPoint(world, robot),
                         RotateToDefendPoint(world, robot),
                         FaceBall(world, robot),
@@ -108,6 +110,7 @@ class GoToDefendPoint(Action):
 
         logging.info("Wants to move by: " + str(distance_to_move))
         comms.move(distance_to_move)
+        return utils.defender_move_delay(distance_to_move)
 
 
 class RotateToDefendPoint(Action):
@@ -121,6 +124,7 @@ class RotateToDefendPoint(Action):
 
         logging.info("Facing defend point: Rotating %f degrees to %f %f" % (math.degrees(angle), defend_point.x, defend_point.y))
         comms.turn(angle)
+        return utils.defender_turn_delay(angle)
 
 
 class FaceBall(Action):
@@ -133,6 +137,7 @@ class FaceBall(Action):
         angle = utils.get_rotation_to_point(self.robot.vector, self.world.ball.vector)
         logging.info("Facing ball: Rotating %f" % angle)
         comms.turn(angle)
+        return utils.defender_turn_delay(angle)
 
 
 class Wiggle(Action):
@@ -152,18 +157,20 @@ class Wiggle(Action):
 
         logging.info("Wants to wiggle by: " + str(wiggeled_distance_to_move))
         comms.move(wiggeled_distance_to_move)
+        return utils.defender_move_delay(wiggeled_distance_to_move)
 
 
 class FollowBall(Action):
     preconditions = [
-        (lambda w, r: abs(utils.defender_distance_to_ball(r.vector, w.ball.vector) < FOLLOW_BALL_DISTANCE_THRESHOLD, "Defender close to kicked ball")
+        (lambda w, r: abs(utils.defender_distance_to_ball(r.vector, w.ball.vector)) < FOLLOW_BALL_DISTANCE_THRESHOLD, "Defender close to kicked ball")
     ]
 
     def perform(self, comms):
-        distance_to_move = defender_fellow_ball_distance(self.robot.vector, self.world.ball.vector)
+        distance_to_move = utils.defender_follow_ball_distance(self.robot.vector, self.world.ball.vector)
 
         logging.info("Wants to follow ball by: " + str(distance_to_move))
         comms.move(distance_to_move)
+        return utils.defender_move_delay(distance_to_move)
 
 
 class GoToStaticBall(Action):
@@ -242,6 +249,7 @@ class TurnToCatchPoint(Action):
     ]
 
     def perform(self, comms):
+        global ROTATION_THRESHOLD
         logging.info('---- ' + str(ROTATION_THRESHOLD))
         x = self.world.ball.x
         y = self.world.ball.y
@@ -250,7 +258,6 @@ class TurnToCatchPoint(Action):
 
         comms.turn(angle)
 
-        global ROTATION_THRESHOLD
         if ROTATION_THRESHOLD < 0.30:
             ROTATION_THRESHOLD += 0.07
 

@@ -233,6 +233,12 @@ class Defender(Robot):
         # Calculate tactical position
         raise NotImplementedError
 
+    def has_ball(self, ball):
+        '''
+        Gets if the robot has possession of the ball
+        '''
+        return self.catcher == 'CLOSED'
+
 
 class Attacker(Robot):
 

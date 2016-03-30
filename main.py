@@ -9,6 +9,7 @@ from Vision.vision import Vision
 from planning.planner import AttackPlanner, DefencePlanner
 from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
+from planning import models_defender
 from threading import Timer, Thread
 from planning.predictor import Predictor
 from time import time
@@ -303,9 +304,11 @@ def run(attacker, defender, plan, pitch_no):
         interrupts.append(Interrupt(
             lambda: latest_world.our_defender.can_catch_ball(latest_world.ball),
             run_defence_planner, 2))
-        #interrupts.append(Interrupt(
-        #    lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
+        interrupts.append(Interrupt(
+            lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
             run_defence_planner, 2))
+        interrupts.append(Interrupt(
+            lambda: utils.defender_distance_to_ball(latest_world.our_defender.vector, latest_world.ball.vector) < models_defender.FOLLOW_BALL_DISTANCE_THRESHOLD, run_defence_planner, 2))
 
     if attack_planner:
         attack_timer = Timer(INITIAL_PLANNER_DELAY, run_attack_planner)

@@ -15,10 +15,19 @@ SMALL_VALUE = 0.001
 
 def defender_should_grab_ball(world):
     balldist = dist(world.our_goal, world.ball)
-    if not world.their_robots[0].is_missing() and dist(world.our_goal, world.their_robots[0]) < balldist):
-        return False
-    if not world.their_robots[1].is_missing() and dist(world.our_goal, world.their_robots[1]) < balldist):
-        return False
+    grabdist = dist(world.our_defender, world.ball)
+    if not world.their_robots[0].is_missing():
+        if dist(world.our_goal, world.their_robots[0]) < balldist:
+            return False
+        d = dist(world.their_robots[0], world.ball)
+        if d < grabdist:
+            return False
+    if not world.their_robots[1].is_missing():
+        if dist(world.our_goal, world.their_robots[1]) < balldist:
+            return False
+        d = dist(world.their_robots[1], world.ball)
+        if d < grabdist:
+            return False
     return True
 
 def defender_move_delay(dist):
@@ -53,7 +62,7 @@ def get_defence_point(world):
     return Vector(x, y, 0, 0)
 
 
-def defender_fellow_ball_distance(robot_vec, ball_vec):
+def defender_follow_ball_distance(robot_vec, ball_vec):
     robot_vec_left = Vector(robot_vec.x, robot_vec.y, robot_vec.angle - math.pi / 2, 0)
     alpha_left = get_rotation_to_point(robot_vec_left, ball_vec)
 
