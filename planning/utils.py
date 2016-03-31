@@ -14,6 +14,7 @@ AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
 SMALL_VALUE = 0.001
 
+
 def defender_should_grab_ball(world):
     balldist = dist(world.our_goal, world.ball)
     grabdist = dist(world.our_defender, world.ball)
@@ -36,6 +37,7 @@ def defender_should_grab_ball(world):
         if d < grabdist:
             return False
     return True
+
 
 def defender_move_delay(dist):
     if abs(dist) > 150:
@@ -92,21 +94,32 @@ def defender_follow_ball_distance(robot_vec, ball_vec):
     return distance_to_move
 
 
-def defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius):
+def defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius, side):
 
-    def defender_get_defend_point(robot_vec, ball_vec, center, center_radius):
+    def defender_get_defend_point(robot_vec, ball_vec, center, center_radius, side):
         dx = ball_vec.x - center.x
         dy = ball_vec.y - center.y
         alpha = math.atan2(dx, dy) % (math.pi * 2)
 
-        print math.degrees(alpha)
+        # lovely for ifs to make your life easier reader
+        offset = math.radians(20)
+        if side == "left":
+            if alpha < offset:
+                alpha = offset
+            elif alpha > math.radians(180) - offset:
+                alpha = math.radians(180) - offset
+        else:
+            if alpha < math.radians(180) + offset:
+                alpha = math.radians(180) + offset
+            elif alpha > math.radians(360) - offset:
+                alpha = math.radians(360) - offset
 
         x = center.x + center_radius * math.sin(alpha)
         y = center.y + center_radius * math.cos(alpha)
 
         return Vector(x, y, 0, 0)
 
-    defend_point = defender_get_defend_point(robot_vec, ball_vec, center, center_radius)
+    defend_point = defender_get_defend_point(robot_vec, ball_vec, center, center_radius, side)
 
     global DEFEND_POINT
     DEFEND_POINT = Vector(defend_point.x, 470 - defend_point.y, 0, 0)

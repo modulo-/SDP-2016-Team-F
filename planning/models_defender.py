@@ -93,13 +93,13 @@ class GrabBall(Action):
 
 class GoToDefendPoint(Action):
     preconditions = [
-        (lambda w, r: abs(utils.defender_rotation_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS)[0]) < ROTATION_DEFEND_POINT_THRESHOLD, "Defender is facing defending point"),
+        (lambda w, r: abs(utils.defender_rotation_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS, w.out_side)[0]) < ROTATION_DEFEND_POINT_THRESHOLD, "Defender is facing defending point"),
         (lambda w, r: abs(utils.defender_distance_to_defend_point(r.vector, w.ball.vector, w.our_goal.vector, GOAL_RADIUS)) > DEFEND_POINT_DISTANCE_THRESHOLD, "Defender far away from defending point"),
         (lambda w, r: r.catcher == 'OPEN', "Grabbers are open.")
     ]
 
     def perform(self, comms):
-        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, GOAL_RADIUS)
+        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, GOAL_RADIUS, w.out_side)
 
         dx = defend_point.x - self.robot.x
         dy = defend_point.y - self.robot.y
@@ -120,7 +120,7 @@ class RotateToDefendPoint(Action):
     ]
 
     def perform(self, comms):
-        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, GOAL_RADIUS)
+        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, GOAL_RADIUS, w.out_side)
 
         logging.info("Facing defend point: Rotating %f degrees to %f %f" % (math.degrees(angle), defend_point.x, defend_point.y))
         comms.turn(angle)
@@ -146,7 +146,7 @@ class Wiggle(Action):
     ]
 
     def perform(self, comms):
-        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, GOAL_RADIUS)
+        angle, side, defend_point = utils.defender_rotation_to_defend_point(self.robot.vector, self.world.ball.vector, self.world.our_goal.vector, GOAL_RADIUS, w.out_side)
 
         dx = defend_point.x - self.robot.x
         dy = defend_point.y - self.robot.y
