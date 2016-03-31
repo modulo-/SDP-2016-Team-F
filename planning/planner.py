@@ -150,7 +150,7 @@ class DefencePlanner(Planner):
         if robot.penalty:
             return None
         elif self.current_task == 'game' and world.game_state is not None:
-            utils.defender_rotation_to_defend_point(robot, world.ball, world.our_goal.vector, defender.GOAL_RADIUS)
+            utils.defender_rotation_to_defend_point(robot, world.ball, world.our_goal.vector, defender.GOAL_RADIUS, world.our_side)
             if robot.has_ball(world.ball):
                 info("Defender goal choice: Pass the ball")
                 return defender.Pass(world, robot)

@@ -105,7 +105,7 @@ def robot_callback(value):
             latest_world.our_attacker.is_ball_in_grabbers = True
             try:
                 holding_ball_release_timer.start()
-            except RuntimerError:
+            except RuntimeError:
                 # Timer already running, shouldn't happen
                 pass
         latest_world.our_attacker.catcher = "CLOSED"
@@ -116,6 +116,8 @@ def robot_callback(value):
         if move_from_block:
             move_from_block()
             logging.info("Moving back from obstacle")
+        else:
+            print("No move from block")
 
 
 def new_vision(world):

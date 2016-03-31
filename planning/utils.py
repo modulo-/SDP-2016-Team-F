@@ -367,9 +367,9 @@ def robot_can_reach_ball(ball, robot):
     return True
 
 
-def defender_distance_to_defend_point(robot_vec, ball_vec, center, center_radius):
+def defender_distance_to_defend_point(robot_vec, ball_vec, center, center_radius, side):
 
-    angle, side, defend_point = defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius)
+    angle, side, defend_point = defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius, side)
     dx = defend_point.x - robot_vec.x
     dy = defend_point.y - robot_vec.y
     distance = math.hypot(dx, dy)
