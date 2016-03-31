@@ -17,7 +17,7 @@ GRAB_DELAY = 1.5
 def is_robot_facing_position(world, r, pos):
     angle = utils.get_avoiding_angle_to_point(world, r.vector, pos)
     if not angle:
-        return False
+        return utils.attacker_get_rotation_to_point(r.vector, pos)
     return abs(angle) < ROTATION_THRESHOLD
     #return abs(utils.attacker_get_rotation_to_point(r.vector, pos)) < ROTATION_THRESHOLD
 
