@@ -154,6 +154,8 @@ class DefencePlanner(Planner):
             if robot.has_ball(world.ball):
                 info("Defender goal choice: Pass the ball")
                 return defender.Pass(world, robot)
+            elif utils.dist(world.our_goal, world.ball) < defender.GOAL_RADIUS:
+                return None
             elif not utils.ball_heading_to_our_goal(world) and utils.defender_should_grab_ball(world):
                 info("Defender goal choice: Retrieve the ball")
                 return defender.GetBall(world, robot)
