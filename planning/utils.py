@@ -2,6 +2,7 @@ import math
 import logging
 import random
 import numpy as np
+import models_defender
 
 from position import Vector
 from math import pi
@@ -34,6 +35,8 @@ def defender_should_grab_ball(world):
         d = dist(world.our_attacker, world.ball)
         if d < grabdist:
             return False
+    if balldist < models_defender.GOAL_RADIUS:
+        return False
     return True
 
 def defender_move_delay(dist):
