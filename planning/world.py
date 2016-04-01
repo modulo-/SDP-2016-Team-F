@@ -337,8 +337,11 @@ class Pitch(object):
             self._bottom = 24
             # Could find actual pitch width and height
         else:
-            # TODO add values for other pitch room
-            raise NotImplementedError
+            self._goal_box_x = {'left':170, 'right':477}
+            self._goal_line_x = {'left':28, 'right':610}
+            self._centre_line_x = 324
+            self._top = 454
+            self._bottom = 21
 
     def is_within_bounds(self, robot, x, y):
         '''
@@ -481,6 +484,9 @@ class World(object):
                 and y < self.pitch.top and y > self.pitch.bottom
         # TODO
         return True
+
+    def is_possible_vector_position(self, robot, v):
+        return self.is_possible_position(robot, v.x, v.y)
 
     @property
     def robot_in_possession(self):

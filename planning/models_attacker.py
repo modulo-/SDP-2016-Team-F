@@ -9,7 +9,7 @@ from models_common import Goal, Action, are_equivalent_positions
 # TODO Calibrate these!
 ROTATION_THRESHOLD = 0.2
 FACING_ROTATION_THRESHOLD = 0.2
-ROTATION_TIME_FACTOR = 1
+ROTATION_TIME_FACTOR = 0.7
 ROTATION_EXTRA_TIME = 0.3
 GRAB_DISTANCE = 25
 GRAB_DELAY = 1.5
@@ -130,6 +130,7 @@ class GrabBall(Action):
 
     def get_delay(self):
         return GRAB_DELAY
+
 
 class TurnToGoal(Action):
     preconditions = [(lambda w, r: r.has_ball(w.ball), "Attacker has ball")]
@@ -265,6 +266,9 @@ class GoToBlockingPosition(Action):
 
     def perform(self, comms):
         position = self.robot.get_blocking_position(self.world)
+        if utils.find_obstacle(self.world, self.robot.vector, position):
+            # Do nothing
+            return
         dx = position.x - self.robot.x
         dy = position.y - self.robot.y
         d = math.sqrt(dx**2 + dy**2)
