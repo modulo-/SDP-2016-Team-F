@@ -87,7 +87,6 @@ def get_pink_opponent(world):
 def robot_callback(value):
     global attacker_grabbers_close_timer, holding_ball_release_timer
     if value == "grabbersOpen":
-        print ("Got grabbersOpen")
         latest_world.our_attacker.is_ball_in_grabbers = False
         latest_world.our_attacker.catcher = "OPEN"
         try:
