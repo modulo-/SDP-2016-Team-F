@@ -117,7 +117,8 @@ class AttackPlanner(Planner):
             elif any([r.has_ball(world.ball) for r in world.their_attackers]):
                 info("Opponent in our half has ball so going to score position")
                 return attacker.AttackPosition(world, robot)
-            elif any([r.has_ball(world.ball) for r in world.their_defenders]):
+            elif any([r.has_ball(world.ball) for r in world.their_defenders])\
+                 and world.is_possible_vector_position(world.our_attacker, world.our_attacker.get_blocking_position(world)):
                 info("Opponent in their half has ball so blocking")
                 return attacker.AttackerBlock(world, robot)
             elif world.is_possible_position(world.our_attacker, world.ball.x, world.ball.y):
