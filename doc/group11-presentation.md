@@ -1,8 +1,8 @@
 Good morning, ladies and gentlemen of the jury. I am the witchfinder general -
 I mean a respresentative - of group 11. Our robot is the Scary Tractor Crab. A
 theme you will note during this presentation is that a lot of our decisions
-focused on using the simplest practical design we could find. This is largely
-due to our group having fewer working members than most.
+focused on using the simplest practical design we could find, in order to focus
+on reliability.
 
 To start with the most abstract: Our robot control followes the most basic
 pattern. We receive the raw vision feed from the camera, which is then
@@ -31,7 +31,9 @@ tuck away to the sides. Without knowing they are there, you'd be forgiven for
 thinking we didn't have any. This is also their strength, however. Unlike many
 other teams, which have to first open their grabbers, approach the ball, and
 then close them, our grabbers are open by default. We simply move to one side
-of the ball, and close the grabbers.
+of the ball, and close the grabbers. Moving to the correct position in order to
+grab the ball was more tricky than it seems, as we cannot blindly charge into
+it, but have to approach it from the side.
 
 For kicking we use a solonoid kicker, which in essence is an electromagnet
 which propels a small metal rod. By the way, I do feel the need to claim
