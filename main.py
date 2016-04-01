@@ -36,11 +36,11 @@ class Interrupt:
 INITIAL_PLANNER_DELAY = 4
 
 attacker_grabber_close = None
-ATTACKER_GRABBERS_CLOSE_TIME = 4
+ATTACKER_GRABBERS_CLOSE_TIME = 9
 attacker_grabbers_close_timer = None
 
 holding_ball_release = None
-HOLDING_BALL_RELEASE_TIME = 4
+HOLDING_BALL_RELEASE_TIME = 9
 holding_ball_release_timer = None
 
 move_from_block = None
