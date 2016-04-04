@@ -37,8 +37,8 @@ for line in output:
             distance.append(int(numStr))
         if i==1:
             rightDistance.append(int(numStr))
-            difference.append(distance[counter]-int(numStr))
-            distance[counter]=(distance[counter]+int(numStr))/2
+            difference.append((distance[counter]-int(numStr))/2.0)
+            distance[counter]=(distance[counter]+int(numStr))/4.0
             if(counter>0 and distance[counter]-distance[counter-1]<0):
                 print "distance decreasing"
                 print distance[counter]
@@ -67,22 +67,22 @@ for i in range(1,len(speed)):
     accelerationTimes.append((speedTimes[i]+speedTimes[i-1])/2)
 
 plt.plot(time,distance)
-plt.ylabel('distance')
+plt.ylabel('distance(degrees)')
 plt.xlabel('time')
 plt.show()
 
 plt.plot(time,difference)
-plt.ylabel('difference')
+plt.ylabel('difference(degrees)')
 plt.xlabel('time')
 plt.show()
 
 plt.plot(speedTimes,speed)
-plt.ylabel('speed')
+plt.ylabel('speed(degrees/s)')
 plt.xlabel('time')
 plt.show()
 
 plt.plot(accelerationTimes,acceleration)
-plt.ylabel('acceleration')
+plt.ylabel('acceleration(degrees/s/s)')
 plt.xlabel('time')
 plt.show()
 

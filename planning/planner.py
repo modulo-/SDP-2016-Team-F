@@ -64,13 +64,6 @@ class AttackPlanner(Planner):
     '''
 
     def actuate(self, action):
-        if isinstance(action, attacker.GrabBall):
-            info("Did grab")
-            self.grabber_state = 'CLOSED'
-        elif isinstance(action, attacker.OpenGrabbers) or isinstance(action, attacker.KickToDefender) or \
-             isinstance(action, attacker.Score):
-            info("Did open")
-            self.grabber_state = 'OPEN'
         Planner.actuate(self, action)
         return action.get_delay()
 
@@ -78,9 +71,6 @@ class AttackPlanner(Planner):
         return world.our_attacker
 
     def plan_and_act(self, world):
-        world.our_attacker.catcher = self.grabber_state
-        if self.grabber_state is 'OPEN':
-            world.our_attacker.is_ball_in_grabbers = False
         return super(AttackPlanner, self).plan_and_act(world)
 
     def get_goal(self, world, robot):
@@ -117,18 +107,25 @@ class AttackPlanner(Planner):
             return attacker.AttackerBlock(world, robot)
         elif self.current_task == 'score-zone':
             return attacker.AttackPosition(world, robot)
-        elif self.current_task == 'game':
+        elif world.game_state == 'normal-play':
             if world.our_attacker.has_ball(world.ball):
+                info("Attacker has ball so trying to score")
                 return attacker.Score(world, robot)
             elif world.our_defender.has_ball(world.ball):
+                info("Defender has ball so going to attack position")
                 return attacker.AttackPosition(world, robot)
             elif any([r.has_ball(world.ball) for r in world.their_attackers]):
+                info("Opponent in our half has ball so going to score position")
                 return attacker.AttackPosition(world, robot)
-            elif any([r.has_ball(world.ball) for r in world.their_defenders]):
+            elif any([r.has_ball(world.ball) for r in world.their_defenders])\
+                 and world.is_possible_vector_position(world.our_attacker, world.our_attacker.get_blocking_position(world)):
+                info("Opponent in their half has ball so blocking")
                 return attacker.AttackerBlock(world, robot)
             elif world.is_possible_position(world.our_attacker, world.ball.x, world.ball.y):
+                info("Ball is in possible position so getting ball")
                 return attacker.GetBall(world, robot)
             else:
+                info("All else failed so going to attack position")
                 return attacker.AttackPosition(world, robot)
         elif self.current_task == 'test-obstacle':
             print(math.degrees(utils.get_avoiding_angle_to_point(world,
@@ -154,6 +151,19 @@ class DefencePlanner(Planner):
         if robot.penalty:
             return None
         elif self.current_task == 'game' and world.game_state is not None:
+            utils.defender_rotation_to_defend_point(robot, world.ball, world.our_goal.vector, defender.GOAL_RADIUS, world.our_side)
+            if robot.has_ball(world.ball):
+                info("Defender goal choice: Pass the ball")
+                return defender.Pass(world, robot)
+            elif utils.dist(world.our_goal, world.ball) < defender.GOAL_RADIUS:
+                return None
+            elif not utils.ball_heading_to_our_goal(world) and utils.defender_should_grab_ball(world):
+                info("Defender goal choice: Retrieve the ball")
+                return defender.GetBall(world, robot)
+            else:
+                info("Defender goal choice: Do the wiggle dance!")
+                return defender.Defend(world, robot)
+        elif self.current_task == 'oldgame' and world.game_state is not None:
             if robot.has_ball(world.ball):
                 info("Defender goal choice: kick the ball")
                 return defender.Pass(world, robot)
@@ -175,6 +185,8 @@ class DefencePlanner(Planner):
                 return defender.ReturnToDefenceArea(world, robot)
         elif self.current_task == 'move-grab':
             return defender.GetBall(world, robot)
+        elif self.current_task == 'defend':
+            return defender.Defend(world, robot)
         elif self.current_task == 'reactive-grab':
             return defender.ReactiveGrabGoal(world, robot)
         elif self.current_task == 'm1':

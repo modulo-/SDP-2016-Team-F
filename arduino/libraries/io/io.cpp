@@ -55,4 +55,20 @@ namespace io {
         Wire.write(send, 1);
         Wire.endTransmission();
     }
+
+    void brake(uint8_t motor) {
+        uint8_t send[1] = {motor << 5 | 18};
+        Wire.beginTransmission(MOTOR_BOARD_I2C);
+        Wire.write(send, 1);
+        Wire.endTransmission();
+    }
+
+    void brakeAll() {
+        brake(0);
+        brake(1);
+        brake(2);
+        brake(3);
+        brake(4);
+        brake(5);
+    }
 }

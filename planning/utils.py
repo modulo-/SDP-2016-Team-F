@@ -2,28 +2,56 @@ import math
 import logging
 import random
 import numpy as np
+import models_defender
 
 from position import Vector
 from math import pi
-from IPython import embed
+# from IPython import embed
 
-AVOID_DISTANCE = 30
+
+DEFEND_POINT = Vector(2, 2, 0, 0)
+AVOID_DISTANCE = 60
 FAR_AWAY_DISTANCE_THRESHOLD = 120
+SMALL_VALUE = 0.001
+
+
+def defender_should_grab_ball(world):
+    balldist = dist(world.our_goal, world.ball)
+    grabdist = dist(world.our_defender, world.ball)
+    if not world.their_robots[0].is_missing():
+        if dist(world.our_goal, world.their_robots[0]) < balldist:
+            return False
+        d = dist(world.their_robots[0], world.ball)
+        if d < grabdist:
+            return False
+    if not world.their_robots[1].is_missing():
+        if dist(world.our_goal, world.their_robots[1]) < balldist:
+            return False
+        d = dist(world.their_robots[1], world.ball)
+        if d < grabdist:
+            return False
+    if not world.our_attacker.is_missing():
+        if dist(world.our_goal, world.our_attacker) < balldist:
+            return False
+        d = dist(world.our_attacker, world.ball)
+        if d < grabdist:
+            return False
+    return True
 
 
 def defender_move_delay(dist):
     if abs(dist) > 150:
-        return 2.5
-    elif abs(dist) > 100:
         return 2
-    elif abs(dist) > 60:
+    elif abs(dist) > 100:
         return 1.5
+    elif abs(dist) > 60:
+        return 1
     else:
         return 1
 
 
 def defender_turn_delay(angle):
-    return 1.0 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
+    return 0.25 + math.ceil(abs(angle) / (math.pi / 4)) * 0.5
 
 
 def defender_move_vec(vec):
@@ -43,10 +71,68 @@ def get_defence_point(world):
     return Vector(x, y, 0, 0)
 
 
+def defender_follow_ball_distance(robot_vec, ball_vec):
+    robot_vec_left = Vector(robot_vec.x, robot_vec.y, robot_vec.angle - math.pi / 2, 0)
+    alpha_left = get_rotation_to_point(robot_vec_left, ball_vec)
+
+    robot_vec_right = Vector(robot_vec.x, robot_vec.y, robot_vec.angle + math.pi / 2, 0)
+    alpha_right = get_rotation_to_point(robot_vec_right, ball_vec)
+
+    # Find the closes angle (side to move)
+    side = -1
+    alpha = alpha_left
+    if alpha_left > alpha_right:
+        side = 1
+        alpha = alpha_right
+
+    dx = ball_vec.x - robot_vec.x
+    dy = ball_vec.y - robot_vec.y
+    hypotenus = math.hypot(dx, dy)
+
+    distance_to_move = math.cos(alpha) * hypotenus * side
+
+    return distance_to_move
+
+
+def defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius, side):
+
+    def defender_get_defend_point(robot_vec, ball_vec, center, center_radius, side):
+        dx = ball_vec.x - center.x
+        dy = ball_vec.y - center.y
+        alpha = math.atan2(dx, dy) % (math.pi * 2)
+
+        # lovely for ifs to make your life easier reader
+        offset = math.radians(20)
+        if side == "left":
+            if alpha < offset:
+                alpha = offset
+            elif alpha > math.radians(180) - offset:
+                alpha = math.radians(180) - offset
+        else:
+            if alpha < math.radians(180) + offset:
+                alpha = math.radians(180) + offset
+            elif alpha > math.radians(360) - offset:
+                alpha = math.radians(360) - offset
+
+        x = center.x + center_radius * math.sin(alpha)
+        y = center.y + center_radius * math.cos(alpha)
+
+        return Vector(x, y, 0, 0)
+
+    defend_point = defender_get_defend_point(robot_vec, ball_vec, center, center_radius, side)
+
+    global DEFEND_POINT
+    DEFEND_POINT = Vector(defend_point.x, 470 - defend_point.y, 0, 0)
+
+    angle, side = defender_get_rotation_to_catch_point(robot_vec, defend_point, 1)
+
+    return (angle, side, defend_point)
+
+
 def get_avoiding_angle_to_point(world, vec1, vec2):
     straight_angle = get_rotation_to_point(vec1, vec2)
-    straight_distance = dist(vec1, vec2)
-    straight_vector = Vector(vec1.x, vec1.y, vec1.angle, 0)
+    # straight_distance = dist(vec1, vec2)
+    # straight_vector = Vector(vec1.x, vec1.y, vec1.angle, 0)
     obstacle = find_obstacle(world, vec1, vec2)
     if not obstacle:
         return straight_angle
@@ -66,7 +152,7 @@ def get_avoiding_angle_to_point(world, vec1, vec2):
     delta_length = AVOID_DISTANCE / 2
     dx = (obstacle.x - ix) / obstacle_from_line * delta_length
     dy = (obstacle.y - iy) / obstacle_from_line * delta_length
-    
+
     closest = None
     for j in range(-10, 10):
         v = Vector(ix + dx * j, iy + dy * j, 0, 0)
@@ -79,7 +165,7 @@ def get_avoiding_angle_to_point(world, vec1, vec2):
     else:
         logging.info("Found suitable angle {0}".format(closest))
     return closest
-            
+
 
 def get_rotation_to_point(vec1, vec2):
     '''
@@ -195,9 +281,11 @@ def defender_get_rotation_to_catch_point(robot_vec, ball_vec, catch_distance):
     # returns the rotation angle that is shorter
     if abs(first_relative_angle) < abs(second_relative_angle):
         logging.debug("Returning first:" + str(first_relative_angle) + " in degrees " + str(math.degrees(first_relative_angle)))
+        # logging.info(">>>>>>>>> LEFT")
         return (first_relative_angle, "left")
     else:
         logging.debug("Returning second:" + str(second_relative_angle) + " in degrees " + str(math.degrees(second_relative_angle)))
+        # logging.info(">>>>>>>>> RIGHT")
         return (second_relative_angle, "right")
 
 
@@ -277,6 +365,25 @@ def robot_can_reach_ball(ball, robot):
 
     # threshold = 30
     return True
+
+
+def defender_distance_to_defend_point(robot_vec, ball_vec, center, center_radius, side):
+
+    angle, side, defend_point = defender_rotation_to_defend_point(robot_vec, ball_vec, center, center_radius, side)
+    dx = defend_point.x - robot_vec.x
+    dy = defend_point.y - robot_vec.y
+    distance = math.hypot(dx, dy)
+
+    return distance
+
+
+def defender_distance_to_ball(robot_vec, ball_vec):
+
+    dx = ball_vec.x - robot_vec.x
+    dy = ball_vec.y - robot_vec.y
+    distance = math.hypot(dx, dy)
+
+    return distance
 
 
 def defender_distance_to_line(axis, robot_vec, point):
@@ -371,34 +478,44 @@ def can_score(world, our_robot, their_goal, turn=0):
 
     # return goal_posts[0][1] < predicted_y < goal_posts[1][1]
     return their_goal.lower_post < predicted_y < their_goal.higher_post
+# and\
+#        not find_obstacle(world, our_robot, their_goal.vector, exclude=[world.our_attacker])
 
 
 def defender_can_pass_to_position(world, position, enemy_zone_radius=40):
     '''
     Test if a robot at 'position' could be passed to
     '''
-    return not find_obstacle(world, world.our_defender, position)
+    return not find_obstacle(world, world.our_defender, position, exclude=[world.our_attacker, world.our_defender])
 
 
 # Test if a robot at 'position' could score
 def attacker_can_score_from_position(world, position):
     assert(position.angle == 0)
-    goal_points = [Vector(world.their_goal.x, world.their_goal.y + (world.their_goal.width / 4) * i, 0, 0) for i in [1,2,3]]
+    goal_points = [Vector(world.their_goal.x, world.their_goal.y + (world.their_goal.width / 4) * i, 0, 0) for i in [1, 2, 3]]
     for point in goal_points:
-        obstacle = find_obstacle(world, position, point)
+        obstacle = find_obstacle(world, position, point, exclude=[world.our_attacker])
         if not obstacle:
             return True
     return False
 
 
-def find_obstacle(world, vec1, vec2):
+def find_obstacle(world, vec1, vec2, exclude=[]):
     def check_object(vec3):
-        m_straight = float(vec2.y - vec1.y) / ((vec2.x - vec1.x) + 1)
+        dx = vec2.x - vec1.x
+        if dx == 0:
+            dx = SMALL_VALUE
+        m_straight = float(vec2.y - vec1.y) / dx
+        if m_straight == 0:
+            m_straight = SMALL_VALUE
         c_straight = vec1.y - vec1.x * m_straight
         m_perp = float(-1) / m_straight
         c_perp = vec3.y - vec3.x * m_perp
 
-        ix = -(c_straight - c_perp) / ((m_straight - m_perp) + 1)
+        dm = m_straight - m_perp
+        if dm == 0:
+            dm = SMALL_VALUE
+        ix = -(c_straight - c_perp) / dm
         iy = m_straight * ix + c_straight
         intercept = Vector(ix, iy, 0, 0)
         if dist(vec1, intercept) > dist(vec1, vec2):
@@ -410,8 +527,8 @@ def find_obstacle(world, vec1, vec2):
         else:
             return None
     closest = (None, 10000)
-    for obj in [world.our_defender, world.our_attacker,
-                world.their_robots[0], world.their_robots[1]]:
+    for obj in [r for r in [world.our_defender, world.our_attacker,
+                            world.their_robots[0], world.their_robots[1]] if not r in exclude]:
         if (obj.x == vec1.x and obj.y == vec1.y) or (obj.x == vec2.x and obj.y == vec2.y):
             continue
         result = check_object(obj.vector)
@@ -618,7 +735,7 @@ def line_intersects_circle(line, circle):
 
 def segment_to_point_distance(s1, s2, point):
 
-    def pdist(x1, y1, x2, y2, x3, y3): # x3,y3 is the point
+    def pdist(x1, y1, x2, y2, x3, y3):  # x3,y3 is the point
         px = x2 - x1
         py = y2 - y1
 
@@ -643,7 +760,7 @@ def segment_to_point_distance(s1, s2, point):
     return pdist(s1[0], s1[1], s2[0], s2[1], point[0], point[1])
 
 
-class testRobot:
+class TestRobot:
 
     def __init__(self, x, y, angle=0):
         self.vector = Vector(x, y, angle, 0)
@@ -652,21 +769,21 @@ class testRobot:
         return False
 
 
-class testWorld:
+class TestWorld:
 
     def __init__(self):
-        self.our_attacker = testRobot(282, 200)
+        self.our_attacker = TestRobot(282, 200)
         self.their_robots = [
-            testRobot(400, 300),
-            testRobot(400, 200),
-            testRobot(400, 150),
+            TestRobot(400, 300),
+            TestRobot(400, 200),
+            TestRobot(400, 150),
         ]
         self.our_side = "left"
 
 if __name__ == "__main__":
-    world = testWorld()
+    world = TestWorld()
 
-    defender = testRobot(0, 200, math.radians(90)).vector
+    defender = TestRobot(0, 200, math.radians(90)).vector
     b = defender_scan_angle_to_pass_absolute(world, defender)
     print b
 

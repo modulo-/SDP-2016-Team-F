@@ -4,19 +4,26 @@ import getopt
 import logging
 import sys
 
+
 from Vision.vision import Vision
 from planning.planner import AttackPlanner, DefencePlanner
 from planning.comms import RFCommsManager, TractorCrabCommsManager
 from planning.world import World
+from planning import models_defender
 from threading import Timer, Thread
 from planning.predictor import Predictor
 from time import time
-from math import pi
 from planning import utils
 from Tkinter import Tk, Button, Label, StringVar
 
+
 color = None
 statev = None
+
+# DEFEND_POINT
+import Vision.filters as filters
+from planning.position import Vector
+DEFEND_POINT = Vector(1, 1, 0, 0)
 
 
 class Interrupt:
@@ -28,11 +35,21 @@ class Interrupt:
 
 INITIAL_PLANNER_DELAY = 4
 
+attacker_grabber_close = None
+ATTACKER_GRABBERS_CLOSE_TIME = 9
+attacker_grabbers_close_timer = None
+
+holding_ball_release = None
+HOLDING_BALL_RELEASE_TIME = 9
+holding_ball_release_timer = None
+
+move_from_block = None
+
 predictor = Predictor()
 # TODO: formally, the 0 should be the command-line set pitch number.
 # But, since it isn't used, it doesn't really matter.
 latest_world = World('left', 0)
-latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}#{'width': 25, 'height': 10, 'front_offset': 20}
+latest_world.our_attacker._receiving_area = {'width': 40, 'height': 20, 'front_offset': 15}
 latest_world.our_defender._receiving_area = {'width': 50, 'height': 35, 'front_offset': 0}
 interrupts = []
 attack_timer = None
@@ -66,10 +83,45 @@ def get_pink_opponent(world):
     else:
         return world.robot_blue_pink
 
-def new_grabber_state(value):
-    latest_world.our_attacker.is_ball_in_grabbers = value
+
+def robot_callback(value):
+    global attacker_grabbers_close_timer, holding_ball_release_timer
+    if value == "grabbersOpen":
+        latest_world.our_attacker.is_ball_in_grabbers = False
+        latest_world.our_attacker.catcher = "OPEN"
+        try:
+            attacker_grabbers_close_timer.start()
+        except RuntimeError:
+            # Timer already running, shouldn't happen
+            pass
+        holding_ball_release_timer.cancel()
+        holding_ball_release_timer = Timer(HOLDING_BALL_RELEASE_TIME,
+                                           holding_ball_release)
+    elif value in ["NC", "BC"]:
+        if value == "NC":
+            latest_world.our_attacker.is_ball_in_grabbers = False
+        elif value == "BC":
+            latest_world.our_attacker.is_ball_in_grabbers = True
+            try:
+                holding_ball_release_timer.start()
+            except RuntimeError:
+                # Timer already running, shouldn't happen
+                pass
+        latest_world.our_attacker.catcher = "CLOSED"
+        attacker_grabbers_close_timer.cancel()
+        attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
+                                              attacker_grabbers_close)
+    elif value == "something in the way":
+        if move_from_block:
+            move_from_block()
+            logging.info("Moving back from obstacle")
+        else:
+            print("No move from block")
+
 
 def new_vision(world):
+    filters.D_POINT = utils.DEFEND_POINT
+
     predictor.update(world)
     world = predictor.predict()
     latest_world.update_positions(
@@ -77,15 +129,14 @@ def new_vision(world):
         our_attacker=get_attacker(world),
         their_robot_0=get_green_opponent(world),
         their_robot_1=get_pink_opponent(world),
-        ball=world.ball,
+        ball=world.ball
     )
     t = time()
     for interrupt in interrupts:
         if t - interrupt.last_t >= interrupt.delay and interrupt.cond():
             interrupt.last_t = t
             interrupt.run()
-    if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend',
-            'penalty-shoot'] and not utils.ball_is_static(latest_world):
+    if latest_world.game_state in ['kickoff-them', 'kickoff-us', 'penalty-defend', 'penalty-shoot'] and not utils.ball_is_static(latest_world):
         latest_world.game_state = 'normal-play'
         statev.set('normal-play')
 
@@ -147,7 +198,7 @@ def set_plan(attack_planner, defence_planner, plan):
 
 def main():
     global color
-    pitch_no = 0
+    pitch_no = 1
     logging.basicConfig(level=logging.WARNING, format="\r%(asctime)s - %(levelname)s - %(message)s")
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hz1:2:l:c:p:g:", ["help",
@@ -172,7 +223,7 @@ def main():
         elif o in ("-1", "--defender"):
             defender = TractorCrabCommsManager(0, a)
         elif o in ("-2", "--attacker"):
-            attacker = RFCommsManager(0, a, new_grabber_state)
+            attacker = RFCommsManager(0, a, robot_callback)
         elif o in ("-l", "--logging"):
             logging_modes = a.split(",")
             for mode in logging_modes:
@@ -224,7 +275,9 @@ def do_ui():
     top.mainloop()
 
 def run(attacker, defender, plan, pitch_no):
-    global attack_timer, defence_timer
+    global attack_timer, defence_timer, attacker_grabbers_close_timer,\
+        attacker_grabbers_close, holding_ball_release_timer,\
+        holding_ball_release, move_from_block
     ui_thread = Thread(target=do_ui)
     ui_thread.daemon = True
     ui_thread.start()
@@ -252,11 +305,33 @@ def run(attacker, defender, plan, pitch_no):
         defence_timer.daemon = True
         defence_timer.start()
 
+    def close_attacker_grabbers():
+        logging.info("Time out - closing grabbers")
+        attacker.close_grabbers()
+        attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
+                                              close_attacker_grabbers)
+    attacker_grabbers_close = close_attacker_grabbers
+
+    def move_attacker_backwards():
+        attacker.move(-60)
+    move_from_block = move_attacker_backwards
+
+    def release_held_ball():
+        logging.info("Time out - releasing ball")
+        attacker.kick_full_power()
+        holding_ball_release_timer = Timer(HOLDING_BALL_RELEASE_TIME,
+                                           release_held_ball)
+    holding_ball_release = release_held_ball
+
     if attacker:
         attack_planner = AttackPlanner(comms=attacker)
         """interrupts.append(Interrupt(
             lambda: latest_world.our_attacker.can_catch_ball(latest_world.ball),
             run_attack_planner, 2))"""
+        attacker_grabbers_close_timer = Timer(ATTACKER_GRABBERS_CLOSE_TIME,
+                                              close_attacker_grabbers)
+        holding_ball_release_timer = Timer(HOLDING_BALL_RELEASE_TIME,
+                                           release_held_ball)
     if defender:
         defence_planner = DefencePlanner(comms=defender)
         interrupts.append(Interrupt(
@@ -265,6 +340,8 @@ def run(attacker, defender, plan, pitch_no):
         interrupts.append(Interrupt(
             lambda: utils.ball_heading_to_our_goal(latest_world) and latest_world.in_our_half(latest_world.ball),
             run_defence_planner, 2))
+        interrupts.append(Interrupt(
+            lambda: utils.defender_distance_to_ball(latest_world.our_defender.vector, latest_world.ball.vector) < models_defender.FOLLOW_BALL_DISTANCE_THRESHOLD, run_defence_planner, 2))
 
     if attack_planner:
         attack_timer = Timer(INITIAL_PLANNER_DELAY, run_attack_planner)

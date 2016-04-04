@@ -64,7 +64,10 @@ class SerialHandle:
                         index = i
                         break
                 if index is not None:
-                    self._packetlist.pop(index)
+                    try:
+                        self._packetlist.pop(index)
+                    except:
+                        pass
                 if self._packetlist == []:
                     self._packetcond.notify()
                 self._packetcond.release()

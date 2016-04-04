@@ -1,3 +1,4 @@
+
 #include "comms.h"
 #include "io.h"
 #include "sensors.h"
@@ -19,7 +20,9 @@ void setup() {
     io::init();
     // Kicker
     pinMode(6, OUTPUT);
+    pinMode(13, OUTPUT);
     digitalWrite(6, LOW);
+    digitalWrite(13, LOW);
     if(!comms::init("60", "~~~")) {
     }
     comms::send("rawr!", 'd', 5);

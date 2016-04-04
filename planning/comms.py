@@ -1,7 +1,7 @@
 import math
 from rf_comms import SerialHandle
 import struct
-from logging import info
+from logging import info, error
 
 
 class CommsManager(object):
@@ -127,12 +127,22 @@ class RFCommsManager (CommsManager):
         super(RFCommsManager, self).__init__(robot)
 
     def update_grabbers(self, data):
-        if data=="NC":
-            self.grab_callback(False)
+        if data == "NC":
+            self.grab_callback("NC")
             info("Ball not caught")
-        elif data=="BC":
-            self.grab_callback(True)
+        elif data == "BC":
+            self.grab_callback("BC")
             info("Ball caught")
+        elif data == "grabbersOpen":
+            self.grab_callback("grabbersOpen")
+            info("Grabbers open")
+        elif data == "finished":
+            pass
+        elif data == "something in the way":
+            self.grab_callback("something in the way")
+        else:
+            print(data)
+            error("Unknown message from robot")
 
     # move a distance in mm
     def move(self, distance):

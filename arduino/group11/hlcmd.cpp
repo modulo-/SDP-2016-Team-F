@@ -7,7 +7,7 @@
 #include <math.h>
 
 #define cmdArg(cmd, offset, type) ((type *)((cmd) + (offset)))
-#define ROTATION_EPSILON 1700
+#define ROTATION_EPSILON 300
 
 namespace hlcmd {
     const uint8_t WAIT          = 0x00;
@@ -84,8 +84,9 @@ namespace hlcmd {
             // 2. Brake (3 bytes)
             return 10;
         case STRAIT:
-        case HOLD_SPIN:
         case SPIN:
+            return 3;
+        case HOLD_SPIN:
             // An implicit 100ms brake
             return 6;
         case MV:
@@ -193,8 +194,8 @@ namespace hlcmd {
         case STRAIT:
             out[0] = llcmd::STRAIT;
             memcpy(out + 1, in + 1, 2);
-            out[3] = llcmd::BRAKE;
-            *((uint16_t *)(out + 4)) = 100;
+            //out[3] = llcmd::BRAKE;
+            //*((uint16_t *)(out + 4)) = 100;
             break;
         case KICK:
             out[0] = llcmd::GRABBER_FORCE | llcmd::FLAG_UNINTERRUPTABLE;
@@ -222,8 +223,8 @@ namespace hlcmd {
                 tmp = -ROTATION_EPSILON;
             }
             *((int16_t *)(out + 1)) = tmp;
-            out[3] = llcmd::BRAKE;
-            *((uint16_t *)(out + 4)) = 100;
+            //out[3] = llcmd::BRAKE;
+            //*((uint16_t *)(out + 4)) = 100;
             break;
         case MV:
             compileMV(in, out);
