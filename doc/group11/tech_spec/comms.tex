@@ -1,0 +1,56 @@
+\section{Communications}
+
+\subsection{Data Transfer}
+
+Communications between the arduino and computer are done over the supplied RF
+link. The frequency is set to the group frequency specified. Further, the
+optional encryption was enabled, and the PAN ID set to `6810'.
+
+Data is sent to and from the devices in packets, where the basic form of a
+packet is `\verb$<target><source><data><checksum>\r\n$'. \texttt{<target>} and
+\texttt{<source>} are the ASCII character `1' for the our robot, and the ASCII
+character `c' for the computer. For robot to computer messages, the targets `d'
+and `e' are also valid, used to send debug and error messages respectively.
+\texttt{<data>} is the base64 encoded binary message, and \texttt{<checksum>} a
+checksum of the preceding message. The base64 encoding does not use padding
+bytes, but is otherwise standard.
+
+The checksum consists of 2 characters, which are calculated as the checksum of
+all characters at even (starting 0) and odd indicies respectively, including
+\texttt{<target>} and \texttt{<source>}. These checksums are done by retrieving
+the value from 0-63 of the character in base64 encoding, XORing these together.
+The resulting value from 0-63 is then encoded back into a base64 character.
+
+For example, the checksum of `\texttt{dt6bas2}' is `\texttt{La}'.
+
+Devices ignores all packets not addressed to it, as well as malformed packets
+(including those with an incorrect checksum). Upon receipt of a packet, the
+device sends an acknowledgement. An acknowledgement packet has the form
+`\verb%<target>$<checksum>\r\n%'. An acknowledgement packet is not itself
+acknowledged.
+
+The computer side will resend packets which have not recieved an
+acknowledgement. The arduino side does not, and discards packets which are
+longer than the internal buffer (60 bytes). To prevent flooding, only the
+previously sent packet is resent. This suits the application well, as
+previously sent packets contain intructions to the robot which are supersceded
+by the more recent one.
+
+\subsection{Instruction ABI}
+
+For communications, the arduino and the controlling computer share a binary
+interface, with the computer sending binary packets of instructions to the
+arduino, and the arduino executing them. Packets sent by the computer consist
+of one or more instructions for the arduino, supplied in sequence. The first
+byte of the tranmitted data marks the start of the first instruction. Then, the
+byte following the end of the current instruction marks the start of the next.
+Instructions are variable in length, but always begin with one byte identifying
+the type of the instruction. This is then followed by zero or more bytes of
+arguments. For example, the binary data \texttt{0x06 02 ff 00} consists of two
+instructions: \texttt{0x06} and \texttt{0x02 ff 00}. \texttt{0x06} is the
+instruction to open the grabbers, and takes no further arguments. \texttt{0x02}
+is the instruction to move left or right, and takes two more bytes as its
+argument. \texttt{0x02 ff 00 06} contains the same instructions, but in a
+different order. \texttt{0x06 ff 02 00} however has undefined behaviour, as
+there is no instruction \texttt{0xff}. The instructions of this ABI are
+documented in \cref{abi}.

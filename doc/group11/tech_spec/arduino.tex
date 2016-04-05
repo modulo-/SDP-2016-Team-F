@@ -1,0 +1,49 @@
+\section{Low-Level Commands}
+
+The arduino internally maintains a queue of low-level commands which capture
+what the robot is currently doing. Once a command finishes, the arduino
+immediately moves on to the next. Structurally, low-level commands work
+similarly to high-level ones. They start with an opcode, depending on which
+some arguments may follow. The available low-level commands are:
+
+\begin{tabularx}{\textwidth}{rlX}
+    Opcode & Arguments & Description \\
+    \texttt{0x00} & time (\verb$uint16_t$) &
+        Waits for the given time \\
+    \texttt{0x01} & time (\verb$uint16_t$) &
+        Brakes for the given time \\
+    \texttt{0x02} & time (\verb$uint16_t$) &
+        Opens the grabbers for the given time \\
+    \texttt{0x03} & time (\verb$uint16_t$) &
+        Closes the grabbers slowly for the given time \\
+    \texttt{0x04} & time (\verb$uint16_t$) &
+        Closes the grabbers quickly for the given time \\
+    \texttt{0x05} & time (\verb$uint16_t$) &
+        Activates the kicker for the given time \\
+    \texttt{0x08} & distance (\verb$int16_t$) &
+        Moves right by the given distance \\
+    \texttt{0x09} & angle (\verb$int16_t$) &
+        Spins clockwise by the given angle \\
+    \texttt{0x0b} & speed (\verb$uint8_t$) &
+        Sets the global speed modifier to the given value \\
+%    \texttt{0x0c} & distance (\verb$int16_t$), front wheel weight (\verb$uint16_t$), back wheel weight (\verb$uint16_t$) &
+%        Moves the given distance, with the speed of the front and back wheels being in the specified proportion (used for arc movement) \\
+    \texttt{0x7f} & \textit{none} & Does nothing \\
+\end{tabularx}
+
+Further, the most significant bit of a low-level commands opcode signifies if this command is interruptable or not. If it is 1, the command is not interruptable.
+
+The arduino periodically updates the instruction list to decrease the time
+argument of the current instruction by the time passed, or, if the instruction
+is finished, moving onto the next one. If a new command sequence arrives, it is
+inserted in place of the first interruptable command in the sequence, with
+this, and all later commands being discarded. This ensures that
+non-interruptable commands are always run, and are run even if they consist of
+complex sequences which should not be interrupted. This is also the main reason
+for a no-op existing; it allows seperating multiple sequences of
+uninterruptable commands.
+
+Instructions setting values relating to the comms test are set immediately,
+and the arduino moves on to the next instruction. The send instruction
+\texttt{0xf2} suspends normal operation and executes a writing the buffer to
+the I$^2$C port with the previously set delay.
