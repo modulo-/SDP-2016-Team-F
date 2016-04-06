@@ -1,0 +1,27 @@
+\section{Architectural Overview}
+
+The core control of the robot was split across an external PC and the onboard
+Arduino Xino RF unit. An analog video feed with a top-down perspective of the
+pitch was supplied to the external PC. The external PC is able to communicate
+via a supplied radio frequency link. The PC uses a USB RF device, while the
+Arduino has an inbuilt RF transmitter and receiver.
+
+The external PC is responsible for all decision making, while the Arduino
+carries out instructions passed to it as quickly and accurately as possible.
+To begin with, the PC listens for new frames from the video input, and
+processes these to extract a set of coordinates for objects of interest: The
+robots (which are detected by their coloured top-plates), and the ball. This is
+used to update in internal model of the world. A few adjustments are made to
+smooth over misdetections by the vision system and correct positions to account
+for the fact that the robot top-plates are elevated.
+
+At set intervals, the planning module runs, and takes a snapshot of the current
+world state. It then determines what course of action to take in the current
+situation, and what concrete instructions should be sent to the robot. These
+instructions are then encoded into the instruction ABI, and transmitted via the
+RF link (see \cref{comms} for more details). Finally, the Arduino receives the
+instructions and sets the outputs to the motors and the kickers accordingly.
+Some amount of feedback from the rotary encoders on the motors allows the
+Arduino to adjust the motor powers on the fly, to correct its movement. The
+Arduino determines itself when an instruction is over, and proceeds with the
+next one, or, if no instructions are left, remains idle.
