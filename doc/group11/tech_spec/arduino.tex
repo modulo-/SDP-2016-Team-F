@@ -53,8 +53,23 @@ interruptable command in the list.
 
 \subsection{Distance}
 
-Blah, blah, rotary encoders, blah, blah.
+For multiple of the low-level commands, the distance the robot has travelled,
+or the angle it has rotated needs to be known. This is calculated from the
+values taken off the rotary encoders on each wheel, which indicate how far
+these wheels have rotated. In practice, due to the inconsistencies such as the
+wheels not stopping immediately and turning at differing powers, these values
+are not completely linear with the distance travelled or the angle rotated.
+Instead, a non-linear approximation function was created from measured values
+to translate rotary encoder postions into workable values for distance
+travelled or angle rotated. This function uses measured values for several
+points, and is linear between them.
 
 \subsection{Auto-Correction}
 
-Blah, blah, more rotary encoders, blah, blah.
+Due to the motors on different sides having different powers, and asymmetry in
+the design, without any corrections the robot drifted to one side. To
+compensate for this, the motor powers are updated every time the main loop is
+run, and motors whose rotary encoders show that they are ahead of the rest are
+throttled. In practice, this approach introduces a slight jerkiness and
+unpredictability to the movement, however this was deemed an acceptable
+tradeoff for straight movement.
