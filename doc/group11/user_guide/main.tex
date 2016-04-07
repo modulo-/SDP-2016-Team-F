@@ -1,7 +1,7 @@
 \documentclass[a4paper,12pt]{scrartcl}
 \usepackage{tabularx}
 \usepackage[pdfusetitle, hidelinks]{hyperref}
-\newcommand{\shellcmd}[1]{\indent\indent\texttt{\footnotesize\# #1}}
+\newcommand{\shellcmd}[1]{\indent\indent\texttt{\footnotesize\$ #1}}
 \author{Thomas Kerber, Marek Strelec}
 \title{User Guide}
 \subtitle{Group 11}
@@ -10,31 +10,34 @@
 \maketitle
 \section{Setup}
 \subsection{requirements}
-You'll need the following python packages to successfully run on DICE machine:
+
+In order to run the computer side control program, the following python
+packages need to be installed:
 
 \begin{itemize}
-\item \texttt{Polygon2} Polygon is a python package that handles polygonal shapes in 2D. 
-\item \texttt{argparse} Python command-line parsing library
-\item \texttt{pyserial} Python Serial Port Extension
-\item \texttt{numpy} Array processing for numbers, strings, records, and objects.
-\item \texttt{openCV} OpenCV-Python is the Python API of OpenCV. It combines the best qualities of OpenCV C++ API and Python language.
+\item \texttt{Polygon2}, for handling interactions of 2D polygons.
+\item \texttt{pyserial}, for interacting with the serial RF device.
+\item \texttt{numpy}, for various numerical calculations.
+\item \texttt{openCV}, for vision processing.
 \end{itemize}
 
-To install them run these commands in the terminal:
+On the university DiCE machines, \texttt{numpy} and \texttt{openCV} are already
+preinstalled. To install the remaining packages, run the following commands:
 
 \shellcmd{pip install --user Polygon2==2.0.6} \\
-\shellcmd{pip install --user argparse==1.3.0} \\
 \shellcmd{pip install --user pyserial==2.7} \\
-\shellcmd{pip install --user numpy}  
 
-You can also learn how to install openCV from the following link:
-\url{http://docs.opencv.org/2.4/doc/tutorials/introduction/linux_install/linux_install.html}
+\subsection{Arduino}
 
-\subsection{arduino}
-Connect the arduino to a USB port and run the \texttt{arduino} program. Open the file \verb$arduino/group11/group11.ino$, and ensure that the libraries in
-\verb$arduino/libraries/$ are loaded. Compile and upload the code to the
-arduino. Remove the USB cable.
-
+The Arduino must be programmed with the robot's firmware before use. If this is
+not already the case, it can be programmed by running the \texttt{arduino}
+program, and opening the \texttt{/arduino/group11/group11.ino} sketch. If not
+the case already, the sketchbook location should be set to \texttt{/arduino/},
+to ensure that the libraries used are found. Next, the Arduino should be
+connected to the computer, and the sketch compiled and uploaded to it using the
+button for this purpose. The USB cable should then be removed. Finally, if the
+robot was on during this process, it should be briefly switched off to allow
+the Arduino serial device to reset.
 
 \section{Usage}
 
