@@ -43,38 +43,55 @@ of the pitch for calibration.
 
 \subsection{Calibration}
 
-Before using the vision system, you can have a look at the vision feed by typing \emph{xawtv} in the command prompt. This will launch only the vision feed, where you can experiment with the different settings.
-
-When the vision starts, it will enter calibration mode. In this mode, a still
-of the pitch is displayed. In turn, red, blue, yellow, green, and pink will be
-calibrated for. For each of these, click multiple times on parts of the still
-which should be recognised as the specified color. When done with a color,
-press `\texttt{q}' to move on to the next.
-
-The calibrations will be saved locally, and can be loaded by pressing escape
-when the calibration mode starts.
+On the still of the pitch all four top plates and the ball should be clearly
+visible as positioned earlier. The terminal will prompt the operator to click
+on samples of red, blue, yellow, green, and pink in turn, for the ball and the
+top-plate parts of the respective colours. This calibrates for the colours,
+ensuring that they are accurately detected. Of each colour, multiple samples
+should be clicked, including all places it is visible on the pitch (i.e. the
+green circles of all top plates, and not just one should be sampled). After
+several samples of each colour have been clicked, press the `q' key to move on
+to the next. The colours are queried in the order listed above, and a request
+for samples of the current colour is also printed to the terminal. Once
+calibrations are complete, they are saved locally. Due to changing light
+conditions, you should recalibrate at least every few hours, however it is
+possible to skip the calibration phase and use the saved values by pressing
+escape at the start of calibration.
 
 \subsection{Online Usage}
 
-After the vision is lunched, there will be a window named \texttt{Filter} output, where you can see the vision feed with objects drawn on it representing the robots and the ball (if they are found).
-Robots will be represented by an inner circle for the team colour (\texttt{yellow} or \texttt{blue}), an outer circle identifying which of the two team mates it is (\texttt{pink} or \texttt{green}) and an arrow giving the direction of the robot. The red ball is simply shown by drawing a red circle around it. You'll also notice two other windows containing several trackbars.
-These trackbars are for filters that you can add to the output feed. There are filters to show only specific colours, or to different effects to the frame.
+After the vision is lunched, there will be a window named \texttt{Filter}
+output, where you can see the vision feed with objects drawn on it representing
+the robots and the ball (if they are found).  Robots will be represented by an
+inner circle for the team colour (yellow or blue), an outer circle identifying
+which of the two team mates it is (pink or green, referring to the colour of
+the majority of circles on the top plate) and an arrow giving the orientation
+of the robot. The red ball is simply shown by drawing a red circle around it.
+Further, two other windows will be open, containing several trackbars.  These
+trackbars are for filters that you can add to the output feed. There are
+filters to show only specific colours, or to different effects to the frame.
+For day to day usage, these do not need to be used.
 
 While the control program is running, the overall strategy and logging can be
 modified. Entering `\texttt{debug}', `\texttt{info}', `\texttt{warn}', or
 `\texttt{error}', and pressing enter, sets the logging level appropriately.
-Likewise, entering a plan name and pressing enter switches the running plan to
-what was entered. Entering `\texttt{stop}' unsets the active plan and leaves
-the robot idle.
+Further, a window to select the game state will have opened, allowing selection
+from `\texttt{kickoff-them}', `\texttt{kickoff-us}', `\texttt{penalty-them}',
+`\texttt{penalty-us}', `\texttt{normal-play}', and `\texttt{stop}'. Pressing
+any of these sets the game to the respective state. At startup, the state is
+`\texttt{stop}', and the robots should remain idle. Once the referee orders a
+kickoff, either `\texttt{kickoff-them}', or `\texttt{kickoff-us}' should be
+pressed, depending on if the opposing team or our team has kickoff
+respectively. Likewise, should the referee call for a penalty kick, either
+`\texttt{penalty-them}' or `\texttt{penalty-us}' should be pressed, depending
+on if the opposing team or our team take the penalty respectively. The
+`\texttt{stop}' button can be pressed whenever the referee stops the game.
+Although it should not have to be used typically, pressing
+`\texttt{normal-play}' skips the kickoff phase of play, and immediately begins
+playing. This may be useful if the program had to be restarted mid-match.
 
-\subsection{Plans}
-
-A small number of plans are available to run:
-
-\begin{itemize}
-    \item `\texttt{move-grab}', to move to the ball and grab it.
-    \item `\texttt{m1}', to do milestone 3, task 1.
-    \item `\texttt{m2}', to do milestone 3, task 2.
-    \item `\texttt{m31}', to do milestone 3, task 3.1.
-    \item `\texttt{m32}', to do milestone 3, task 3.2.
-\end{itemize}
+At halftime, both teams switch sides. The control program needs to be informed
+of the switch, either by typing in `\texttt{switch}' into the console, and
+pressing enter, or by closing the control program and re-running it with the
+other pitch side. To terminate the control program, press `Ctrl-D' with the
+terminal window selected. If this fails, press enter and try again.
