@@ -1,0 +1,80 @@
+\section{Usage}
+
+Before use, ensure that the four lithium-ion batteries are fully charged. Our
+group shares the charger with group 12. Ensure that the batteries are properly
+inserted into the two battery holders at the rear of the robot. To turn on the
+robot, flick the switch at the base of the battery packs. A red light will be
+visible from the Arduino, indicating that it is powered.
+
+Our robot is operated together with that of group 12, it is assumed that their
+robot has also been switched on at this point. To begin with, the device paths
+of both groups USB RF sticks must be determined. To determine these, first
+insert the RF stick for group 11. Then run \texttt{ls /dev/ttyACM*} to list all
+serial USB devices availabl. This should return only one path, which can be
+noted as the path for group 11's RF stick. Group 12's device path can then be
+determined by inserting their RF stick and re-running \texttt{ls /dev/ttyACM*}.
+One new path should be among those returned, which can be noted as the path to
+group 12's RF stick.
+
+Further information required to run the control unit is: The room being played
+in (3.D03 or 3.D04), which side of the pitch, left or right, is ours (viewed
+from the door), and which color our team will have (blue or yellow). Armed with
+this knowledge, make sure that a top plate of each colour, as well as the ball,
+are on the pitch. Then, \texttt{cd} into the project root directory, and
+execute the following command:
+
+\shellcmd{./main -p game -1 <PATH1> -2 <PATH2> -c <COLOUR> --pitch <NUM> -g <SIDE>}
+
+\noindent Using the following values for the arguments:
+
+\begin{itemize}
+    \item The path of group 11's RF stick for \texttt{<PATH1>}.
+    \item The path of group 12's RF stick for \texttt{<PATH2>}.
+    \item `\texttt{y}' or `\texttt{b}' for \texttt{<COLOUR>}, if our team is
+        yellow or blue respectivey.
+    \item `\texttt{0}' or `\texttt{1}' for \texttt{<NUM>}, if the game is being
+        played in room 3.D03 or 3.D04 respectively.
+    \item `\texttt{left}' or `\texttt{right}' for \texttt{<SIDE>}, if our goal
+        is on the left or the right side of the pitch respectively.
+\end{itemize}
+
+A few windows should open up, the most prominent one of which displays a still
+of the pitch for calibration.
+
+\subsection{Calibration}
+
+Before using the vision system, you can have a look at the vision feed by typing \emph{xawtv} in the command prompt. This will launch only the vision feed, where you can experiment with the different settings.
+
+When the vision starts, it will enter calibration mode. In this mode, a still
+of the pitch is displayed. In turn, red, blue, yellow, green, and pink will be
+calibrated for. For each of these, click multiple times on parts of the still
+which should be recognised as the specified color. When done with a color,
+press `\texttt{q}' to move on to the next.
+
+The calibrations will be saved locally, and can be loaded by pressing escape
+when the calibration mode starts.
+
+\subsection{Online Usage}
+
+After the vision is lunched, there will be a window named \texttt{Filter} output, where you can see the vision feed with objects drawn on it representing the robots and the ball (if they are found).
+Robots will be represented by an inner circle for the team colour (\texttt{yellow} or \texttt{blue}), an outer circle identifying which of the two team mates it is (\texttt{pink} or \texttt{green}) and an arrow giving the direction of the robot. The red ball is simply shown by drawing a red circle around it. You'll also notice two other windows containing several trackbars.
+These trackbars are for filters that you can add to the output feed. There are filters to show only specific colours, or to different effects to the frame.
+
+While the control program is running, the overall strategy and logging can be
+modified. Entering `\texttt{debug}', `\texttt{info}', `\texttt{warn}', or
+`\texttt{error}', and pressing enter, sets the logging level appropriately.
+Likewise, entering a plan name and pressing enter switches the running plan to
+what was entered. Entering `\texttt{stop}' unsets the active plan and leaves
+the robot idle.
+
+\subsection{Plans}
+
+A small number of plans are available to run:
+
+\begin{itemize}
+    \item `\texttt{move-grab}', to move to the ball and grab it.
+    \item `\texttt{m1}', to do milestone 3, task 1.
+    \item `\texttt{m2}', to do milestone 3, task 2.
+    \item `\texttt{m31}', to do milestone 3, task 3.1.
+    \item `\texttt{m32}', to do milestone 3, task 3.2.
+\end{itemize}
