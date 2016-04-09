@@ -4,6 +4,8 @@
 
 \section{Vision}
 
+\visiontodo{Add new section or subsection covering predictor system}
+
 The vision system was designed to be simple and fast, both to aid in development and to minimise the delay of a movement on the
 pitch being registered by the system. Originally a system was being developed from the ground up, but after a number of failures
 and difficulties the decision was made to use Group 12's working system. Group 12's system was adapted from a previous year's
@@ -13,13 +15,21 @@ system and is the system used for the rest of the project.
 
 \subsection{Theory}
 
-\visiontodo{Theory behind how the vision system works}
+\visiontodo{Probably needs revision, is a bit clumsy in places}
 
-\visiontodo{High-level diagram showing flow of information through vision system}
+The task for the vision system is simple: to find and report of the position of the robots (or more accurately, their coloured
+top plates) and the ball from an overhead, colour image of the pitch. The design of our system addresses this as follows. First
+coloured areas matching the colours of the ball and top plate markers are identified in the image. These areas are then checked
+for certain properties to determine if they are the ball, part of a top plate or random noise. For the ball these properties
+are size related, and for the top plate these properties are related to the proximity of other markers of expected colours.
+When an area of the image is identified as an area of interest this area is reported. When a certain object is not found the
+system does not report anything and this emission is handled by the prediction system.
 
 \subsection{Implementation}
 
 \visiontodo{High-level overview of implementation, discussion of legacy code}
+
+\visiontodo{High-level diagram showing flow of information through vision system}
 
 \visiontodo{Appendix: screenshots for various stages of processing?}
 
