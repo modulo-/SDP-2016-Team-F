@@ -25,7 +25,30 @@ does not report anything and this emission is handled by the prediction system.
 
 \subsection{Implementation}
 
-\visiontodo{High-level overview of implementation, discussion of legacy code}
+The vision system is implemented as a Python module largely separate from the rest of the system. The vision system is run in
+a separate thread from the planning system and communicates with it through a shared world state object. The OpenCV library
+was used to handle the overhead camera feed and perform the majority of the vision related operations.
+
+The vision system follows a basic flow of information: the raw camera frame is retrieved, preprocessed, information is extracted,
+this information is passed to the planning system, repeat. After retrieval radial distortion is removed from the raw image. The image
+is then blurred using a Gaussian blur to reduce noise in the image. This undistorted and reduced noise image is then converted to the
+HSV (Hue Saturation Value) colour space before being passed to information retrieval. The HSV colour space is used instead of the default
+BGR (Blue Green Red) as the Hue component represents the colour largely independent of brightness and intensity, allowing a particular colour
+(or colour range) to be identified more accurate than could be using BGR.
+
+From the HSV image, a binary image is produced for each of the colour ranges used to identify objects (a red colour range for the ball, a pink one
+for the pink top plate markers, etc.). This binary image is the same size as the HSV image and contains true (or equivalent value) when the pixels
+in the HSV value are in the colour range and false (or equivalent value) elsewhere in the image. Contours are then extracted from these binary images
+and these contours are then preprocessed further to determine if they are a ball or top plate marker. Contours are vector representations of the edges in
+an image, so in this case describe the shapes of the true areas in the binary images. To determine is a red contour is the ball, the contour is first
+checked to ensure it is not too small according to a configurable value. The enclosing rectangle that has minimum area is then calculated. If this rectangle
+has close to equal length side (within a certain threshold), the contour is assumed to represent the ball. To find the top plate markers, the same process is
+followed. The found markers are then grouped with those within close proximity to the centre marker. The orientation of the top plate is calculate by calculating
+the angle between the centre marker and the 'odd one out' (the outer marker of a different colour) which is then rotated 45° to give the orientation of the
+front of the top plate.
+
+After this information has been extracted from the binary images, it is placed in the world state object to be passed to the planning system. The vision system
+then retrieves the next frame and repeats the process.
 
 \visiontodo{High-level diagram showing flow of information through vision system}
 
