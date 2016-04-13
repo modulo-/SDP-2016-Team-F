@@ -1,16 +1,16 @@
 \section{Arduino Architecture}
 
-The robot is controlled by an on-board arduino unit. This is programmed to
+The robot is controlled by an on-board Arduino unit. This is programmed to
 receive input from a native RF module, as well as the wheels rotary encoders.
 Further, it controls the four movement motors, the single grabber motor, and
-the power flow to the solonoid kicker. The arduino main loops does three
+the power flow to the solonoid kicker. The Arduino main loops does three
 things: It checks for new commands from the comms, it updates the rotatry
 encoder positions with the latest reading, and it updates its internal state
-and the motor outputs. This is repeated until the arduino is turned off.
+and the motor outputs. This is repeated until the Arduino is turned off.
 
 \subsection{Low-Level Commands}
 
-Internally, the arduino operates using a set of low-level command. Examples
+Internally, the Arduino operates using a set of low-level command. Examples
 include opening the grabbers for a set amount of time, or moving to the right a
 specified distance. Each command is a sequence of one or more bytes, the first
 of which always identifies the command. The most significant bit of the first
@@ -24,16 +24,16 @@ will follow.
 Low-level commands correspond directly to a single action the robot should
 currently be doing; in particular not a sequence of actions. For example, the
 grabbers opening, or the solonoid kicking. They typically have clearly defined
-arduino outputs (spinning the grabber motors, and enabling the solonoid in the
+Arduino outputs (spinning the grabber motors, and enabling the solonoid in the
 previous examples), as well as clear completion criteria, such as time elapsed
-or distance travelled. Once a command is completed, the arduino commences the
+or distance travelled. Once a command is completed, the Arduino commences the
 next low-level command immediately.
 
 \subsection{Comms Input}
 
 If the RFs internal buffer contains a valid sequence of new instructions
 (\cref{comms}), this is translated into more low-level instructions which can
-be used by the arduino directly, and the buffer is cleared. If the RFs internal
+be used by the Arduino directly, and the buffer is cleared. If the RFs internal
 buffer is \textit{not} a valid sequence of new instructions, but contains a new
 line, it is considered to be a malformed packet, and the buffer is also
 cleared.

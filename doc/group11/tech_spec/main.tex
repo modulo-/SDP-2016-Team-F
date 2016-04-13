@@ -29,31 +29,7 @@ principles our work relies on.
 \input{overview}
 \input{comms}
 \input{arduino}
-
-\section{Hardware Notes}
-
-Grabbing the ball effectively is a fine balance of speed. Moving the grabbers
-too quickly kicks the ball away. On the other hand, moving too slowly may lead
-to missing the ball. Further, the design of the robot means that the ball must
-be pushed in sharply to reset the kicker. The balance between these that was
-found, is to close the grabbers at a moderate speed, then rapidly open them
-part way and rapidly close them again. This resets the kicker, does not kick the ball away in most cases, and is fast enough to be usable.
-
-Kicking the ball is a matter of speed, the faster we can kick, the less time
-our opponents have to react. However, in order to kick, the ball must also be
-positioned precicely in front of the kicker. To achieve this, the grabbers
-rapidly push the ball into position again, correcting any drift from movement.
-They open part-way, just enough for the kicker to kick without the ball
-hitting the grabbers. Finally, the grabbers finish opening.
-
-Spinning and moving tends to move the grabbers about. To avoid this, the
-grabbers are powered slightly during both of these actions. If the grabbers are
-open, they are constantly opening while the robot is moving, albeit very
-slowly. Likewise, the grabbers keep closing if they are already closed. For
-this purpose, the robot maintains a local state variable for the grabber. It is
-worth stating that this is not measured or sensed, so manually moving the
-grabbers will confuse the robot.
-
+\input{hardware}
 \input{vision}
 \input{planner}
 
