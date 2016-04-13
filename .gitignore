@@ -117,3 +117,11 @@ flycheck_*.el
 
 /Vision/color_calibrations.npy
 /color_calibrations.npy
+
+
+# latex build files
+*.aux
+*.dvi
+*.log
+*.out
+

@@ -82,7 +82,7 @@ class Vector(Coordinate):
 
 
 class World(object):
-    def __init__(self, world = None):
+    def __init__(self, world=None):
         self.time = time.time()
         if world is None:
             self.ball = None
