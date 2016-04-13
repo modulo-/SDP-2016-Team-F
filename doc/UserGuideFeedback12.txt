@@ -32,17 +32,6 @@ This seems fine.
 
 2.2 Usage
 
-"Plug the RF stick in the computer, ensure top plates of all types, as well as the ball, are on
-the pitch, and execute ‘./main -p <PLAN> -1 <PATH> -c <COLOR>’, there <PLAN> is the plan
-to run (see section below), <PATH> is the device path of the RF stick (e.g. ‘/dev/ttyACM0’),
-and <COLOR> is the team color, which must be one of ‘blue’, ‘b’, ‘yellow’, or ‘y’ respectively.
-Further options notably include the ‘-l’ option, which sets the logging level. E.g. ‘-l info’
-enables info messages in the logger.
-" 
-
-Why ?
-
-
 Some of these paragraphs could be made more clear and cut down by bullet pointing commands.
 
 A picture would be helpful here. Labeled screenshot of the vision running. Planning vision linkage should be specified with an FSM like diagram just a paragraph is hard to parse.
