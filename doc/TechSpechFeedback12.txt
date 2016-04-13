@@ -1,0 +1,30 @@
+1.1
+Please dont make this claim :
+" As opposed to
+many other groups, all team members have made significant contributions to the outcome of
+the project.
+"
+
+It is good to say that you all made significant contirbutions but dont try to down talk other groups. 
+
+
+2 Vision
+
+Diagrams (flow charts) , screenshots and other sorts of visuals would really help. Some of the sentances are a bit too long in this chapter and its easy to get lost. Overall the information is complete and it is there just aid it with diagrams.
+
+3 Planning 
+
+You might want to use something better than code for detailing your ADT (super class) . Class Diagrams, FSMs etc. Definitely create a diagram for the interactions (compositions) in between classes. Your description is complete but without visual aid it is rather hard to parse.
+
+
+4 Communications
+
+The example was a good idea nade things a bit more clear. Good job detialing the low level commands.
+
+
+5 Hardware
+ Pictures  assisted some of the descriiptions you might want to label some of these pictures  and relate them to text etc caption the figures number them and use them in your description.
+
+6 Arduino Software
+
+Concise and clear.
