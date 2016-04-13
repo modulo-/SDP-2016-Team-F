@@ -8,6 +8,7 @@
 # .pyc python compiled
 *.pyc
 
+*.gz
 *.bak
 *~
 
