@@ -1,0 +1,56 @@
+\newcommand{\abispec}[6]{
+\subsubsection{\texttt{#1}}
+
+\begin{tabularx}{\textwidth}{>{\hsize=.5\hsize}XX}
+\textbf{Instruction byte:}               & \texttt{#2} \\
+\textbf{Argument bytes:}                 & #3 \\
+\textbf{Argument type(s):}               & \texttt{#4} \\
+\textbf{Action:}                         & #5 \\
+\textbf{Relation to low-level commands:} & #6 \\
+\end{tabularx}
+}
+
+\subsection{List of ABI Commands} \label{abi}
+
+This section will outline the available instructions for the communications
+ABI, the arguments they take, and the effect they will produce. A note on the
+notation for arguments: The arguments are standard C types, and are read from
+the ABI buffer as this type directly. Since the Arduino is little-endian, this
+for example means that \texttt{0x03 29}, read as a \texttt{uint16\_t}, is
+10499.
+
+\abispec{WAIT}{0x00}{2}{uint16\_t}{Waits for the given time in milliseconds}
+    {Maps one-to-one to the low-level WAIT command}
+\abispec{BRAKE}{0x01}{2}{uint16\_t}
+    {Brakes all motors for the given time in milliseconds}
+    {Relation to low-level commands: Maps one-to-one to the low-level
+     \texttt{BRAKE} command}
+\abispec{STRAIT}{0x02}{2}{int16\_t}
+    {Moves right the given distance in millimeters. This distance may be
+     negative, in which case the robot moves left instead}
+    {Relation to low-level commands: Maps to an equivalent low-level
+     \texttt{STRAIT} command, followed by a low-level \texttt{BRAKE} command}
+\abispec{SPIN}{0x03}{2}{int16\_t}
+    {Rotates clockwise on the spot for the given number of minutes (60 minutes
+     corresponds to one degree). This may be negative, in which case the robot
+     rotates counter-clockwise instead.}
+    {Maps to an equivalent low-level \texttt{SPIN} command, followed by a
+     low-level \texttt{BRAKE} command}
+\abispec{KICK}{0x04}{2}{uint16\_t}
+    {Opens the grabbers and actuates the kicker for the given time in
+     milliseconds}
+    {First, a \texttt{GRABBER\_FORCE} is issued to ensure the ball is in front
+     of a kicker. Then, a part-way \texttt{GRABBER\_OPEN} is done, followed by
+     the equivalent low-level \texttt{KICK}. Finally, a \texttt{GRABBER\_OPEN}
+     is issued to finish opening the grabbers. All of these are
+     uninterruptable.}
+\abispec{GRABBER\_OPEN}{0x06}{0}{\textnormal{\textit{none}}}{Opens the grabbers}
+    {Maps one-to-one to an uninterruptable low-level \texttt{GRABBER\_OPEN}}
+\abispec{GRABBER\_CLOSE}{0x07}{0}{\textnormal{\textit{none}}}
+    {Closes the grabbers in multiple stages to ensure the ball is caught well}
+    {First, a \texttt{GRABBER\_CLOSE} is issued to get the ball close to the
+     solonoid.  Then, a \texttt{GRABBER\_OPEN}, followed by a
+     \texttt{GRABBER\_FORCE} is issued, to ensure that the ball presses the
+     solonoid in. Finally, since the \texttt{GRABBER\_FORCE}'s power leads to
+     the grabbers bouncing back to being partially open, a
+     \texttt{GRABBER\_CLOSE} is issued.}
