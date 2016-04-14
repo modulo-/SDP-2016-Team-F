@@ -10,14 +10,25 @@
 \end{tabularx}
 }
 
-\subsection{List of ABI Commands} \label{abi}
+\subsection{Instruction ABI}
 
-This section will outline the available instructions for the communications
-ABI, the arguments they take, and the effect they will produce. A note on the
-notation for arguments: The arguments are standard C types, and are read from
-the ABI buffer as this type directly. Since the Arduino is little-endian, this
-for example means that \texttt{0x03 29}, read as a \texttt{uint16\_t}, is
-10499.
+For communications, the Arduino and the controlling computer share an application binary interface (ABI). The computer sends binary packets of instructions to the Arduino, and the Arduino executes them.
+Packets sent by the computer consist of one or more instructions for the Arduino, supplied in sequence. The first byte of the transmitted instruction data marks the start of the first instruction. 
+Instructions are variable in length, but always begin with one byte identifying the type of the instruction. This is then followed by zero or more bytes of arguments.
+The next instruction starts immediately after the previous.
+
+For example, the binary data \texttt{0x06 02 ff 00} consists of two instructions: \texttt{0x06} and \texttt{0x02 ff 00}.
+\texttt{0x06} is the instruction to open the grabbers, and takes no further arguments. \texttt{0x02} is the instruction to move left or right, and takes two more bytes as its arguments.
+\texttt{0x02 ff 00 06} contains the same instructions, but in a different order. 
+\texttt{0x06 ff 02 00} however has undefined behaviour, as there is no instruction \texttt{0xff}. 
+The instructions of this ABI are documented in the following section.
+
+
+\subsection{List of ABI Commands}
+
+This section outlines the available instructions for the communications ABI, the arguments they take, and the effects they have on the robot.
+A note on the notation for arguments: The arguments are standard C types, and are read from the ABI buffer as such type directly. 
+Since the Arduino is little-endian, \texttt{0x03 29} is 10499 if read as a \texttt{uint16\_t}.
 
 \abispec{WAIT}{0x00}{2}{uint16\_t}{Waits for the given time in milliseconds}
     {Maps one-to-one to the low-level WAIT command}
