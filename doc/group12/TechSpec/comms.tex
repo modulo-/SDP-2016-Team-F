@@ -1,4 +1,4 @@
-\section{Communications} \label{comms}
+\section{Communications}
 
 \subsection{Data Transfer}
 
@@ -39,8 +39,8 @@ by the more recent one.
 \subsection{Instruction ABI}
 
 For communications, the arduino and the controlling computer share an application binary
-interface (ABI), with the computer sending binary packets of instructions to the
-arduino, and the arduino executing them. Packets sent by the computer consist
+interface (ABI). The computer sends binary packets of instructions to the
+arduino, and the arduino executes them. Packets sent by the computer consist
 of one or more instructions for the arduino, supplied in sequence. The first
 byte of the tranmitted data marks the start of the first instruction. Then, the
 byte following the end of the current instruction marks the start of the next.
