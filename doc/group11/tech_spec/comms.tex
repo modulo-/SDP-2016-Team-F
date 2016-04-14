@@ -3,8 +3,8 @@
 \subsection{Data Transfer}
 
 Communications between the Arduino and computer are done over the supplied RF
-link. The frequency is set to the group frequency specified. Further, the
-optional encryption was enabled, and the PAN ID set to `6810'.
+link. The frequency specified for our group is used. Further, the optional
+encryption was enabled, and the PAN ID set to `6810'.
 
 Data is sent to and from the devices in packets, where the basic form of a
 packet is `\verb$<target><source><data><checksum>\r\n$'. \texttt{<target>} and
@@ -18,12 +18,11 @@ bytes, but is otherwise standard.
 The checksum consists of 2 characters, which are calculated as the checksum of
 all characters at even (starting 0) and odd indices respectively, including
 \texttt{<target>} and \texttt{<source>}. These checksums are done by retrieving
-the value from 0-63 of the character in base64 encoding, XORing these together.
-The resulting value from 0-63 is then encoded back into a base64 character.
+the values from 0-63 of the characters in base64 encoding, XORing these
+together. The resulting values from 0-63 are then encoded back into base64
+characters. For example, the checksum of `\texttt{dt6bas2}' is `\texttt{La}'.
 
-For example, the checksum of `\texttt{dt6bas2}' is `\texttt{La}'.
-
-Devices ignores all packets not addressed to it, as well as malformed packets
+Devices ignores all packets not addressed to them, as well as malformed packets
 (including those with an incorrect checksum). Upon receipt of a packet, the
 device sends an acknowledgement. An acknowledgement packet has the form
 `\verb%<target>$<checksum>\r\n%'. An acknowledgement packet is not itself
@@ -49,7 +48,7 @@ the type of the instruction. This is then followed by zero or more bytes of
 arguments. For example, the binary data \texttt{0x06 02 ff 00} consists of two
 instructions: \texttt{0x06} and \texttt{0x02 ff 00}. \texttt{0x06} is the
 instruction to open the grabbers, and takes no further arguments. \texttt{0x02}
-is the instruction to move left or right, and takes two more bytes as its
+is the instruction to move left or right, and takes two more bytes as an
 argument. \texttt{0x02 ff 00 06} contains the same instructions, but in a
 different order. \texttt{0x06 ff 02 00} however has undefined behaviour, as
 there is no instruction \texttt{0xff}. The instructions of this ABI are
