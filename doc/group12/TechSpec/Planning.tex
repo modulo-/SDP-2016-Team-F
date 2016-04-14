@@ -71,7 +71,7 @@ This selects a goal based on the given world state  using its \texttt{get\_goal(
 The attacker robot's goals and their respective actions are explained in \autoref{tbl:goals-actions}.
 The planner chooses a goal based on ball position, as explained in \autoref{tbl:goals}.
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabularx}{\textwidth}{l l X}
 \toprule
@@ -103,7 +103,7 @@ AttackerBlock & TurnToBlockingAngle & Attacker in blocking position \\
 \end{table}
 
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \begin{tabular}{ l l}
 \toprule
@@ -118,7 +118,6 @@ Ball free & GetBall \\ \bottomrule
 \label{tbl:goals}
 \end{table}
 
-\FloatBarrier
 \subsection{Extensibility}
 
 Extending the planner is simply a case of adding goals and actions then adding the logic to select these in \texttt{select\_goal(world)}. Any new goals or actions should subclass Goal and Action respectively and override methods were stated.
