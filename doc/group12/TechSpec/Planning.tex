@@ -72,59 +72,32 @@ Our attacker robot's goals and their respective actions are as follows:
 
 \begin{table}[H]
 \centering
-\caption{AttackPosition}
-\begin{tabular}{ | l | l | }
-\hline
-Action & Preconditions \\ \hline
-TurnToDefenderToReceive & Attacker in score zone \\ \hline
-GoToScoreZone & Attacker is facing score zone  \\ \hline
-TurnToScoreZone & None \\
-\hline
-\end{tabular}
-\end{table}
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\textbf{Goal} & \textbf{Action} & \textbf{Preconditions} \\ 
+\midrule
 
+AttackPosition & TurnToDefenderToReceive & Attacker in score zone \\ 
+&GoToScoreZone & Attacker is facing score zone  \\ 
+&TurnToScoreZone & None \\
+\midrule
 
-\begin{table}[H]
-\centering
-\caption{Score}
-\begin{tabular}{ | l | l | }
-\hline
-Action & Preconditions \\ \hline
-Shoot & Attacker has ball and attacker can score \\ \hline
-TurnToGoal & Attacker has ball \\
-\hline
-\end{tabular}
-\end{table}
+Score & Shoot & Attacker has ball and attacker can score \\ 
+& TurnToGoal & Attacker has ball \\ 
+\midrule
 
+GetBall & GrabBall & Attacker can catch ball and attacker's grabbers open \\ 
+& GoToGrabStaticBall & Ball static, attacker facing ball, attacker's grabbers open \\ &OpenGrabbers & Ball in attacker's grab range, attacker's grabbers closed \\ 
+&GoToBallOpeningDistance & Attacker is facing ball \\
+&TurnToBall & None \\ 
+\midrule
 
-\begin{table}[H]
-\centering
-\caption{GetBall}
-\begin{tabular}{ | l | l | }
-\hline
-Action & Preconditions \\ \hline
-GrabBall & Attacker can catch ball and attacker's grabbers open \\ \hline
-GoToGrabStaticBall & Ball static, attacker facing ball, attacker's grabbers open \\ \hline
-OpenGrabbers & Ball in attacker's grab range, attacker's grabbers closed \\ \hline
-GoToBallOpeningDistance & Attacker is facing ball \\ \hline
-TurnToBall & None \\
-\hline
-\end{tabular}
-\end{table}
-
-
-\begin{table}[H]
-\centering
-\caption{AttackerBlock}
-
-\begin{tabular}{ | l | l | }
-\hline
-Action & Preconditions \\ \hline
-TurnToBlockingAngle & Attacker in blocking position \\ \hline
-GoToBlockingPosition & Attacker is facing blocking position \\ \hline
-TurnToFaceBlockingPosition & None \\
-\hline
-\end{tabular}
+AttackerBlock & TurnToBlockingAngle & Attacker in blocking position \\ 
+& GoToBlockingPosition & Attacker is facing blocking position \\ 
+& TurnToFaceBlockingPosition & None \\ 
+\bottomrule
+\end{tabularx}
+\caption{Actions and Preconditions by Goals}
 \end{table}
 
 
@@ -134,17 +107,16 @@ The planner chooses a goal based on certain situations, as described in followin
 
 \begin{table}[H]
 \centering
-\caption{Goals chosen dependent on ball position}
-\begin{tabular}{ | l | l | }
-\hline
-Robot in possession & Goal \\ \hline
+\begin{tabular}{ l l}
+\toprule
+\textbf{Robot in possession} & \textbf{Goal} \\ \midrule
 Our attacker & Score \\
 Our defender & AttackPosition \\
 Their attacker & AttackPosition \\
 Their defender & AttackerBlock \\
-Ball free & GetBall \\
-\hline
+Ball free & GetBall \\ \bottomrule
 \end{tabular}
+\caption{Goals chosen dependent on ball position}
 \end{table}
 
 
