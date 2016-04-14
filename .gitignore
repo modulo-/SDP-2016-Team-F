@@ -125,5 +125,3 @@ flycheck_*.el
 *.dvi
 *.log
 *.out
-
-*.pdf
