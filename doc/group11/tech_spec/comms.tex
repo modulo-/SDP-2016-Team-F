@@ -2,7 +2,7 @@
 
 \subsection{Data Transfer}
 
-Communications between the arduino and computer are done over the supplied RF
+Communications between the Arduino and computer are done over the supplied RF
 link. The frequency is set to the group frequency specified. Further, the
 optional encryption was enabled, and the PAN ID set to `6810'.
 
@@ -16,7 +16,7 @@ checksum of the preceding message. The base64 encoding does not use padding
 bytes, but is otherwise standard.
 
 The checksum consists of 2 characters, which are calculated as the checksum of
-all characters at even (starting 0) and odd indicies respectively, including
+all characters at even (starting 0) and odd indices respectively, including
 \texttt{<target>} and \texttt{<source>}. These checksums are done by retrieving
 the value from 0-63 of the character in base64 encoding, XORing these together.
 The resulting value from 0-63 is then encoded back into a base64 character.
@@ -29,20 +29,20 @@ device sends an acknowledgement. An acknowledgement packet has the form
 `\verb%<target>$<checksum>\r\n%'. An acknowledgement packet is not itself
 acknowledged.
 
-The computer side will resend packets which have not recieved an
-acknowledgement. The arduino side does not, and discards packets which are
+The computer side will resend packets which have not received an
+acknowledgement. The Arduino side does not, and discards packets which are
 longer than the internal buffer (60 bytes). To prevent flooding, only the
 previously sent packet is resent. This suits the application well, as
-previously sent packets contain intructions to the robot which are supersceded
+previously sent packets contain instructions to the robot which are superseded
 by the more recent one.
 
 \subsection{Instruction ABI}
 
-For communications, the arduino and the controlling computer share a binary
+For communications, the Arduino and the controlling computer share a binary
 interface, with the computer sending binary packets of instructions to the
-arduino, and the arduino executing them. Packets sent by the computer consist
-of one or more instructions for the arduino, supplied in sequence. The first
-byte of the tranmitted data marks the start of the first instruction. Then, the
+Arduino, and the Arduino executing them. Packets sent by the computer consist
+of one or more instructions for the Arduino, supplied in sequence. The first
+byte of the transmitted data marks the start of the first instruction. Then, the
 byte following the end of the current instruction marks the start of the next.
 Instructions are variable in length, but always begin with one byte identifying
 the type of the instruction. This is then followed by zero or more bytes of
