@@ -1,0 +1,43 @@
+\documentclass[a4paper,12pt]{scrartcl}
+\author{Thomas Kerber, Marek Strelec, Euan Hunter}
+\title{SDP Technical Specification}
+\subtitle{Group 11}
+
+\usepackage{tabularx}
+\usepackage{enumitem}
+\usepackage{paralist,array}
+\usepackage{listings}
+\usepackage{cleveref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\lstset{language=Python, showstringspaces=false}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+The aim of this project was to create a robot that would play a simplified
+version of 2-a-side football. We used the provided Arduino Xino RF board and
+LEGO pieces, a vision feed of the pitch, and computers to connect the two and
+implement any further logic. This report will examine the decisions made in the
+design of each part and their impacts. Furthermore it will explain the
+principles our work relies on.
+
+\input{overview}
+\input{comms}
+\input{arduino}
+\input{hardware}
+\input{vision}
+\input{planner}
+
+\pagebreak
+\appendix
+
+\input{abi}
+\input{llcmd}
+\input{params}
+
+\end{document}

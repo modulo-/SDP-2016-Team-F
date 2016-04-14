@@ -8,6 +8,7 @@
 # .pyc python compiled
 *.pyc
 
+*.gz
 *.bak
 *~
 
@@ -125,3 +126,4 @@ flycheck_*.el
 *.log
 *.out
 
+*.pdf
