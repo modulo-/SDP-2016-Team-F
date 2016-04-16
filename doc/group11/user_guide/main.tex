@@ -15,14 +15,16 @@
 
 \section{Troubleshooting}
 
-Below are the actions to take for various common problems which may occur to
-attempt to fix them.
+Below are the actions to take for various common problems which may occur. The
+solutions are not guaranteed to work, but have in experience been effective.
 
 \subsection{The Robot Doesn't Move}
 
 If the robot is not moving, the first thing to do is to check the batteries.
-Ensure that they are present, and charged. Next, disconnect the battery packs,
-wait for a few seconds, then reconnect them.
+Ensure that they are present, and charged. Further, confirm that the robot was
+switched on. If the Arduino has a red light on, it is recieving power and the
+issue is more likely to be one of communications. In this case switch the robot
+off for a few seconds and turn it on again to reset the serial device.
 
 \subsection{The Control Program Doesn't Start}
 
@@ -31,9 +33,9 @@ blocking. To test this, run the control program without the argument for the RF
 stick. If it runs, then try waiting for five seconds, then re-running with the
 normal arguments. If after a few attempts, this also does not work, then double
 check the guard characters set on the RF stick. They should be three tilde
-characters (`\verb$~~~$'). Use the proprietary CISCO tools located in the
-`tools' folder to do this. If needed, reset the guard characters or change them
-in the source.
+characters (`\verb$~~~$'). The proprietary CISCO tools located in the
+`\texttt{/tools}' folder can be used to check this, and, if needed, to reset
+them.
 
 \subsection{The Vision is Misdetecting Objects}
 
@@ -45,10 +47,18 @@ samples, including the fringes of the circles to detect.
 
 The batteries are low. Recharge or replace them.
 
+\subsection{The Vision is Solid Green}
+
+The video input is set to draw from the wrong source. Close the control
+program, and run `\texttt{xawtv}'. In the options, select svideo as the source.
+
 \subsection{The Kicker Doesn't Work}
 
-Check the connections between the two 4-packs of batteries, as well as the I/O
-port kicker connection. Ensure that the kicker is pressed in, but has not
-fallen out in the back. Check the battery level of the two 4-packs.
+Double check the I/O port connections with the kicker. Try also listening at
+the breadboard during a kick for an audible click. If this can be heard, the
+issue is in the wireing from the batteries to the breadboard, or from this to
+the kicker. If not, the issue is either the connectors being plugged into the
+wrong I/O port (it should be the furthest inward on the I/O board), or a faulty
+connection from the I/O port to the breadboard.
 
 \end{document}
