@@ -189,7 +189,19 @@ takes too long.
 
 \subsubsection{Defend}
 
-\textbf{TODO}
+The primary role of \emph{Defend} goal is to prevent the opposing team from successfully moving the ball over the defended goal-line. This is accomplished by the robot's moving into the path of the ball and either catching it or directing it away from the vicinity of the goal line. To improve chances of catching the ball, Tractor Crab using \emph{Defend goal} is always trying to predict the ball's trajectory and stand at the most suitable defending spot. This spot, also called a defending point, is calculated as an intersection of  a predicted ball's trajectory and a semi-circle surrounding the goal area. Such point is shown in Figure \ref{fig:defendingpoint}.
+
+\begin{figure}[H]
+	\begin{center}
+    \includegraphics[width=0.5\linewidth]{res/defending.png}
+    \caption{A football pitch with a robot using \emph{Defend} goal. The blue line represents a defending semi-circle. The red line shows an expected ball trajectory. Point D represents \emph{Defending point} - the intersection of these lines.}
+    \label{fig:defendingpoint}
+	\end{center}
+\end{figure}
+
+Because of vision inconsistency on different parts of a pitch, the defending point is sometimes slightly off. Tractor Crab handles this problem by oscillating movement around the defending point. Since the robot is always moving from side to side, it covers more area and thus its chances to catch the moving ball are higher.
+
+One minor improvement was implemented for situations when the robot is not close to the defending point and the ball is moving towards our goal. In this case, the robot immediately moves to the side of the ball and tries to direct it away.
 
 \subsection{Extensibility}
 
