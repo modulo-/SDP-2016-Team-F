@@ -34,8 +34,40 @@ In order to launch our vision system:
 \item The vision processing will be launched.
 \end{itemize}
 
-There will be a window labelled \texttt{Filter output}, where presenting the vision feed after all filters have been applied to the original. This output is overlayed with icons representing the robots and the ball, if they are found. Robots are represented by an inner circle of the team colour (\texttt{yellow} or \texttt{blue}), an outer circle identifying which of the two team members it is (\texttt{pink} or \texttt{green}) and an arrow oriented in the direction of the robot.  The red ball is displayed by drawing a red circle around where it was detected. 
+\subsection{Graphic Interface}
+There will be a window labelled \texttt{Filter output}, where presenting the vision feed after all filters have been applied to the original. This output is overlayed with icons representing the robots and the ball, if they are found (see \autoref{fig:pitch}). Robots are represented by an inner circle of the team colour (\texttt{yellow} or \texttt{blue}), an outer circle identifying which of the two team members it is (\texttt{pink} or \texttt{green}) and an arrow oriented in the direction of the robot.  The red ball is displayed by drawing a red circle around where it was detected. 
 
-There are two other windows containing several sliders for filters that that can be applied to the feed. The set of filters includes masks for specific colours, a manually configurable colour mask, and apply different effects to the frame.
+\begin{figure}[H]
+\centering
+\includegraphics[scale=0.2]{vision_pitch}
+\caption{Vision Frame with Overlay}
+\label{fig:pitch}
+\end{figure}
+
+There are two other windows containing several sliders for filters that that can be applied to the feed (see \autoref{fig:filters}) and more advanced options for specific filters (see \autoref{fig:params}). The set of filters available includes masks for specific colours, a manually configurable colour mask, and apply different effects to the frame.
+
+
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[scale=0.2]{vision_filters}
+\caption{Available Filters}
+\label{fig:filters}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[scale=0.2]{vision_params}
+\caption{Advanced Filter Parameters}
+\label{fig:params}
+\end{subfigure}
+\caption{GUI Controls}
+\label{fig:sliders}
+\end{figure}
+
+
+
+
 
 When the vision is running, it outputs the coordinates of all found objects, their orientation and velocity relative to the previous taken frame. These objects are returned as a dictionary and passed to the planner. This is achieved by passing a callback method for updating the planner world model when initialising the vision module. This method is called on every vision frame parsed, and it ensures the planner has the latest data.
