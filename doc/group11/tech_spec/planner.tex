@@ -9,42 +9,19 @@ The planner uses a system of goals and actions. \emph{Goals} define an overall s
 
 \emph{Actions} define usually one instruction given to the robot with preconditions for its execution. As already mentioned, an action can also return a specific delay time to postpone or speed up next planner execution.
 
-
-
-\subsection{Goal selection}
-
-The process of selecting a new goal follows a procedure described in Figure
-\ref{fig:goalpicker}. In every step of the planner, the current world state is
-processed and resulting goal is generated based on this analyses. There are
-three main conditions that effect this decision.
-
+Figure \ref{fig:goalsandactionsstructure} shows the overall design.
 
 \begin{figure}[H]
 	\begin{center}
-    \includegraphics[width=0.60\linewidth]{res/goalpicker.png}
-    \caption{A flowchart showing all main conditions effecting planner's decision to select a goal in each step.}
-    \label{fig:goalpicker}
+    \includegraphics[width=1.0\linewidth]{res/goalandactions.png}
+    \caption{The overall planner structure. The planner consists of multiple goals. Each goal has a list of actions which contain two elements - preconditions and a method to execute.}
+    \label{fig:goalsandactionsstructure}
 	\end{center}
 \end{figure}
 
-First of all, if our robot captures the ball, it will try to pass the ball to a
-teammate robot. If the ball is not in our robot's possession, then the planner
-has to strategically decide where to go based on the ball's position and the
-position of all other robots. If our robot could approach the ball faster than
-all other robots (our attacker included), then it would attempt to grab the
-ball. Otherwise, it would switch to \emph{Defend} goal and start defending our
-goal area. This involves returning to our defensive zone. If Tractor Crab
-decides to grab the ball and the situation changes so that any other robot is
-closer than ours, the planner immediately changes the goal to defend. Also, if
-the ball is heading towards our goal and there is a high chance of scoring, the
-planner would choose to defend over trying to catch the ball. Finally, one
-special condition was added. If the ball is too close to our goal, Tractor
-Crab's goal changes to \emph{Idle}. The reasoning behind this is that it is
-very unlikely that the robot will grab the ball safely. In other words, it is
-very likely that we will score on ourselves, and thus, it is preferable to do
-nothing.
 
-\subsection{Goals}
+\subsection{Goal structure}
+
 
 Figure \ref{fig:receiveandpass} shows an example of Defender's goal
 \emph{ReceivingPass}. It shows a list of actions that are in a queue starting
@@ -110,6 +87,42 @@ FaceFriendly &
 	\label{fig:receiveandpass}
 \end{figure}
 \end{center}
+
+\subsection{Goal selection}
+
+The process of selecting a new goal follows a procedure described in Figure
+\ref{fig:goalpicker}. In every step of the planner, the current world state is
+processed and resulting goal is generated based on this analyses. There are
+three main conditions that effect this decision.
+
+
+\begin{figure}[H]
+	\begin{center}
+    \includegraphics[width=0.60\linewidth]{res/goalpicker.png}
+    \caption{A flowchart showing all main conditions effecting planner's decision to select a goal in each step.}
+    \label{fig:goalpicker}
+	\end{center}
+\end{figure}
+
+First of all, if our robot captures the ball, it will try to pass the ball to a
+teammate robot. If the ball is not in our robot's possession, then the planner
+has to strategically decide where to go based on the ball's position and the
+position of all other robots. If our robot could approach the ball faster than
+all other robots (our attacker included), then it would attempt to grab the
+ball. Otherwise, it would switch to \emph{Defend} goal and start defending our
+goal area. This involves returning to our defensive zone. If Tractor Crab
+decides to grab the ball and the situation changes so that any other robot is
+closer than ours, the planner immediately changes the goal to defend. Also, if
+the ball is heading towards our goal and there is a high chance of scoring, the
+planner would choose to defend over trying to catch the ball. Finally, one
+special condition was added. If the ball is too close to our goal, Tractor
+Crab's goal changes to \emph{Idle}. The reasoning behind this is that it is
+very unlikely that the robot will grab the ball safely. In other words, it is
+very likely that we will score on ourselves, and thus, it is preferable to do
+nothing.
+
+\subsection{Goals}
+
 
 \subsubsection{Grab Ball}
 
