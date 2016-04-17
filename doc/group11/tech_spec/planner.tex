@@ -2,29 +2,14 @@
 
 \subsection{Design}
 
-The planner uses a system of goals and actions. Goals define an overall
-strategy in a given situation leading to a particular aim, whereas actions
-define one instruction given to the robot with preconditions for its execution.
-Goals are composed of a sequence of actions. A goal object selects the next
-action required to achieve its aim by traversing its ordered list of actions
-and evaluating their preconditions.
+The planner makes its decision based on the world state passed to it. By default, it makes a decision every second. However, this delay may be changed based on the last executed action. Some actions, such as \emph{turning}, require less time than one second. Other actions, however, such as \emph{moving} and \emph{closing grabbers} require significantly more time.
 
-The planner makes its decision based only on the world state passed to it. This
-is described by an instance of the \emph{World} class passed to the planner.
-This object's state is updated by passing a new set of positions (as a
-dictionary of vectors) to the \texttt{update\_positions} method of
-\emph{World}. The \emph{World} class describes the state of the world from the
-vision, including position vectors for the robots, the ball and the goals. The
-\emph{World} class and its associated classes also provide methods on their
-data providing the planner with information about the world. Further utility
-functionality can be found in \emph{utils.py}.
 
-The overall planner is used by calling \texttt{plan\_and\_act(world)}. This
-selects a goal based on the given world state using its \texttt{get\_goal()}
-method. From this goal an action is generated using
-\texttt{generate\_action()}. The method then runs (using
-\texttt{actuate(action)} and returns a delay giving the time until the planner
-should be run again.
+The planner uses a system of goals and actions. \emph{Goals} define an overall strategy in a given situation leading to a particular aim. Goals are composed of a sequence of actions. In each step, the planner selects an appropriate action to achieve its aim by traversing a list of actions in the currently selected goal. This selection is done by evaluating their preconditions. In general, goals are very abstract and don't change as often as actions.
+
+\emph{Actions} define usually one instruction given to the robot with preconditions for its execution. As already mentioned, an action can also return a specific delay time to postpone or speed up next planner execution.
+
+
 
 \subsection{Goal selection}
 
@@ -218,9 +203,9 @@ be made to this object in any given action. A new action should also override
 should run again. New actions can also have preconditions defined in a variable
 \texttt{preconditions}.
 
-In goals, it may only be neccessary to write a Goal subclass with an ordered
+In goals, it may only be necessary to write a Goal subclass with an ordered
 list of actions (from last to first). Otherwise the \texttt{generate\_action()}
-method can be overriden but similar logic should be followed.
+method can be overridden but similar logic should be followed.
 
 \subsection{Integration}
 
