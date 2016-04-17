@@ -21,10 +21,18 @@ Colour thresholding can become unreliable if the thresholds are not perfectly ad
 
 The vision system has several calibration routines, most importantly a colour calibrator. 
 
-The colour calibration routine is, by default, run every time the vision system is started, but can be skipped, defaulting to the last saved configuration. The vision platform will prompt the user to click on objects of each of the relevant colours in sequence. On every click, a 3x3 square of pixels around the click is extracted, and the pixels within a predefined hue range (hard coded for each colour) are recorded. The thresholds for saturation and value are the minimum and maximum values of each amongst all recorded pixels.
+The colour calibration routine is, by default, run every time the vision system is started, but can be skipped, defaulting to the last saved configuration. 
+The vision platform will prompt the user to click on objects of each of the relevant colours in sequence. On every click, a 3x3 square of pixels around the click is extracted, and the pixels within a predefined hue range (hard coded for each colour) are recorded. 
+The thresholds for saturation and value are the minimum and maximum values of each amongst all recorded pixels. Predefined hue ranges for the colours distinguished are shown in \autoref{fig:hues}.
 
 This makes it easy to recalibrate the whole vision system on each launch to adapt to environment changes.
 
+\begin{figure}[h]
+\centering
+\includegraphics[scale=0.5]{vision_hue}
+\caption{Predefined Hue Ranges}
+\label{fig:hues}
+\end{figure}
 
 \subsection{Manual Calibration}
 The platform implements a manual way of determining threshold values for colour filters, as well as a pitch cropping specification routine.
