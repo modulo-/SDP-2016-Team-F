@@ -56,7 +56,7 @@ has to strategically decide where to go based on the ball's position and the
 position of all other robots. If our robot could approach the ball faster than
 all other robots (our attacker included), then it would attempt to grab the
 ball. Otherwise, it would switch to the \texttt{Defend} goal and start
-defending our goal area. This involves returning to our defense zone. If
+defending our goal area. This involves returning to our defence zone. If
 our robot decides to grab the ball and the situation changes so that any
 other robot is closer than ours, the planner immediately changes the goal to
 \texttt{Defend}. Also, if the ball is heading towards our goal and there is a
@@ -120,7 +120,7 @@ new catch-point. Instead, it tries to move back towards the current
 catch-point. Secondly, our robot can overshot in rotation. Since the rotation
 angle is crucial for successful movement towards a catch-point, the only
 possible solution is to rotation again. However, this can lead to situations
-when the robot keeps oscillating between two angles. Since such behavior is
+when the robot keeps oscillating between two angles. Since such behaviour is
 undesirable, a dynamic error threshold is used. As long as the robot is within
 an accepted error, the rotation is accepted, with the threshold value increases
 after every successive unsuccessful rotation. This approach represents a
