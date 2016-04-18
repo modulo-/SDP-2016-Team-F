@@ -23,7 +23,7 @@
 \draw  (robot) [dotted, -open triangle 60] edge node [sloped, below left ]{original path} (target);
 
 \node (obstacle)[draw] at (1,3) {$O_2$};
-\draw [dashed, shorten >=-5cm,shorten <=-5cm] ($(robot)!(obstacle)!(target)$) -- (obstacle);
+\draw [dashed, shorten >=-3cm,shorten <=-3cm] ($(robot)!(obstacle)!(target)$) -- (obstacle);
 
 \draw [right angle symbol={robot}{$(robot)!(obstacle)!(target)$}{obstacle}];
 \coordinate (new) at (-1.5,3) {};
