@@ -1,6 +1,22 @@
 \section{Planning}
 \lstset{language=Python, showstringspaces=false}
 
+
+\begin{figure}[h]
+\centering
+\input{obstacle_detection}
+\caption{Obstacle detection}
+\label{fig:obstacle_detection}
+\end{figure}
+
+\begin{figure}[h]
+\centering
+\input{obstacle_avoidance}
+\caption{Obstacle avoidance}
+\label{fig:obstacle_avoidance}
+\end{figure}
+
+
 \subsection{Design}
 
 The planner uses a system of goals and actions. Goals define an overall strategy in a given situation leading to a particular aim. Actions define one instruction given to the robot with preconditions for its execution. Goals are composed of a sequence of actions. A goal object selects the next action required to achieve its aim by traversing its ordered list of actions and evaluating their preconditions.
