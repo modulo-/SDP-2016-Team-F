@@ -1,39 +1,44 @@
 \section{Arduino Architecture}
 
 The robot is controlled by an on-board Arduino unit. This is programmed to
-receive input from a native RF module, as well as the wheels rotary encoders.
+receive input from a native RF module, as well as the wheels' rotary encoders.
 Further, it controls the four movement motors, the single grabber motor, and
-the power flow to the solonoid kicker. The Arduino main loops does three
-things: It checks for new commands from the comms, it updates the rotatry
+the power flow to the solenoid kicker. The Arduino main loop does three
+things: It checks for new commands received via RF, it updates the rotary
 encoder positions with the latest reading, and it updates its internal state
-and the motor outputs. This is repeated until the Arduino is turned off.
+and, if necessary, adjusts the motor outputs. This is repeated until the
+Arduino is turned off.
 
 \subsection{Low-Level Commands}
 
-Internally, the Arduino operates using a set of low-level command. Examples
+Internally, the Arduino operates using a set of low-level commands, which are
+similar but separate from the communications ABI. Examples of such commands
 include opening the grabbers for a set amount of time, or moving to the right a
 specified distance. Each command is a sequence of one or more bytes, the first
 of which always identifies the command. The most significant bit of the first
-byte indicates the interruptability of the command, which we will touch on
-later, with one indicating uninterruptability, and zero indicating
-interruptability. The remaining 7 bits indicate the command itself, the
+byte indicates the interruptibility of the command, which will be discussed
+later, with one indicating uninterruptibility, and zero indicating
+interruptibility. The remaining 7 bits indicate the command itself, the
 different possible values and their meaning are tabulated in \cref{llcmd}. As
-with the comms ABI, depending on the command, a set number of argument bytes
-will follow.
+with the communications ABI, depending on the command, a set number of argument
+bytes will follow.
 
 Low-level commands correspond directly to a single action the robot should
-currently be doing; in particular not a sequence of actions. For example, the
-grabbers opening, or the solonoid kicking. They typically have clearly defined
-Arduino outputs (spinning the grabber motors, and enabling the solonoid in the
-previous examples), as well as clear completion criteria, such as time elapsed
-or distance travelled. Once a command is completed, the Arduino commences the
-next low-level command immediately.
+currently be doing, differing in this from the communications ABI, in which a
+single command may specify a sequence of actions. For example, the
+communications `\texttt{KICK}' command describes a sequence of grabber
+movements and solenoid actuation, each part of which is an individual low-level
+command. Low-level commands typically have clearly defined Arduino outputs
+(spinning the grabber motors, and enabling the solenoid in the previous
+examples), as well as clear completion criteria, such as time elapsed or
+distance travelled. Once a command is completed, the Arduino commences the next
+low-level command immediately.
 
 \subsection{Comms Input}
 
-If the RFs internal buffer contains a valid sequence of new instructions
-(\cref{comms}), this is translated into more low-level instructions which can
-be used by the Arduino directly, and the buffer is cleared. If the RFs internal
+If the RFs internal buffer contains a valid sequence of new instructions (see
+\cref{comms}), this is translated into more low-level instructions which can be
+used by the Arduino directly, and the buffer is cleared. If the RFs internal
 buffer is \textit{not} a valid sequence of new instructions, but contains a new
 line, it is considered to be a malformed packet, and the buffer is also
 cleared.
@@ -43,13 +48,15 @@ instructions, and involves mapping each of the ABI commands to one or more
 low-level commands. For more detail of what low-level commands are generated
 for each ABI command, see \cref{abi}. The new string of low-level commands
 effectively replace any in the current buffer, with a few notable exceptions.
-Some commands (e.g. kicking or the grabbers opening), are uninterruptable,
-which means that once commenced, they will complete before another command is
-started. Since these also compile down into a sequence of low-level commands,
-this sequence should not be interrupted. This is achieved with the
-`uninterruptable' flag bit. If the first low-level command is uninterruptable,
-the newly to insert commands do not replace it, but instead the first
-interruptable command in the list.
+Some commands (e.g. kicking or the grabbers opening), are uninterruptible,
+and cannot be replaced once they have been commenced. Since these also compile
+down into a sequence of low-level commands, this sequence should not be
+interrupted. This is achieved with the `uninterruptible' flag bit. If the first
+low-level command is uninterruptible, the newly to insert commands do not
+replace it, but instead the first interruptible command in the list. In order
+to allow two sequences of uninterruptible commands to be treated as separate,
+an interruptible \texttt{NOP} is inserted after each sequence of
+uninterruptible commands.
 
 \subsection{Distance}
 
@@ -60,16 +67,16 @@ these wheels have rotated. In practice, due to the inconsistencies such as the
 wheels not stopping immediately and turning at differing powers, these values
 are not completely linear with the distance travelled or the angle rotated.
 Instead, a non-linear approximation function was created from measured values
-to translate rotary encoder postions into workable values for distance
-travelled or angle rotated. This function uses measured values for several
-points, and is linear between them.
+to translate rotary encoder positions into workable values for the distance
+travelled or the angle rotated. This function uses measured values for several
+points, behaving linearly between them.
 
 \subsection{Auto-Correction}
 
 Due to the motors on different sides having different powers, and asymmetry in
-the design, without any corrections the robot drifted to one side. To
-compensate for this, the motor powers are updated every time the main loop is
-run, and motors whose rotary encoders show that they are ahead of the rest are
+the design, without any corrections the robot drifts to one side. To compensate
+for this, the motor powers are updated every time the main loop is run, and
+motors whose rotary encoders show that they are ahead of the rest are
 throttled. In practice, this approach introduces a slight jerkiness and
-unpredictability to the movement, however this was deemed an acceptable
-tradeoff for straight movement.
+unpredictability to the movement, however it improved overall reliability
+significantly.

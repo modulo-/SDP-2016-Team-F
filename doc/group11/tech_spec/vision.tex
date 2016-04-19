@@ -1,4 +1,4 @@
-\newcommand\visiontodo[1]{\textbf{TODO: #1}}
+% \newcommand\visiontodo[1]{\textbf{TODO: #1}}
 % Disable todos
 %\renewcommand\visiontodo[1]{}
 
@@ -8,10 +8,9 @@ The vision system was designed to be simple and fast, both to aid in
 development and to minimise the delay of a movement on the pitch being
 registered by the system. Originally a system was being developed from the
 ground up, but after a number of failures and difficulties the decision was
-made to use Group 12's working system. Group 12's system was adapted from a
-previous year's system and is the system used for the rest of the project.
-
-\visiontodo{Find out which code Group 12's system was based on}
+made to use Group 12's working system. Group 12's system was adapted from
+Group 12's vision system from last year, and was used for the rest of the
+project.
 
 \subsection{Theory}
 
@@ -20,28 +19,23 @@ the robots (or more accurately, their coloured top plates) and the ball from an
 overhead, colour image of the pitch. The design of our system addresses this as
 follows. First coloured areas matching the colours of the ball and top plate
 markers are identified in the image. These areas are then processed to
-determine if they are the ball, part of a top plate or random noise. For the
+determine if they are the ball, part of a top plate, or random noise. For the
 ball the size of the area is the deciding factor, and for top plate markers the
 proximity of other areas of colours that would be expected for a top plate are
 factored in. When an area of the image is identified as an area of interest
 this area is reported. When a certain object is not found the system does not
-report anything and this emission is handled by the prediction system.
-
-\visiontodo{Is predictor system covered by planning section?}
+report anything and this omission is handled in the main world model.
 
 \subsection{Implementation}
 
 The vision system is implemented as a Python module largely separate from the
-rest of the system. The vision system is run in a separate thread from the
-planning system and communicates with it through a shared world state object.
-The OpenCV library was used to handle the overhead camera feed and perform the
-majority of the vision related operations.
-
-The vision system follows a basic flow of information: the raw camera frame is
-retrieved, preprocessed, information is extracted, this information is passed
-to the planning system, repeat. After retrieval radial distortion is removed
-from the raw image. The image is then blurred using a Gaussian blur to reduce
-noise in the image. This undistorted and reduced noise image is then converted
+rest of the system. It utilised the OpenCV library to process the overhead
+camera feed, and preform the majority of processing. The vision system follows
+a basic flow of information: the raw camera frame is retrieved, preprocessed,
+and the information of interest is extracted. This information is passed to the
+main module, before the vision system loops back to the start. After retrieval,
+radial distortion is removed from the raw image. It is then blurred using a
+Gaussian blur to reduce noise. This undistorted noise image is then converted
 to the HSV (Hue Saturation Value) colour space before being passed to
 information retrieval. The HSV colour space is used instead of the default BGR
 (Blue Green Red) as the Hue component represents the colour largely independent
@@ -51,40 +45,30 @@ be identified more accurate than could be using BGR.
 From the HSV image, a binary image is produced for each of the colour ranges
 used to identify objects (a red colour range for the ball, a pink one for the
 pink top plate markers, etc.). This binary image is the same size as the HSV
-image and contains true (or equivalent value) when the pixels in the HSV value
-are in the colour range and false (or equivalent value) elsewhere in the image.
-Contours are then extracted from these binary images and these contours are
-then preprocessed further to determine if they are a ball or top plate marker.
-Contours are vector representations of the edges in an image, so in this case
-describe the shapes of the true areas in the binary images. To determine is a
-red contour is the ball, the contour is first checked to ensure it is not too
-small according to a configurable value. The enclosing rectangle that has
-minimum area is then calculated. If this rectangle has close to equal length
-side (within a certain threshold), the contour is assumed to represent the
-ball. To find the top plate markers, the same process is followed. The found
-markers are then grouped with those within close proximity to the centre
-marker. The orientation of the top plate is calculate by calculating the angle
-between the centre marker and the 'odd one out' (the outer marker of a
-different colour) which is then rotated 45° to give the orientation of the
-front of the top plate.
-
-After this information has been extracted from the binary images, it is placed
-in the world state object to be passed to the planning system. The vision
-system then retrieves the next frame and repeats the process.
-
-\visiontodo{High-level diagram showing flow of information through vision
-    system}
-
-\visiontodo{Appendix: screenshots for various stages of processing?}
+image and is white when the pixels in the HSV value are in the colour range and
+black elsewhere in the image.  Contours are then extracted from these binary
+images and these contours are then preprocessed further to determine if they
+are a ball or top plate marker.  Contours are vector representations of the
+edges in an image, so in this case describe the shapes of the true areas in the
+binary images. To determine if a red contour is the ball, the contour is first
+checked to ensure it is not too small according to a configurable value. The
+enclosing rectangle that has minimum area is then calculated. If this rectangle
+has close to equal length side (within a certain threshold), the contour is
+assumed to represent the ball. To find the top plate markers, the same process
+is followed. The found markers are then grouped with those within close
+proximity to the centre marker. The orientation of the top plate is calculate
+by calculating the angle between the centre marker and the `odd one out' (the
+outer marker of a different colour) which is then rotated 45\degree to give the
+orientation of the front of the top plate.  After this information has been
+extracted from the binary images, it is passed to the main module, and the
+vision system continues with processing the next frame.
 
 \subsection{Problems}
 
 The vision system, on average, performs well. There are, however, a number of
 areas that could be improved. The objects are not always detected, often due to
-the colour ranges being too narrow but an increase would cause a large number
-of misdetections. When the objects are detected, their positions often jitter
-from one frame to another. This requires the predictor to smooth out the
-reported positions which introduces a delay to the system. This jitter is caused
-by the noise in the camera images. The colour based matching also introduces
-other problems such as the pink top plate markers being detected as the ball and
-red pieces of clothing on the pitch being detected as the ball.
+the colour ranges being too narrow, although an increase would cause a large
+number of misdetections. When the objects are detected, their positions often
+jitter from one frame to another, due to noise in the camera images. The colour
+based matching also introduces other problems such as the pink top plate
+markers and red pieces of clothing being detected as the ball.

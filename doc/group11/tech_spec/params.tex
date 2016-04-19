@@ -1,14 +1,14 @@
 \section{Command-Line Parameters} \label{params}
 
 The following command-line parameters are supported, and while none are
-required, for normal operation, the \texttt{--defender}, \texttt{--attacker},
-\texttt{--color}, \texttt{--plan}, \texttt{--goal}, and \texttt{--pitch}
-options should all be set.
+required the \texttt{--defender}, \texttt{--attacker}, \texttt{--color},
+\texttt{--plan}, \texttt{--goal}, and \texttt{--pitch} options should all be
+set for normal operation.
 
 \vspace{5mm}
 
 \begin{tabularx}{\textwidth}{ll|X}
-    Short       & Long & Description \\
+    \textbf{Short} & \textbf{Long} & \textbf{Description} \\
     \hline
     \texttt{-h} & \texttt{--help}     & Shows a brief help text. \\
     \texttt{-z} & \texttt{--visible}  & Displays logging in purple. \\
@@ -16,17 +16,18 @@ options should all be set.
     defender robots USB RF device. \\
     \texttt{-2} & \texttt{--attacker} & Takes one argument, for the path of the
     attacker robots USB RF device. \\
-    \texttt{-l} & \texttt{--logging}  & Takes an comma seperated list of
+    \texttt{-l} & \texttt{--logging}  & Takes a comma separated list of
     logging levels to use as an argument. Supported logging levels are `debug',
     `info', `warning', and `error'. \\
     \texttt{-c} & \texttt{--color}    & Takes the color of our team as the
-    argument, either `blue', or `yellow' (or `b' and `y' for short). \\
+    argument, either `blue', or `yellow' (or `b' and `y' for short) should be
+    used. \\
     \texttt{-p} & \texttt{--plan}     & Takes the plan to use as an argument.
     Can be used to run subroutines other than playing the game, however for
     normal operation `game' is the correct value to use. \\
     \texttt{-g} & \texttt{--goal}     & Takes the side our goal is on as an
-    argument. Either `left' or `right'. \\
-    \textit{none} & \texttt{--pitch}  & Takes the pitch number being used as an
-    argument, in order to enable pitch specific calibrations. Is `0' for room
+    argument. Use either `left' or `right'. \\
+                & \texttt{--pitch}  & Takes the pitch number being used as an
+    argument, in order to enable pitch specific calibrations. Use `0' for room
     3.D03, and `1' for room 3.D04. \\
 \end{tabularx}

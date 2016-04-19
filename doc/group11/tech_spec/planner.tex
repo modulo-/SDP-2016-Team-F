@@ -2,17 +2,42 @@
 
 \subsection{Design}
 
-The planner uses a system of goals and actions. Goals define an overall strategy in a given situation leading to a particular aim. Actions define one instruction given to the robot with preconditions for its execution. Goals are composed of a sequence of actions. A goal object selects the next action required to achieve its aim by traversing its ordered list of actions and evaluating their preconditions.
+The planner makes its decision based on the world state passed to it. By
+default, this is done once per second. However, the interval between planner
+decisions may be changed based on the last executed action. Some actions, such
+as turning, require less time than one second. Other actions, however, such as
+moving and closing the grabbers require significantly more time. The planner
+estimates this time, and sets the delay to it.
 
-The planner makes its decision based only on the world state passed to it. This is described by an instance of the \emph{World} class passed to the planner. This object's state is updated by passing a new set of positions (as a dictionary of vectors) to the \texttt{update\_positions} method of \emph{World}. The \emph{World} class describes the state of the world from the vision, including position vectors for the robots, the ball and the goals. The \emph{World} class and its associated classes also provide methods on their data providing the planner with information about the world. Further utility functionality can be found in \emph{utils.py}.
+The planner uses a system of goals and actions, the hierarchy of which may be
+seen in Figure \ref{fig:goalsandactionsstructure}. Goals define an overall
+strategy in a given situation, leading to a particular aim, and are composed
+of a sequence of actions. In each step, the planner selects an appropriate
+action to achieve its aim by traversing a list of actions in the currently
+selected goal. This selection is done by evaluating preconditions of each
+action. In general, goals are high-level and do not change as often as actions.
+%A list of goals may be found in \cref{goalstructure}.
 
-The overall planner is used by calling \texttt{plan\_and\_act(world)}. This selects a goal based on the given world state using its \texttt{get\_goal()} method. From this goal an action is generated using \texttt{generate\_action()}. The method then runs (using \texttt{actuate(action)} and returns a delay giving the time until the planner should be run again.
+Actions define usually one instruction given to the robot with preconditions
+for its execution. As already mentioned, an action can also return a specific
+delay time to postpone or speed up next planner execution. Actions compute any
+parameters to the intructions they send themselves, e.g. there may be an action
+to rotate to a point, but not one to rotate 30\degree.
 
+\begin{figure}[H]
+	\begin{center}
+    \includegraphics[width=1.0\linewidth]{res/goalandactions.png}
+    \caption{The overall planner structure. The planner consists of multiple goals. Each goal has a list of actions which contain two elements - preconditions and a method to execute.}
+    \label{fig:goalsandactionsstructure}
+	\end{center}
+\end{figure}
 
-\pagebreak
 \subsection{Goal selection}
 
-The process of selecting a new goal follows a procedure described in Figure \ref{fig:goalpicker}. In every step of the planner, the current world state is processed and resulting goal is generated based on this analyses. There are three main conditions that effect this decision.
+The process of selecting a new goal follows a procedure described in Figure
+\ref{fig:goalpicker}. In every step of the planner, the current world state is
+processed and resulting goal is generated based on this analyses. There are
+three main conditions that effect this decision.
 
 
 \begin{figure}[H]
@@ -25,95 +50,61 @@ The process of selecting a new goal follows a procedure described in Figure \ref
 
 \pagebreak
 
-First of all, if our robot captures the ball, it will try to pass the ball to a teammate robot. If the ball is not in our robot's possession, then the planner has to strategically decide where to go based on the ball's position and the position of all other robots. If our robot could approach the ball faster than all other robots (our attacker included), then it would attempt to grab the ball. Otherwise, it would switch to \emph{Defend} goal and start defending our goal area. This involves returning to our defensive zone. If Tractor Crab decides to grab the ball and the situation changes so that any other robot is closer than ours, the planner immediately changes the goal to defend. Also, if the ball is heading towards our goal and there is a high chance of scoring, the planner would choose to defend over trying to catch the ball. Finally, one special condition was added. If the ball is too close to our goal, Tractor Crab's goal changes to \emph{Idle}. The reasoning behind this is that it is very unlikely that the robot will grab the ball safely. In other words, it is very likely that we will score on ourselves, and thus, it is preferable to do nothing.
+First of all, if our robot captures the ball, it will try to pass the ball to
+our teammate. If the ball is not in our robot's possession, the planner
+has to strategically decide where to go based on the ball's position and the
+position of all other robots. If our robot could approach the ball faster than
+all other robots (our attacker included), then it would attempt to grab the
+ball. Otherwise, it would switch to the \texttt{Defend} goal and start
+defending our goal area. This involves returning to our defence zone. If
+our robot decides to grab the ball and the situation changes so that any
+other robot is closer than ours, the planner immediately changes the goal to
+\texttt{Defend}. Also, if the ball is heading towards our goal and there is a
+high chance of scoring, the planner would choose to defend over trying to catch
+the ball. Finally, one special condition was added. If the ball is too close to
+our goal, Tractor Crab's goal changes to \texttt{Idle}. The reasoning behind
+this is that it is very unlikely that the robot will grab the ball safely, and
+it is more likely for an attempt to result in an own-goal.
 
-
-
-
-
-
-
-
-
-\pagebreak
 \subsection{Goals}
 
-Figure \ref{fig:receiveandpass} shows an example of Defender's goal \emph{ReceivingPass}. It shows a list of actions that are in a queue starting from the top. When action's preconditions are met, the action is executed and the process finishes. If any of the precondition is false, the next action in the queue is processed.
+\subsubsection{\texttt{GrabBall}}
 
-\begin{center}
+\texttt{GrabBall} is one of the principal goals in the planner. Its purpose
+is to move to the best position for grabbing the ball and eventually grab the
+ball. Since the robot can only move sideways, the task is not trivial, and
+requires a sideways approach detailed in Figure \ref{fig:sidewaysgrabball}.
 
-\begin{figure}[H]
-\centering
-\begin{tabular}{ | l | p{110mm} | }
-\hline
-\textbf{Action} & \textbf{Preconditions} \\ \hline
-GrabBall &
-\begin{compactitem}
-\item Defender can catch ball
-\item Defender's grabbers are open
-\end{compactitem}  \\ \hline
+The naive way of grabbing the ball would be to approach the ball, spin it so
+that the robot faces the ball, and grab it. However, this approach faces a
+substantial shortage of hitting the ball while spinning close-by. Thus, it
+needs to rotate first and then approach the ball. First, the planner finds
+points suitable for grabbing the ball, assuming that a robot placed on a point
+is facing the ball. There are usually two appropriate points -- catch-points. 
 
-GoToStaticBall &
-\begin{compactitem}
-\item Defender is facing the catch point
-\item Defender's grabbers are open
-\item Ball is static
-\end{compactitem}  \\ \hline
 
-TurnToCatchPoint &
-\begin{compactitem}
-\item Defender's grabbers are open
-\end{compactitem}  \\ \hline
+One of the advantages of sideways movement is that neither side has priority
+and thus both sides can be used for any kind of task. As long as the robot
+faces the ball, it can move in both directions. Thus, there are 4 possible
+rotations - one for each catch-point and for each movement direction.  Only two
+of these rotations lead to a situation when the robot faces the ball. Out of
+these, the planner picks the one that requires the smaller angle of rotation.
+Once the planner knows the catch-point and the corresponding rotation, it can
+approach the ball. This process is shown in Figure
+\ref{fig:sidewaysgrabballangle}. Figure \ref{fig:sidewaysgrabballdone} shows
+the situation when the robot is in front of the ball and is ready to grab it.
 
-WaitForBallToCome &
-\begin{compactitem}
-\item Defender is facing ball
-\item The ball can reach the robot
-\item Defender can reach the ball
-\item Grabbers are open
-\item The ball is moving
-\end{compactitem}  \\ \hline
-
-FollowBall &
-\begin{compactitem}
-\item Defender's grabbers are open
-\item The ball is moving
-\end{compactitem}  \\ \hline
-
-OpenGrabbers &
-\begin{compactitem}
-\item Defender's grabbers are closed
-\end{compactitem}  \\ \hline
-
-FaceFriendly &
-\begin{compactitem}
-\item Friendly is on the pitch
-\end{compactitem}  \\ \hline
-\end{tabular}
-\par
-\bigskip
-
-\caption{ReceivingAndPass goal in the defender's planner. Shows actions and their corresponding preconditions that have to be satisfied.}
-
-	\label{fig:receiveandpass}
-\end{figure}
-\end{center}
-
-\pagebreak
-\subsubsection{Grab Ball}
-
-\emph{Grab ball} is one of the principal goals in the planner. Its main purpose is to move to the best position for grabbing the ball and eventually grab the ball. Since the robot can only move sideways, the task is not trivial. Figure \ref{fig:sidewaysgrabball} depicts how this was done.
 
 \begin{figure}[H]
 	\begin{center}
 	\begin{subfigure}{0.5\textwidth}
   		\includegraphics[width=1.0\textwidth]{res/sidewaysgrabballangle.png}
-  		\caption{Planner finds two catch-points P1 and P2. For each point, there is a corresponding angle $\phi$, which represents the rotation for approaching a point.}
+  		\caption{The planner finds two catch-points P1 and P2. For each point, there is a corresponding angle $\phi$, which represents the rotation for approaching a point.}
   		\label{fig:sidewaysgrabballangle}
 	\end{subfigure}%
 	\begin{subfigure}{0.5\textwidth}
   		\includegraphics[width=1.0\textwidth]{res/sidewaysgrabballdone.png}
-  		\caption{Catch-point P2 was selected, the robot rotated and moved so that it stands on P2 now. The next action would be to grab the ball. }
+  		\caption{The catch-point P2 was selected, the robot rotated and moved so that it stands on P2 now. The next action would be to grab the ball. }
   		\label{fig:sidewaysgrabballdone}
 	\end{subfigure}%
 	
@@ -122,28 +113,46 @@ FaceFriendly &
 	\end{center}
 \end{figure}
 
+Two obstacles had to be overcame in development. Those were mostly caused by
+vision inaccuracies and a dynamic environment. Firstly, our robot can overshoot
+in movement and miss the catch point. If this happens, it does not recompute a
+new catch-point. Instead, it tries to move back towards the current
+catch-point. Secondly, our robot can overshot in rotation. Since the rotation
+angle is crucial for successful movement towards a catch-point, the only
+possible solution is to rotation again. However, this can lead to situations
+when the robot keeps oscillating between two angles. Since such behaviour is
+undesirable, a dynamic error threshold is used. As long as the robot is within
+an accepted error, the rotation is accepted, with the threshold value increases
+after every successive unsuccessful rotation. This approach represents a
+trade-off between accuracy and speed. It is better to make a decision fast,
+even if it is not optimal, because the environment constantly changes. A found
+solution can be outdated if the decision/adjusting process takes too long.
 
-The naive way of grabbing the ball would be to approach the ball, spin it so that the robot faces the ball, and grab it. However, this approach faces a substantial shortage of hitting the ball while spinning close-by. Thus, it needs to rotate first and then approach the ball. First, the planner finds points suitable for grabbing the ball, assuming that a robot placed on a point is facing the ball. There are usually two appropriate points - \emph{catch-points}. 
+\subsubsection{\texttt{Defend}}
 
-One of the advantages of sideways movement is that neither side has priority and thus both sides can be used for any kind of task. As long as the robot faces the ball, it can move in both directions. Thus, there are 4 possible rotations - one for each catch-point and for each movement direction. Certainly, only two of these rotations lead to a situation when the robot faces the ball. Out of these, the planner picks the one that requires the smaller angle of rotation. Once the planner knows the catch-point and the corresponding rotation, it can approach the ball. This process is shown in Figure \ref{fig:sidewaysgrabballangle}. Figure \ref{fig:sidewaysgrabballdone} shows the situation when the robot is in front of the ball and is ready to grab it.
+The primary role of \texttt{Defend} goal is to prevent the opposing team from
+successfully moving the ball over the defended goal-line. This is accomplished
+by the robot's moving into the path of the ball and either catching it or
+directing it away from the goal line. To improve chances of catching the ball
+during the \texttt{Defend} goal, our robot is always trying to predict the
+ball's trajectory and stand at the most suitable defending spot. This spot,
+also called a defending point, is calculated as an intersection of a predicted
+ball's trajectory and a semi-circle surrounding the goal area. Such point is
+shown in Figure \ref{fig:defendingpoint}.
 
-Two obstacles had to be overcame in development. Those were mostly caused by vision inaccuracies and dynamic environment. Firstly, Tractor Crab can overshoot in movement and miss the catch point. If this happens, it does not recompute a new catch-point. Instead, it tries to move back towards the current catch-point. Secondly, Tractor Crab can overshot in rotation. Since rotation angle is crucial for successful movement towards a catch-point, the only possible solution is to repeat the rotation again. However, this can lead to situations when the robot keeps rotating there and back. Since such behavior is undesirable, a \emph{dynamic threshold} is used. As long as the robot is within an accepted error, the rotation is accepted. Also, the threshold value increases after every successive unsuccessful rotation. This approach represents a trade-off between accuracy and speed. It is better to make a decision fast, even if it is not optimal, because the environment constantly changes. A found solution can be outdated if the decision/adjusting process takes too long.
+\begin{figure}[H]
+	\begin{center}
+    \includegraphics[width=0.5\linewidth]{res/defending.png}
+    \caption{A football pitch with a robot using the \texttt{Defend} goal. The blue line represents the defending semi-circle. The red line shows an expected ball trajectory. Point D represents the defence point: the intersection of these lines.}
+    \label{fig:defendingpoint}
+	\end{center}
+\end{figure}
 
-
-
-\pagebreak
-\subsubsection{Defend}
-
-
-
-\subsection{Extensibility}
-
-Extending the planner is simply a case of adding goals and actions then adding the logic to select these in \texttt{select\_goal(world)}. Any new goals or actions should subclass Goal and Action respectively and override methods were stated.
-
-In actions, the logic for performing should be placed in \texttt{perform(comms)}. This method is passed a \texttt{CommsManager} object through which the robot can be sent instructions. No more than one call should be made to this object in any given action. A new action should also override \texttt{get\_delay} giving an appropriate delay (in seconds) before the planner should run again. New actions can also have preconditions defined in a variable \texttt{preconditions}.
-
-In goals, it may only be neccessary to write a Goal subclass with an ordered list of actions (from last to first). Otherwise the \texttt{generate\_action()} method can be overriden but similar logic should be followed.
-
-\subsection{Integration}
-
-An instance of the \texttt{Planner} is kept by the ``main.py'' script. Based on the delays given by the planner, it calls the planner at varying intervals, passing it the latest world model provided by the vision. The planner uses a \texttt{CommsManager} object to make control the robot.
+Because of vision inconsistency on different parts of a pitch, the defending
+point is sometimes slightly off. This problem is dealt with by oscillating
+movement around the defending point. Since the robot is always moving from side
+to side, it covers more area and thus its chances to catch the moving ball are
+higher. A minor improvement was implemented for situations when the robot is not
+close to the defending point and the ball is moving towards our goal. In this
+case, the robot immediately moves to the side of the ball and tries to direct
+it away.

@@ -11,21 +11,21 @@
 
 \section{List of Low-Level Commands} \label{llcmd}
 
-\llcmdspec{WAIT}{0x00}{2}{uint16\_t}{Waits for the given time in milliseconds}
-\llcmdspec{BRAKE}{0x01}{2}{uint16\_t}{Brakes for the given time in milliseconds}
+\llcmdspec{WAIT}{0x00}{2}{uint16\_t}{Waits for the given time in milliseconds.}
+\llcmdspec{BRAKE}{0x01}{2}{uint16\_t}{Brakes for the given time in milliseconds.}
 \llcmdspec{GRABBER\_OPEN}{0x02}{2}{unit16\_t}
-    {Spins the grabbers to open for the given time in milliseconds}
+    {Spins the grabbers to open for the given time in milliseconds.}
 \llcmdspec{GRABBER\_CLOSE}{0x03}{2}{uint16\_t}
-    {Spins the grabbers to close for the given time in milliseconds}
+    {Spins the grabbers to close for the given time in milliseconds.}
 \llcmdspec{GRABBER\_FORCE}{0x04}{2}{uint16\_t}
-    {Spins the grabbers to close powerfully for the given time in milliseconds}
+    {Spins the grabbers to close powerfully for the given time in milliseconds.}
 \llcmdspec{KICK}{0x05}{2}{uint16\_t}
-    {Activates the kicker for the given time in milliseconds}
+    {Activates the kicker for the given time in milliseconds.}
 \llcmdspec{STRAIT}{0x08}{2}{int16\_t}
-    {Moves right by the given (potentially negative) distance in millimeters}
+    {Moves right by the given (potentially negative) distance in millimetres.}
 \llcmdspec{SPIN}{0x09}{2}{int16\_t}
     {Spins clockwise by the given (potentially negative) number of minutes (60
-     minutes correspond to 1 degree)}
+     minutes correspond to 1 degree).}
 \llcmdspec{NOP}{0x7f}{0}{\textnormal{\textit{none}}}
-    {Does nothing. Primarily used to seperate two sequences of uninterruptable
-     commands with an interruptable \texttt{NOP}.}
+    {Does nothing. Primarily used to separate two sequences of uninterruptible
+     commands with an interruptible \texttt{NOP}.}
