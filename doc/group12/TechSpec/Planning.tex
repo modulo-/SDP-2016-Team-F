@@ -23,59 +23,21 @@ The planner uses a system of goals and actions. Goals define an overall strategy
 
 In the implementation, all goals and actions are derived from their respective super classes. These are defined as follows:
 
-\begin{lstlisting}
-class Goal(object):
-    '''
-    Base class for goals
-    '''
-    def __init__(self, world, robot):
-        self.world = world
-        self.robot = robot
-
-    # Return the next action necesary to achieve the goal
-    def generate_action(self):
-        info("Generating action for goal: {0}"\
-        	.format(self.__class__.__name__))
-        for a in self.actions:
-            if a.is_possible():
-                return a
-        return None
+\begin{figure}[h]
+	\begin{center}
+          \includegraphics[width=1.0\linewidth]{images/Goal.png}
+          \caption{Definition of super class for goals}
+	\end{center}
+\end{figure}
 
 
-class Action(object):
-    '''
-    Base class for actions
-    '''
-    preconditions = []
+\begin{figure}[h]
+	\begin{center}
+          \includegraphics[width=1.0\linewidth]{images/Action.png}
+          \caption{Definition of super class for actions}
+	\end{center}
+\end{figure}
 
-    def __init__(self, world, robot, additional_preconds=[]):
-        self.world = world
-        self.robot = robot
-        self.preconditions = self.__class__\
-        	.preconditions + additional_preconds
-
-    # Test the action's preconditions
-    def is_possible(self):
-        info("Testing action : {0}".format(self.__class__.__name__))
-        for (condition, name) in self.preconditions:
-            if not condition(self.world, self.robot):
-                info("Precondition is false: {0}".format(name))
-                return False
-        info("Action possible: {0}".format(self.__class__.__name__))
-        return True
-
-    # Do comms to perform action
-    def perform(self, comms):
-        raise NotImplementedError
-
-    # Get messages relating to action
-    def get_messages(self):
-        return []
-
-    def get_delay(self):
-        return DEFAULT_DELAY
-
-\end{lstlisting}
 
 The planner makes its decision based on only on the world state passed to it. This is described by an instance of the  class passed to the planner. This object's state is updated by passing a new set of positions (as a dictionary of vectors) to the \texttt{update\_positions} method of \texttt{World}. The \texttt{World} class describes the state of the world from the vision, including position vectors for the robots, the ball and the goals. The \texttt{World} class and its associated classes also provide methods on their data providing the planner with information about the world. Further utility functionality can be found in ``utils.py''
 
