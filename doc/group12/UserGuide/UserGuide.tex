@@ -1,4 +1,4 @@
-\documentclass[12pt,a4paper]{article}
+﻿\documentclass[12pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -45,25 +45,30 @@
 
 \section{Introduction}
 
-Once ready to use, place a charged batteries in the back holder, and
-connect it to the arduino power cable.
+Once ready to use, 
 
-Plug the RF stick in the computer, ensure top plates of all types, as well as
-the ball, are on the pitch, and execute
-`\texttt{./main -p <PLAN> -1 <PATH> -c <COLOR>}', there \texttt{<PLAN>} is the
-plan to run (see section below), \texttt{<PATH>} is the device path of the RF
-stick (e.g. `\verb$/dev/ttyACM0$'), and \texttt{<COLOR>} is the team color,
-which must be one of `\texttt{blue}', `\texttt{b}', `\texttt{yellow}', or
-`\texttt{y}' respectively. Further options notably include the `\texttt{-l}'
+\begin{itemize}
+    \item place a charged set of batteries in the back holder, and connect it to the arduino power cable.
+    \item plug the RF stick in the computer, ensuring all top plates and the ball are on the pitch
+    \item execute `\texttt{./main -p <PLAN> -1 <PATH> -c <COLOR>}', where,
+    \begin{itemize}
+	\item \texttt{<PLAN>} is the plan to run (see section 1.1 below)
+	\item \texttt{<PATH>} is the device path of the RF stick (e.g. `\verb$/dev/ttyACM0$')
+	\item \texttt{<COLOR>} is the team color, which must be either `\texttt{blue}', `\texttt{b}', `\texttt{yellow}', or `\texttt{y}'
+    \end{itemize}
+    \item The `\texttt{-l}' option sets the logging level, which can be one of `\texttt{info}', `\texttt{debug}', `\texttt{warn}' or `\texttt{error}'.
+\end{itemize}
+
+Further options notably include the 
 option, which sets the logging level. E.g. `\texttt{-l info}' enables info
 messages in the logger.
 
-While the control program is running, the overall strategy and logging can be
-modified. Entering `\texttt{debug}', `\texttt{info}', `\texttt{warn}', or
-`\texttt{error}', and pressing enter, sets the logging level appropriately.
-Likewise, entering a plan name and pressing enter switches the running plan to
-what was entered. Entering `\texttt{stop}' unsets the active plan and leaves
-the robot idle.
+While the control program is running, the overall strategy and logging can be modified. 
+Entering a logging setting and pressing enter, sets the logging level appropriately.
+
+Likewise, entering a plan name and pressing enter switches the running plan to the new plan that has been entered. 
+
+Entering `\texttt{stop}' unsets the active plan and leaves the robot idle.
 
 \subsection{Plans}
 
@@ -71,10 +76,10 @@ A small number of plans are available to run:
 
 \begin{itemize}
     \item `\texttt{move-grab}', to move to the ball and grab it.
-    \item `\texttt{m1}', to do milestone 3, task 1.
-    \item `\texttt{m2}', to do milestone 3, task 2.
-    \item `\texttt{m31}', to do milestone 3, task 3.1.
-    \item `\texttt{m32}', to do milestone 3, task 3.2.
+    \item `\texttt{m1}', to do milestone 3, task 1 (receiving a pass).
+    \item `\texttt{m2}', to do milestone 3, task 2 (receiving, turning and passing).
+    \item `\texttt{m31}', to do milestone 3, task 3.1 (intercepting a pass).
+    \item `\texttt{m32}', to do milestone 3, task 3.2 (defending the goal).
 \end{itemize}
 
 
