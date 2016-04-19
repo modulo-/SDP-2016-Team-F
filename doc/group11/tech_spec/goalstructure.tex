@@ -2,56 +2,113 @@
 
 Following tables show examples of Defender's goals. Each table has a list of actions that are in a queue starting from the top. When action's preconditions are met, the action is executed and the process finishes. If any precondition is false, the next action in the queue is processed.
 
-\emph{ReceivingAndPass}
+
+\subsection{Goal - Defend}
 
 \begin{center}
 
-
-\begin{tabular}{ | l | p{110mm} | }
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
 \hline
 \textbf{Action} & \textbf{Preconditions} \\ \hline
 GrabBall &
 \begin{compactitem}
-\item Defender can catch ball
-\item Defender's grabbers are open
+\item Defender can catch the ball
+\item Grabbers are open
+\end{compactitem}  \\ \hline
+
+FollowBall &
+\begin{compactitem}
+\item Defender is close to the kicked ball
+\end{compactitem}  \\ \hline
+
+GoToDefendPoint &
+\begin{compactitem}
+\item Defender is facing the defending point
+\item Defender is far away from the defending point
+\item Grabbers are open
+\end{compactitem}  \\ \hline
+
+RotateToDefendPoint &
+\begin{compactitem}
+\item Defender is far away from the defending point
+\item Grabbers are open
+\end{compactitem}  \\ \hline
+
+FaceBall &
+\begin{compactitem}
+\item Defender is not facing the ball
+\item Grabbers are open
+\end{compactitem}  \\ \hline
+
+Wiggle &
+\begin{compactitem}
+\item Grabbers are open
+\end{compactitem}  \\ \hline
+
+OpenGrabbers &
+\begin{compactitem}
+\item Grabbers are closed
+\end{compactitem}  \\ \hline
+\end{tabular}
+\par
+\bigskip
+
+\end{center}
+
+
+\subsection{Goal - Pass}
+
+\begin{center}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
+\hline
+\textbf{Action} & \textbf{Preconditions} \\ \hline
+PassAction &
+\begin{compactitem}
+\item None
+\end{compactitem}  \\ \hline
+
+\end{tabular}
+\par
+\bigskip
+
+\end{center}
+
+
+\pagebreak
+\subsection{Goal - GetBall}
+
+\begin{center}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
+\hline
+\textbf{Action} & \textbf{Preconditions} \\ \hline
+GrabBall &
+\begin{compactitem}
+\item Defender can catch the ball
+\item Grabbers are open
 \end{compactitem}  \\ \hline
 
 GoToStaticBall &
 \begin{compactitem}
-\item Defender is facing the catch point
-\item Defender's grabbers are open
+\item Defender is facing the ball
+\item Grabbers are open
 \item Ball is static
 \end{compactitem}  \\ \hline
 
 TurnToCatchPoint &
 \begin{compactitem}
-\item Defender's grabbers are open
-\end{compactitem}  \\ \hline
-
-WaitForBallToCome &
-\begin{compactitem}
-\item Defender is facing ball
-\item The ball can reach the robot
-\item Defender can reach the ball
 \item Grabbers are open
-\item The ball is moving
-\end{compactitem}  \\ \hline
-
-FollowBall &
-\begin{compactitem}
-\item Defender's grabbers are open
-\item The ball is moving
 \end{compactitem}  \\ \hline
 
 OpenGrabbers &
 \begin{compactitem}
-\item Defender's grabbers are closed
+\item Grabbers are closed
 \end{compactitem}  \\ \hline
 
-FaceFriendly &
-\begin{compactitem}
-\item Friendly is on the pitch
-\end{compactitem}  \\ \hline
 \end{tabular}
 \par
 \bigskip
