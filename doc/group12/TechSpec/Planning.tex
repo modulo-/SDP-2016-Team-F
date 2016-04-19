@@ -2,19 +2,24 @@
 \lstset{language=Python, showstringspaces=false}
 
 
-\begin{figure}[h]
+\begin{figure}[H]
+\centering
+\begin{subfigure}{.5\textwidth}
 \centering
 \input{obstacle_detection}
-\caption{Obstacle detection}
+\caption{Detection}
 \label{fig:obstacle_detection}
-\end{figure}
-
-\begin{figure}[h]
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
 \centering
 \input{obstacle_avoidance}
-\caption{Obstacle avoidance}
+\caption{Avoidance}
 \label{fig:obstacle_avoidance}
+\end{subfigure}
+\caption{Handling Obstacles}
+\label{handling_obstacle}
 \end{figure}
+
 
 
 \subsection{Design}
@@ -23,17 +28,17 @@ The planner uses a system of goals and actions. Goals define an overall strategy
 
 In the implementation, all goals and actions are derived from their respective super classes. These are defined as follows:
 
-\begin{figure}[h]
+\begin{figure}[p]
 	\begin{center}
-          \includegraphics[width=1.0\linewidth]{images/Goal.png}
+          \includegraphics[width=1.0\linewidth]{Goal}
           \caption{Definition of super class for goals}
 	\end{center}
 \end{figure}
 
 
-\begin{figure}[h]
+\begin{figure}[p]
 	\begin{center}
-          \includegraphics[width=1.0\linewidth]{images/Action.png}
+          \includegraphics[width=1.0\linewidth]{Action}
           \caption{Definition of super class for actions}
 	\end{center}
 \end{figure}
