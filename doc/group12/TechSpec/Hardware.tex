@@ -1,4 +1,22 @@
 \section{Hardware}
+
+\begin{figure}[H]
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{DSC_0036.jpg}
+\caption{Wheelbase}
+\label{pic:wheelbase}
+\end{subfigure}
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width=\textwidth]{DSC_0031.jpg}
+\caption{Front Assembly}
+\label{pic:front}
+\end{subfigure}
+\caption{Robot Construction}
+\label{pic:construction}
+\end{figure}
+
 \subsection{Wheelbase}
 \subsubsection{Dimensions}
 'Drive' wheelbase:		15cm \newline
@@ -6,7 +24,7 @@ Radius of 'turn' wheel: 11cm
 \subsubsection{Origin}
 The origin is directly between the 'Drive' wheels
 \subsubsection{Arrangement}
-The robot uses a 3 wheeled 'T' design with 2 parallel 'drive' wheels along one axis of rotation (capable of rotating independently) and a third unpowered 'turn' wheel rotating perpendicular to these 2 (figure 1.1.1). The 'origin' of the robot should be 
+The robot uses a 3 wheeled 'T' design with 2 parallel 'drive' wheels along one axis of rotation (capable of rotating independently) and a third unpowered 'turn' wheel rotating perpendicular to these 2 (\autoref{pic:wheelbase}). The 'origin' of the robot should be 
 directly between the 2 drive wheels which are 15cm apart. The 'turn' wheel 
 is 11cm back from the origin, the left wheel 7.5cm to the left and the right
 7.5cm to the right. 
@@ -15,33 +33,24 @@ is 11cm back from the origin, the left wheel 7.5cm to the left and the right
 The 2 drive motors are lego NXT motors and have rotational encoders built in, this is used to turn and move accurately. 
 
 
-\begin{figure}[!ht]
-\caption{Wheelbase}
-\centering
-\includegraphics[width=\textwidth, angle=270]{DSC_0036.jpg}
-\end{figure}
 
 \subsection{Front Assembly}
 \subsubsection{Description}
-The robot Has a 2 motor assembly mounted on 4 vertical bars coming up from the struts joining the left and right NXT drive motors. These are symmetrically mounted and linked by a chain in order to keep them synchronised. The right grabber is lower than the left one so that they do not hit into each other. On one of the centre axles there is a rotary encoder to give the position of the grabbers to the arduino, through the rotary encoder board. position 0 is open, 10 is closed with ball and 13 is closed without ball.
+The robot Has a 2 motor assembly mounted on 4 vertical bars coming up from the struts joining the left and right NXT drive motors. These are symmetrically mounted and linked by a chain in order to keep them synchronised. The right grabber is lower than the left one so that they do not hit into each other. On one of the centre axles there is a rotary encoder to give the position of the grabbers to the Arduino, through the rotary encoder board. Position 0 is open, 10 is closed with ball and 13 is closed without ball. See \autoref{pic:front}.
 
 The grabber assembly is fully detachable and can be clipped on and off. 
-\begin{figure}[!ht]
-\caption{Front Assembly}
-\centering
-\includegraphics[width=\textwidth]{DSC_0031.jpg}
-\end{figure}
+
 
 \subsection{Kicker}
 \subsubsection{Position}
-The kicker is a solenoid mounted on the underside of the robot (see figure 1.1.1) connected through a relay to the battery packs, with the relay signal going to the power shield and being controlled directly by the arduino. on the end of the solenoid is a curved kicker designed to keep the ball straight.
+The kicker is a solenoid mounted on the underside of the robot (see \autoref{pic:construction}) connected through a relay to the battery packs, with the relay signal going to the power shield and being controlled directly by the Arduino. on the end of the solenoid is a curved kicker designed to keep the ball straight.
 
 \subsubsection{Power}
 The kicker is capable of kicking a distance of 3.2m at full power with an approx error of 15 percent
 
 \subsection{Board and Battery Assembly}
 \subsubsection{Structure}
-The boards are mounted on a platform between the 3 wheels. The arduino and power
+The boards are mounted on a platform between the 3 wheels. The Arduino and power
 shield are mounted in the centre with 2 battery packs of 2 18650 Li-Ion batteries mounted sideways on either
 side. The rotary encoder board is
 mounted on the back of the right battery pack and the motor driver board is mounted
