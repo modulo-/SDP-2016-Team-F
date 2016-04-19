@@ -19,12 +19,12 @@
 }
 
 
-\node  (robot)  [draw, inner sep=5] at (0,0) {ROBOT};
+\node  (robot)  [draw, inner sep=5] at (0,-1) {ROBOT};
 \node  (target)  [draw,inner sep=5] at (0,5) {TARGET};
 \draw  (robot) [-triangle 60] edge (target);
 
-\node (o1)[draw] at (-2,2) {$O_1$};
-\coordinate (p1) at (0,2) {};
+\node (o1)[draw] at (-2,1) {$O_1$};
+\coordinate (p1) at (0,1) {};
 \draw  (o1) [<->] edge node[midway, below] {$d_1$} (p1);
 \draw [right angle symbol={robot}{p1}{o1}];
     
