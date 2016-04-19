@@ -1,9 +1,12 @@
 \section{Goal structure examples} \label{goalstructure}
 
-Following tables show examples of Defender's goals. Each table has a list of actions that are in a queue starting from the top. When action's preconditions are met, the action is executed and the process finishes. If any precondition is false, the next action in the queue is processed.
+The following tables show examples of Defender's goals. Each table has a list
+of actions, which are in a queue starting from the top. If an action's
+preconditions are met, the action is executed and the process finishes. If any
+precondition is false, the preconditions for next action in the queue are
+examined.
 
-
-\subsection{Goal - Defend}
+\subsection{Goal - \texttt{Defend}}
 
 \begin{center}
 
@@ -11,44 +14,44 @@ Following tables show examples of Defender's goals. Each table has a list of act
 \begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
 \hline
 \textbf{Action} & \textbf{Preconditions} \\ \hline
-GrabBall &
+\texttt{GrabBall} &
 \begin{compactitem}
-\item Defender can catch the ball
-\item Grabbers are open
+\item The defender can catch the ball.
+\item The grabbers are open.
 \end{compactitem}  \\ \hline
 
-FollowBall &
+\texttt{FollowBall} &
 \begin{compactitem}
-\item Defender is close to the kicked ball
+\item The defender is close to the kicked ball.
 \end{compactitem}  \\ \hline
 
-GoToDefendPoint &
+\texttt{GoToDefendPoint} &
 \begin{compactitem}
-\item Defender is facing the defending point
-\item Defender is far away from the defending point
-\item Grabbers are open
+\item The defender is facing the defending point.
+\item The defender is far away from the defending point.
+\item The grabbers are open.
 \end{compactitem}  \\ \hline
 
-RotateToDefendPoint &
+\texttt{RotateToDefendPoint} &
 \begin{compactitem}
-\item Defender is far away from the defending point
-\item Grabbers are open
+\item The defender is far away from the defending point.
+\item The grabbers are open.
 \end{compactitem}  \\ \hline
 
-FaceBall &
+\texttt{FaceBall} &
 \begin{compactitem}
-\item Defender is not facing the ball
-\item Grabbers are open
+\item The defender is not facing the ball.
+\item The grabbers are open.
 \end{compactitem}  \\ \hline
 
-Wiggle &
+\texttt{Wiggle} &
 \begin{compactitem}
-\item Grabbers are open
+\item The grabbers are open.
 \end{compactitem}  \\ \hline
 
-OpenGrabbers &
+\texttt{OpenGrabbers} &
 \begin{compactitem}
-\item Grabbers are closed
+\item The grabbers are closed.
 \end{compactitem}  \\ \hline
 \end{tabular}
 \par
@@ -57,7 +60,7 @@ OpenGrabbers &
 \end{center}
 
 
-\subsection{Goal - Pass}
+\subsection{Goal - \texttt{Pass}}
 
 \begin{center}
 
@@ -65,7 +68,7 @@ OpenGrabbers &
 \begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
 \hline
 \textbf{Action} & \textbf{Preconditions} \\ \hline
-PassAction &
+\texttt{PassAction} &
 \begin{compactitem}
 \item None
 \end{compactitem}  \\ \hline
@@ -78,7 +81,7 @@ PassAction &
 
 
 \pagebreak
-\subsection{Goal - GetBall}
+\subsection{Goal - \texttt{GetBall}}
 
 \begin{center}
 
@@ -86,27 +89,27 @@ PassAction &
 \begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
 \hline
 \textbf{Action} & \textbf{Preconditions} \\ \hline
-GrabBall &
+\texttt{GrabBall} &
 \begin{compactitem}
-\item Defender can catch the ball
-\item Grabbers are open
+\item The defender can catch the ball.
+\item The grabbers are open.
 \end{compactitem}  \\ \hline
 
-GoToStaticBall &
+\texttt{GoToStaticBall} &
 \begin{compactitem}
-\item Defender is facing the ball
-\item Grabbers are open
-\item Ball is static
+\item The defender is facing the ball.
+\item The grabbers are open.
+\item The ball is static.
 \end{compactitem}  \\ \hline
 
-TurnToCatchPoint &
+\texttt{TurnToCatchPoint} &
 \begin{compactitem}
-\item Grabbers are open
+\item The grabbers are open.
 \end{compactitem}  \\ \hline
 
-OpenGrabbers &
+\texttt{OpenGrabbers} &
 \begin{compactitem}
-\item Grabbers are closed
+\item The grabbers are closed.
 \end{compactitem}  \\ \hline
 
 \end{tabular}
