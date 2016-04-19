@@ -1,0 +1,30 @@
+\section{Setup}
+\subsection{Requirements}
+
+In order to run the computer side control program, the following python
+packages need to be installed:
+
+\begin{itemize}
+\item \texttt{Polygon2}, for handling interactions of 2D polygons.
+\item \texttt{pyserial}, for interacting with the serial RF device.
+\item \texttt{numpy}, for various numerical calculations.
+\item \texttt{openCV}, for vision processing.
+\end{itemize}
+
+On the university DICE machines, \texttt{numpy} and \texttt{openCV} are already
+preinstalled. To install the remaining packages, run the following commands:
+
+\shellcmd{pip install --user Polygon2==2.0.6} \\
+\shellcmd{pip install --user pyserial==2.7} \\
+
+\subsection{Arduino}
+
+The Arduino must be programmed with the robot's firmware before use. If this is
+not already the case, it can be programmed by running the \texttt{arduino}
+program, and opening the \texttt{/arduino/group11/group11.ino} sketch. If not
+the case already, the sketchbook location should be set to \texttt{/arduino/},
+to ensure that the libraries used are found. Next, the Arduino should be
+connected to the computer, and the sketch compiled and uploaded to it using the
+button for this purpose. The USB cable should then be removed. Finally, if the
+robot was on during this process, it should be briefly switched off to allow
+the Arduino serial device to reset.

@@ -1,0 +1,64 @@
+\documentclass[a4paper,12pt]{scrartcl}
+\usepackage{tabularx}
+\usepackage[pdfusetitle, hidelinks]{hyperref}
+\newcommand{\shellcmd}[1]{\indent\indent\texttt{\footnotesize\$ #1}}
+\author{Thomas Kerber, Marek Strelec, Euan Hunter}
+\title{SDP User Guide}
+\subtitle{Group 11}
+
+\begin{document}
+\maketitle
+
+\input{setup}
+\input{hardware}
+\input{usage}
+
+\section{Troubleshooting}
+
+Below are the actions to take for various common problems which may occur. The
+solutions are not guaranteed to work, but have in experience been effective.
+
+\subsection{The Robot Doesn't Move}
+
+If the robot is not moving, the first thing to do is to check the batteries.
+Ensure that they are present, and charged. Further, confirm that the robot was
+switched on. If the Arduino has a red light on, it is receiving power and the
+issue is more likely to be one of communications. In this case switch the robot
+off for a few seconds and turn it on again to reset the serial device.
+
+\subsection{The Control Program Doesn't Start}
+
+The control program not starting is likely due to the RF control signals
+blocking. To test this, run the control program without the argument for the RF
+stick. If it runs, then try waiting for five seconds, then re-running with the
+normal arguments. If after a few attempts, this also does not work, then double
+check the guard characters set on the RF stick. They should be three tilde
+characters (`\verb$~~~$'). The proprietary CISCO tools located in the
+`\texttt{/tools}' folder can be used to check this, and, if needed, to reset
+them.
+
+\subsection{The Vision is Misdetecting Objects}
+
+The vision misdetecting objects is likely due to miscalibration. Close the
+controller, restart and recalibrate. Take care to select a wide range of colour
+samples, including the fringes of the circles to detect.
+
+\subsection{The Robot is Very Slow}
+
+The batteries are low. Recharge or replace them.
+
+\subsection{The Vision is Solid Green}
+
+The video input is set to draw from the wrong source. Close the control
+program, and run `\texttt{xawtv}'. In the options, select svideo as the source.
+
+\subsection{The Kicker Doesn't Work}
+
+Double check the I/O port connections with the kicker. Try also listening at
+the breadboard during a kick for an audible click. If this can be heard, the
+issue is in the wiring from the batteries to the breadboard, or from this to
+the kicker. If not, the issue is either the connectors being plugged into the
+wrong I/O port (it should be the furthest inward on the I/O board), or a faulty
+connection from the I/O port to the breadboard.
+
+\end{document}

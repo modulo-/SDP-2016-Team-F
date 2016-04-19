@@ -1,0 +1,158 @@
+\section{Planning}
+
+\subsection{Design}
+
+The planner makes its decision based on the world state passed to it. By
+default, this is done once per second. However, the interval between planner
+decisions may be changed based on the last executed action. Some actions, such
+as turning, require less time than one second. Other actions, however, such as
+moving and closing the grabbers require significantly more time. The planner
+estimates this time, and sets the delay to it.
+
+The planner uses a system of goals and actions, the hierarchy of which may be
+seen in Figure \ref{fig:goalsandactionsstructure}. Goals define an overall
+strategy in a given situation, leading to a particular aim, and are composed
+of a sequence of actions. In each step, the planner selects an appropriate
+action to achieve its aim by traversing a list of actions in the currently
+selected goal. This selection is done by evaluating preconditions of each
+action. In general, goals are high-level and do not change as often as actions.
+%A list of goals may be found in \cref{goalstructure}.
+
+Actions define usually one instruction given to the robot with preconditions
+for its execution. As already mentioned, an action can also return a specific
+delay time to postpone or speed up next planner execution. Actions compute any
+parameters to the intructions they send themselves, e.g. there may be an action
+to rotate to a point, but not one to rotate 30\degree.
+
+\begin{figure}[H]
+	\begin{center}
+    \includegraphics[width=1.0\linewidth]{res/goalandactions.png}
+    \caption{The overall planner structure. The planner consists of multiple goals. Each goal has a list of actions which contain two elements - preconditions and a method to execute.}
+    \label{fig:goalsandactionsstructure}
+	\end{center}
+\end{figure}
+
+\subsection{Goal selection}
+
+The process of selecting a new goal follows a procedure described in Figure
+\ref{fig:goalpicker}. In every step of the planner, the current world state is
+processed and resulting goal is generated based on this analyses. There are
+three main conditions that effect this decision.
+
+
+\begin{figure}[H]
+	\begin{center}
+    \includegraphics[width=0.60\linewidth]{res/goalpicker.png}
+    \caption{A flowchart showing all main conditions effecting planner's decision to select a goal in each step.}
+    \label{fig:goalpicker}
+	\end{center}
+\end{figure}
+
+\pagebreak
+
+First of all, if our robot captures the ball, it will try to pass the ball to
+our teammate. If the ball is not in our robot's possession, the planner
+has to strategically decide where to go based on the ball's position and the
+position of all other robots. If our robot could approach the ball faster than
+all other robots (our attacker included), then it would attempt to grab the
+ball. Otherwise, it would switch to the \texttt{Defend} goal and start
+defending our goal area. This involves returning to our defence zone. If
+our robot decides to grab the ball and the situation changes so that any
+other robot is closer than ours, the planner immediately changes the goal to
+\texttt{Defend}. Also, if the ball is heading towards our goal and there is a
+high chance of scoring, the planner would choose to defend over trying to catch
+the ball. Finally, one special condition was added. If the ball is too close to
+our goal, Tractor Crab's goal changes to \texttt{Idle}. The reasoning behind
+this is that it is very unlikely that the robot will grab the ball safely, and
+it is more likely for an attempt to result in an own-goal.
+
+\subsection{Goals}
+
+\subsubsection{\texttt{GrabBall}}
+
+\texttt{GrabBall} is one of the principal goals in the planner. Its purpose
+is to move to the best position for grabbing the ball and eventually grab the
+ball. Since the robot can only move sideways, the task is not trivial, and
+requires a sideways approach detailed in Figure \ref{fig:sidewaysgrabball}.
+
+The naive way of grabbing the ball would be to approach the ball, spin it so
+that the robot faces the ball, and grab it. However, this approach faces a
+substantial shortage of hitting the ball while spinning close-by. Thus, it
+needs to rotate first and then approach the ball. First, the planner finds
+points suitable for grabbing the ball, assuming that a robot placed on a point
+is facing the ball. There are usually two appropriate points -- catch-points. 
+
+
+One of the advantages of sideways movement is that neither side has priority
+and thus both sides can be used for any kind of task. As long as the robot
+faces the ball, it can move in both directions. Thus, there are 4 possible
+rotations - one for each catch-point and for each movement direction.  Only two
+of these rotations lead to a situation when the robot faces the ball. Out of
+these, the planner picks the one that requires the smaller angle of rotation.
+Once the planner knows the catch-point and the corresponding rotation, it can
+approach the ball. This process is shown in Figure
+\ref{fig:sidewaysgrabballangle}. Figure \ref{fig:sidewaysgrabballdone} shows
+the situation when the robot is in front of the ball and is ready to grab it.
+
+
+\begin{figure}[H]
+	\begin{center}
+	\begin{subfigure}{0.5\textwidth}
+  		\includegraphics[width=1.0\textwidth]{res/sidewaysgrabballangle.png}
+  		\caption{The planner finds two catch-points P1 and P2. For each point, there is a corresponding angle $\phi$, which represents the rotation for approaching a point.}
+  		\label{fig:sidewaysgrabballangle}
+	\end{subfigure}%
+	\begin{subfigure}{0.5\textwidth}
+  		\includegraphics[width=1.0\textwidth]{res/sidewaysgrabballdone.png}
+  		\caption{The catch-point P2 was selected, the robot rotated and moved so that it stands on P2 now. The next action would be to grab the ball. }
+  		\label{fig:sidewaysgrabballdone}
+	\end{subfigure}%
+	
+	\caption{Two charts representing the ball-catching algorithm. }
+	\label{fig:sidewaysgrabball}
+	\end{center}
+\end{figure}
+
+Two obstacles had to be overcame in development. Those were mostly caused by
+vision inaccuracies and a dynamic environment. Firstly, our robot can overshoot
+in movement and miss the catch point. If this happens, it does not recompute a
+new catch-point. Instead, it tries to move back towards the current
+catch-point. Secondly, our robot can overshot in rotation. Since the rotation
+angle is crucial for successful movement towards a catch-point, the only
+possible solution is to rotation again. However, this can lead to situations
+when the robot keeps oscillating between two angles. Since such behaviour is
+undesirable, a dynamic error threshold is used. As long as the robot is within
+an accepted error, the rotation is accepted, with the threshold value increases
+after every successive unsuccessful rotation. This approach represents a
+trade-off between accuracy and speed. It is better to make a decision fast,
+even if it is not optimal, because the environment constantly changes. A found
+solution can be outdated if the decision/adjusting process takes too long.
+
+\subsubsection{\texttt{Defend}}
+
+The primary role of \texttt{Defend} goal is to prevent the opposing team from
+successfully moving the ball over the defended goal-line. This is accomplished
+by the robot's moving into the path of the ball and either catching it or
+directing it away from the goal line. To improve chances of catching the ball
+during the \texttt{Defend} goal, our robot is always trying to predict the
+ball's trajectory and stand at the most suitable defending spot. This spot,
+also called a defending point, is calculated as an intersection of a predicted
+ball's trajectory and a semi-circle surrounding the goal area. Such point is
+shown in Figure \ref{fig:defendingpoint}.
+
+\begin{figure}[H]
+	\begin{center}
+    \includegraphics[width=0.5\linewidth]{res/defending.png}
+    \caption{A football pitch with a robot using the \texttt{Defend} goal. The blue line represents the defending semi-circle. The red line shows an expected ball trajectory. Point D represents the defence point: the intersection of these lines.}
+    \label{fig:defendingpoint}
+	\end{center}
+\end{figure}
+
+Because of vision inconsistency on different parts of a pitch, the defending
+point is sometimes slightly off. This problem is dealt with by oscillating
+movement around the defending point. Since the robot is always moving from side
+to side, it covers more area and thus its chances to catch the moving ball are
+higher. A minor improvement was implemented for situations when the robot is not
+close to the defending point and the ball is moving towards our goal. In this
+case, the robot immediately moves to the side of the ball and tries to direct
+it away.

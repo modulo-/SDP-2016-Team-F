@@ -1,0 +1,119 @@
+\section{Goal structure examples} \label{goalstructure}
+
+The following tables show examples of Defender's goals. Each table has a list
+of actions, which are in a queue starting from the top. If an action's
+preconditions are met, the action is executed and the process finishes. If any
+precondition is false, the preconditions for next action in the queue are
+examined.
+
+\subsection{Goal - \texttt{Defend}}
+
+\begin{center}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
+\hline
+\textbf{Action} & \textbf{Preconditions} \\ \hline
+\texttt{GrabBall} &
+\begin{compactitem}
+\item The defender can catch the ball.
+\item The grabbers are open.
+\end{compactitem}  \\ \hline
+
+\texttt{FollowBall} &
+\begin{compactitem}
+\item The defender is close to the kicked ball.
+\end{compactitem}  \\ \hline
+
+\texttt{GoToDefendPoint} &
+\begin{compactitem}
+\item The defender is facing the defending point.
+\item The defender is far away from the defending point.
+\item The grabbers are open.
+\end{compactitem}  \\ \hline
+
+\texttt{RotateToDefendPoint} &
+\begin{compactitem}
+\item The defender is far away from the defending point.
+\item The grabbers are open.
+\end{compactitem}  \\ \hline
+
+\texttt{FaceBall} &
+\begin{compactitem}
+\item The defender is not facing the ball.
+\item The grabbers are open.
+\end{compactitem}  \\ \hline
+
+\texttt{Wiggle} &
+\begin{compactitem}
+\item The grabbers are open.
+\end{compactitem}  \\ \hline
+
+\texttt{OpenGrabbers} &
+\begin{compactitem}
+\item The grabbers are closed.
+\end{compactitem}  \\ \hline
+\end{tabular}
+\par
+\bigskip
+
+\end{center}
+
+
+\subsection{Goal - \texttt{Pass}}
+
+\begin{center}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
+\hline
+\textbf{Action} & \textbf{Preconditions} \\ \hline
+\texttt{PassAction} &
+\begin{compactitem}
+\item None
+\end{compactitem}  \\ \hline
+
+\end{tabular}
+\par
+\bigskip
+
+\end{center}
+
+
+\pagebreak
+\subsection{Goal - \texttt{GetBall}}
+
+\begin{center}
+
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{ | >{\centering\arraybackslash}m{42mm} | >{\centering\arraybackslash}p{110mm} | }
+\hline
+\textbf{Action} & \textbf{Preconditions} \\ \hline
+\texttt{GrabBall} &
+\begin{compactitem}
+\item The defender can catch the ball.
+\item The grabbers are open.
+\end{compactitem}  \\ \hline
+
+\texttt{GoToStaticBall} &
+\begin{compactitem}
+\item The defender is facing the ball.
+\item The grabbers are open.
+\item The ball is static.
+\end{compactitem}  \\ \hline
+
+\texttt{TurnToCatchPoint} &
+\begin{compactitem}
+\item The grabbers are open.
+\end{compactitem}  \\ \hline
+
+\texttt{OpenGrabbers} &
+\begin{compactitem}
+\item The grabbers are closed.
+\end{compactitem}  \\ \hline
+
+\end{tabular}
+\par
+\bigskip
+
+\end{center}

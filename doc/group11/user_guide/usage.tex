@@ -1,0 +1,98 @@
+\section{Usage}
+
+Before use, ensure that the four lithium-ion batteries are fully charged. The
+charger is shared with Group 12. Ensure that the batteries are properly
+inserted into the two battery holders at the rear of the robot. To turn on the
+robot, flick the switch at the base of the battery packs. A red light will be
+visible from the Arduino, indicating that it is powered.
+
+The robot is operated together with Group 12's, it is assumed that their
+robot has also been switched on at this point. To begin with, the device paths
+of both groups USB RF sticks must be determined. To determine these, first
+insert the RF stick for Group 11. Then run `\texttt{ls /dev/ttyACM*}' to list
+all serial USB devices available. This should return only one path, which can
+be noted as the path for Group 11's RF stick. Group 12's device path can then
+be determined by inserting their RF stick and re-running `\texttt{ls
+/dev/ttyACM*}'.  One new path should be among those returned, which can be
+noted as the path to Group 12's RF stick.
+
+Further information required to run the control unit is: The room being played
+in (3.D03 or 3.D04), which side of the pitch, left or right, is ours (viewed
+from the door), and which colour our team will have (blue or yellow). Armed
+with this knowledge, make sure that a top plate of each colour, as well as the
+ball, are on the pitch. Then, \texttt{cd} into the project root directory, and
+execute the following command:
+
+\shellcmd{./main -p game -1 <PATH1> -2 <PATH2> -c <COLOUR> --pitch <NUM> -g <SIDE>}
+
+\noindent Using the following values for the arguments:
+
+\begin{itemize}
+    \item The path of Group 11's RF stick for \texttt{<PATH1>}.
+    \item The path of Group 12's RF stick for \texttt{<PATH2>}.
+    \item `\texttt{y}' or `\texttt{b}' for \texttt{<COLOUR>}, if our team is
+        yellow or blue respectively.
+    \item `\texttt{0}' or `\texttt{1}' for \texttt{<NUM>}, if the game is being
+        played in room 3.D03 or 3.D04 respectively.
+    \item `\texttt{left}' or `\texttt{right}' for \texttt{<SIDE>}, if our goal
+        is on the left or the right side of the pitch respectively.
+\end{itemize}
+
+A few windows should open up, the most prominent one of which displays a still
+of the pitch for calibration.
+
+\subsection{Calibration}
+
+The still of the pitch should show all four top plates and the ball clearly,
+as positioned earlier. The terminal will prompt the operator to click on
+samples of red, blue, yellow, green, and pink in turn, for the ball and the
+top-plate parts of the respective colours. This calibrates for the colours,
+ensuring that they are accurately detected. Of each colour, multiple samples
+should be clicked, when possible from different locations on the pitch (e.g.
+the green circles of all top plates, and not just one should be sampled). After
+several samples of each colour have been clicked, press the `q' key to move on
+to the next. The colours are queried in the order listed above, and each colour
+is prompted by the terminal. Once calibrations are complete, they are saved
+locally. Due to changing light conditions, recalibration is necessary every few
+hours, however it is possible to skip the calibration phase and use the saved
+values by pressing the escape key at the start of calibration.
+
+\subsection{Online Usage}
+
+After the vision is launched, a window named `Filter' will visualise the
+objects recognised from the vision feed, with objects drawn on it representing
+the robots and the ball (if they are found). Robots will be represented by an
+inner circle for the team colour (yellow or blue), an outer circle identifying
+which of the two team mates it is (pink or green, referring to the colour of
+the majority of circles on the top plate) and an arrow giving the orientation
+of the robot. The red ball is simply shown by drawing a red circle around it.
+Further, two other windows will be open, containing several trackbars. These
+trackbars are for filters that you can add to the output feed. There are
+filters to show only specific colours, or to different effects to the frame.
+For day to day usage, these do not need to be used.
+
+While the control program is running, the overall strategy and logging can be
+modified. Entering `\texttt{debug}', `\texttt{info}', `\texttt{warn}', or
+`\texttt{error}' into the terminal, and pressing enter, sets the logging level
+appropriately.  Further, a window to select the game state will have opened,
+allowing selection of the game state from `\texttt{kickoff-them}',
+`\texttt{kickoff-us}', `\texttt{penalty-them}', `\texttt{penalty-us}',
+`\texttt{normal-play}', and `\texttt{stop}'. Pressing any of these sets the
+game to the respective state.  At startup, the state is `\texttt{stop}', and
+our team's robots will remain idle.  Once the referee orders a kickoff, either
+`\texttt{kickoff-them}', or `\texttt{kickoff-us}' should be pressed, depending
+on if the opposing team, or our team has kickoff respectively. Likewise, should
+the referee call for a penalty kick, either `\texttt{penalty-them}' or
+`\texttt{penalty-us}' should be pressed, depending on if the opposing team or
+our team take the penalty respectively. The `\texttt{stop}' button can be
+pressed whenever the referee stops the game.  Although it should not have to be
+used typically, pressing `\texttt{normal-play}' skips the kickoff phase of
+play, and immediately begins playing. This may be useful if the program had to
+be restarted mid-match. The game state will transition to
+`\texttt{normal-play}' naturally from a kickoff, once the ball starts moving.
+
+At halftime, both teams switch sides. The control program needs to be informed
+of the switch, either by typing `\texttt{switch}' into the console, and
+pressing enter, or by closing the control program and re-running it with the
+other pitch side. To terminate the control program, press `Ctrl-D' with the
+terminal window selected. If this fails, press enter and try again.
