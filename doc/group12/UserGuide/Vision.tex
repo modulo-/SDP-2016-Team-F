@@ -5,8 +5,8 @@ You'll need the following python packages to successfully run the vision:
 
 \begin{description}
 \item \texttt{Polygon2} Polygon is a python package that handles polygonal shapes in 2D. 
-\item \texttt{argparse} Python command-line parsing library
-\item \texttt{pyserial} Python Serial Port Extension
+\item \texttt{argparse} Python command-line parsing library.
+\item \texttt{pyserial} Python Serial Port Extension.
 \item \texttt{numpy} Array processing for numbers, strings, records, and objects.
 \item \texttt{openCV} OpenCV-Python is the Python API of OpenCV. It combines the best qualities of OpenCV C++ API and Python language.
 \end{description}
@@ -26,7 +26,7 @@ Before using the vision system, you can look at the vision feed by typing \textt
 
 In order to launch the vision system:
 \begin{itemize}
-\item Run the main vision file: \texttt{python vision.py}
+\item Run the main vision file: \texttt{python vision.py}.
 \item At first, a window for the automatic colour calibration will pop out. You'll need to follow the instructions as printed in the terminal. 
 \item The calibration goes through all the colours that distinguished by the vision system (\texttt{red}, \texttt{yellow}, \texttt{blue}, \texttt{green}, \texttt{pink}) and requires \textbf{multiple clicks for each} one of them to get their thresholds properly.
 \item You need to press the \texttt{q} key after each calibrated colour. 
@@ -44,7 +44,7 @@ Starting the vision platform opens a window labelled \texttt{Filter output}, whe
 \label{fig:pitch}
 \end{figure}
 
-There are two other windows containing several sliders for filters, which can be applied to the feed (see \autoref{fig:filters}), and more advanced options for specific filters (see \autoref{fig:params}). The set of filters available includes masks for specific colours, a manually configurable colour mask, and apply different effects to the frame.
+There are two other windows containing several sliders for filters that that can be applied to the feed (see \autoref{fig:filters}) and more advanced options for specific filters (see \autoref{fig:params}). The set of filters available includes masks for specific colours, a manually configurable colour mask, and can different effects applicable to the frame.
 
 
 \begin{figure}[H]
@@ -64,6 +64,5 @@ There are two other windows containing several sliders for filters, which can be
 \caption{GUI Controls}
 \label{fig:sliders}
 \end{figure}
-
 
 When the vision is running, it outputs the coordinates, orientation and velocity of all found objects. The velocities are calculated based on the time difference between frames and movement relative to the previous frame. These objects are returned as a dictionary and passed to the planner. This is achieved by passing a callback method for updating the planner world model when initialising the vision module. This method is called on every vision frame parsed, and it ensures the planner has the latest data.
