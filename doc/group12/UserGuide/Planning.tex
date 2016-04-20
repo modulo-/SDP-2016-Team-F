@@ -20,25 +20,20 @@ and GOAL-END refers to the controlled team's goal end, either 'left' or 'right'
 
 The calculations for pitch geometry in the planner depend on calibrating certain constants in the planner code.
 
+
 \begin{table}[H]
-  \centering
-  \begin{tabularx}{\textwidth}{l l l}
-    \toprule
-    \textbf{Name} & \textbf{file} & \textbf{Description \\
-    \midrule
-    ROBOT\_WIDTH, ROBOT\_LENGTH & world.py & Dimensions of a standard robot
-    \midrule
-    BALL\_WIDTH, BALL\_LENGTH & world.py & Dimensions of the ball
-    \midrule
-    GOAL\_WIDTH, GOAL\_LENGTH & world.py & Dimensions of the goals
-    \midrule
-    GOAL\_LOWER, GOAL\_HIGHER & world.py & Y value for topmost and bottommost points of goals
-    \midrule
-    [ROBOT].\_receiving\_area & main.py & Dimensions of area in which robot can grab ball
-    \midrule
-    ROTATION\_THRESHOLD, FACING\_ROTATION\_THRESHOLD & models\_attacker.py & Difference for angles in which robot can be considered to be facing a point
-    \midrule
-    GRAB\_DISTANCE & models\_attacker.py & Distance from robot's centre at which the robot should grab the ball
-    \bottomrule
-  \end{tabular}
+\begin{tabularx}{\textwidth}{ XlX }
+\toprule
+\textbf{Name} & \textbf{File} & \textbf{Description} \\
+\midrule
+\verb|ROBOT_WIDTH|, \verb|ROBOT_LENGTH| & \texttt{world.py} & Dimensions of a standard robot \\
+\verb|BALL_WIDTH|, \verb|BALL_LENGTH| & \texttt{world.py} & Dimensions of the ball \\
+\verb|GOAL_WIDTH|, \verb|GOAL_LENGTH| & \texttt{world.py} & Dimensions of the goals \\
+\verb|GOAL_LOWER|, \verb|GOAL_HIGHER| & \texttt{world.py} & Y value for topmost and bottommost points of goals \\
+\verb|[ROBOT]._receiving_area| & \texttt{main.py} & Dimensions of area in which robot can grab ball \\
+\verb|ROTATION_THRESHOLD|, \verb|FACING_ROTATION_THRESHOLD| &\texttt{models\_attacker.py} & Difference for angles in which robot can be considered to be facing a point \\
+\verb|GRAB_DISTANCE| & \texttt{models\_attacker.py} & Distance from robot's centre at which the robot should grab the ball \\
+\bottomrule
+\end{tabularx}
+\caption{Planner Configurable Variables}
 \end{table}
