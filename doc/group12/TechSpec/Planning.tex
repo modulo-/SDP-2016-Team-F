@@ -22,7 +22,7 @@ In the implementation, all goals and actions are derived from their respective s
 \end{figure}
 
 
-The planner makes its decision based only on the world state passed to it. This is described by an instance of the  class passed to the planner. This object's state is updated by passing a new set of positions (as a dictionary of vectors) to the \texttt{update\_positions} method of \texttt{World}. The \texttt{World} class describes the state of the world from the vision, including position vectors for the robots, the ball and the goals. The \texttt{World} class and its associated classes also provide methods on their data providing the planner with information about the world. Further utility functionality can be found in ``utils.py''
+The planner makes its decision based only on the world state passed to it. This is described by an instance of the  class passed to the planner. This object's state is updated by passing a new set of positions (as a dictionary of vectors) to the \texttt{update\_positions} method of \texttt{World}. The \texttt{World} class describes the state of the world from the vision, including position vectors for the robots, the ball, and the goals. The \texttt{World} class and its associated classes also implement methods on their data providing the planner with information about the world. Further utility functionality can be found in ``\texttt{utils.py}''
 
 The overall planner is used by calling \texttt{plan\_and\_act(world)}.
 This selects a goal based on the given world state  using its \texttt{get\_goal()} method. From this goal an action is generated using \texttt{generate\_action()}. The method then runs (using \texttt{actuate(action)}) and returns a delay giving the time until the planner should be run again.
@@ -110,9 +110,8 @@ Extending the planner is simply a case of adding goals and actions then adding t
 
 In actions, the logic for performing should be placed in \texttt{perform(comms)}. This method is passed a \texttt{CommsManager} object through which the robot can be sent instructions. No more than one call should be made to this object in any given action. A new action should also override \texttt{get\_delay} giving an appropriate delay (in seconds) before the planner should run again. New actions can also have preconditions defined in a variable \texttt{preconditions}.
 
-In goals, it may only be neccessary to write a Goal subclass with an ordered list of actions (from last to first). Otherwise the \texttt{generate\_action()} method can be overriden but similar logic should be followed.
+In goals, it may only be neccessary to write a Goal subclass with an ordered list of actions (from last to first). Otherwise, the \texttt{generate\_action()} method can be overriden but similar logic should be followed.
 
 \subsection{Integration}
 
-An instance of the \texttt{Planner} is kept by the ``main.py'' script. Based on the delays given by the planner, it calls the planner at varying intervals, passing it the latest world model provided by the vision. The planner uses a \texttt{CommsManager} object to make control the robot.
-
+An instance of the \texttt{Planner} is kept by the ``main.py'' script. Based on the delays given by the planner, it calls the planner at varying intervals, passing it the latest world model provided by the vision. The planner uses a \texttt{CommsManager} object to control the robot.
