@@ -2,26 +2,6 @@
 \lstset{language=Python, showstringspaces=false}
 
 
-\begin{figure}[H]
-\centering
-\begin{subfigure}{.5\textwidth}
-\centering
-\input{obstacle_detection}
-\caption{Detection}
-\label{fig:obstacle_detection}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
-\centering
-\input{obstacle_avoidance}
-\caption{Avoidance}
-\label{fig:obstacle_avoidance}
-\end{subfigure}
-\caption{Handling Obstacles}
-\label{handling_obstacle}
-\end{figure}
-
-
-
 \subsection{Design}
 
 The planner uses a system of goals and actions. Goals define an overall strategy in a given situation leading to a particular aim. Actions define one instruction given to the robot with preconditions for its execution. Goals are composed of a sequence of actions. A goal object selects the next action required to achieve its aim by traversing its ordered list of actions and evaluating their preconditions.
@@ -47,97 +27,28 @@ The planner makes its decision based on only on the world state passed to it. Th
 The overall planner is used by calling \texttt{plan\_and\_act(world)}.
 This selects a goal based on the given world state  using its \texttt{get\_goal()} method. From this goal an action is generated using \texttt{generate\_action()}. The method then runs (using \texttt{actuate(action)}) and returns a delay giving the time until the planner should be run again.
 
-In order to succeed, the planner must be able to detect obstacles on the path of a robot's movement and on the path of a pass or shot on goal. Having established a location and target, the planner checks for obstacles as follows:
+In order to succeed, the planner must be able to detect obstacles on the path of a robot's movement and on the path of a pass or shot on goal. Having established a location and target, the planner checks for obstacles as seen in \autoref{fig:obstacle_detection}. $O_i$ is an obstacle if ($d_i > \texttt{THRESHOLD}$).
 
 \begin{figure}[H]
-\begin{center}
-\begin{tikzpicture}
-
-\tikzset{
-    right angle quadrant/.code={
-        \pgfmathsetmacro\quadranta{{1,1,-1,-1}[#1-1]}     % Arrays for selecting quadrant
-        \pgfmathsetmacro\quadrantb{{1,-1,-1,1}[#1-1]}},
-    right angle quadrant=1, % Make sure it is set, even if not called explicitly
-    right angle length/.code={\def\rightanglelength{#1}},   % Length of symbol
-    right angle length=2ex, % Make sure it is set...
-    right angle symbol/.style n args={3}{
-        insert path={
-            let \p0 = ($(#1)!(#3)!(#2)$) in     % Intersection
-                let \p1 = ($(\p0)!\quadranta*\rightanglelength!(#3)$), % Point on base line
-                \p2 = ($(\p0)!\quadrantb*\rightanglelength!(#2)$) in % Point on perpendicular line
-                let \p3 = ($(\p1)+(\p2)-(\p0)$) in  % Corner point of symbol
-            (\p1) -- (\p3) -- (\p2)
-        }
-    }
-}
-
-
-\node  (robot)  [draw, inner sep=5] at (0,0) {ROBOT};
-\node  (target)  [draw,inner sep=5] at (0,5) {TARGET};
-\draw  (robot) [-triangle 60] edge (target);
-
-\node (o1)[draw] at (-2,2) {$O_1$};
-\coordinate (p1) at (0,2) {};
-\draw  (o1) [<->] edge node[midway, below] {$d_1$} (p1);
-\draw [right angle symbol={robot}{p1}{o1}];
-    
-
-\node (o2)[draw] at (1,3) {$O_2$};
-\coordinate (p2) at (0,3) {};
-\draw  (o2) [<->] edge node[auto] {$d_2$} (p2);
-\draw [right angle symbol={robot}{p2}{o2}];
-
-
-\end{tikzpicture}
-\caption{Diagram of planner's approach to obstacle avoidance, O_i is an obstacle if \(d_i > THRESHOLD\) }
-\end{center}
+\centering
+\begin{subfigure}{.5\textwidth}
+\centering
+\input{obstacle_detection}
+\caption{Detection}
+\label{fig:obstacle_detection}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+\centering
+\input{obstacle_avoidance}
+\caption{Avoidance}
+\label{fig:obstacle_avoidance}
+\end{subfigure}
+\caption{Handling Obstacles}
+\label{handling_obstacle}
 \end{figure}
 
-By finding the distance of each object from the path and using a constant threshold, the planner establishes whether or not, and if so which, objects will be obstacles to a given path. If an obstacle is found, the planner must, if possible, generate a new path avoiding the obstacle. This is done using the line perpendicular to the path passing through the obstacle. The planner iterates over points at fixed distances along the line, working outwards from the original path, testing for obstacles on this corrected path. This produces a minimal path avoiding the obstacle.
+By finding the distance of each object from the path and using a constant threshold, the planner establishes whether or not, and if so which, objects will be obstacles to a given path. If an obstacle is found, the planner must, if possible, generate a new path avoiding the obstacle. This is done using the line perpendicular to the path passing through the obstacle. The planner iterates over points at fixed distances along the line, working outwards from the original path, testing for obstacles on this corrected path. This produces a minimal path avoiding the obstacle. This can be seen in \autoref{fig:obstacle_avoidance}.
 
-\begin{figure}[H]
-\begin{center}
-
-\begin{tikzpicture}
-  
-\tikzset{
-    right angle quadrant/.code={
-        \pgfmathsetmacro\quadranta{{1,1,-1,-1}[#1-1]}     % Arrays for selecting quadrant
-        \pgfmathsetmacro\quadrantb{{1,-1,-1,1}[#1-1]}},
-    right angle quadrant=1, % Make sure it is set, even if not called explicitly
-    right angle length/.code={\def\rightanglelength{#1}},   % Length of symbol
-    right angle length=2ex, % Make sure it is set...
-    right angle symbol/.style n args={3}{
-        insert path={
-            let \p0 = ($(#1)!(#3)!(#2)$) in     % Intersection
-                let \p1 = ($(\p0)!\quadranta*\rightanglelength!(#3)$), % Point on base line
-                \p2 = ($(\p0)!\quadrantb*\rightanglelength!(#2)$) in % Point on perpendicular line
-                let \p3 = ($(\p1)+(\p2)-(\p0)$) in  % Corner point of symbol
-            (\p1) -- (\p3) -- (\p2)
-        }
-    }
-}
-
-\node  (robot)  [draw, inner sep=5] at (0,-1) {ROBOT};
-\node  (target)  [draw,inner sep=5] at (0,5) {TARGET};
-\draw  (robot) [dotted, -open triangle 60] edge node [sloped, below left ]{original path} (target);
-
-\node (obstacle)[draw] at (1,3) {$O_2$};
-\draw [dashed, shorten >=-1.5cm,shorten <=-2.5cm] ($(robot)!(obstacle)!(target)$) -- (obstacle);
-
-\draw [right angle symbol={robot}{$(robot)!(obstacle)!(target)$}{obstacle}];
-\coordinate (new) at (-1.5,3) {};
-
-\path (robot) [-triangle 60] edge node [sloped,below] {corrected path} (new)
-(new) [-triangle 60] edge (target);
-
-\draw[decorate,decoration={brace,raise=2pt,amplitude=2pt}] (obstacle)  -- node[below=3pt]{$d_{min}$} (new) ;
-
-\end{tikzpicture}
-
-\caption{Diagram demonstrating obstacle avoidance algorithm}
-\end{center}
-\end{figure}
 
 \subsection{Implementation}
 
