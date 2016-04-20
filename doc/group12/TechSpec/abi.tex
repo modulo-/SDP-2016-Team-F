@@ -1,13 +1,14 @@
 \newcommand{\abispec}[6]{
 \subsubsection{\texttt{#1}}
-
-\begin{tabularx}{\textwidth}{>{\hsize=.5\hsize}XX}
+\begin{table}[H]
+\begin{tabularx}{\textwidth}{lX}
 \textbf{Instruction byte:}               & \texttt{#2} \\
 \textbf{Argument bytes:}                 & #3 \\
 \textbf{Argument type(s):}               & \texttt{#4} \\
 \textbf{Action:}                         & #5 \\
-\textbf{Relation to low-level commands:} & #6 \\
+\textbf{Low-Level Commands:} & #6 \\
 \end{tabularx}
+\end{table}
 }
 
 \subsection{Instruction ABI}
