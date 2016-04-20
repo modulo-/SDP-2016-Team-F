@@ -5,14 +5,6 @@
 \subsubsection{How to Change}
 Start by switching the yellow switch (visible in \autoref{fig:robot_side}) away from the robot to turn it off. The cells are held on the external battery packs and are removed by gently pulling the batteries out of the packs, exactly as an AA cell would be removed.  The new batteries should be inserted into the robot with the flat side against the springs. 2 sets of cells are provided so that one set can be charged while the other is used. The cells are visible in purple and silver in \autoref{fig:robot_side}.
 
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.95\textwidth]{DSC_0148.jpg}
-\caption{Side View of Robot}
-\label{fig:robot_side}
-\end{figure}
-
 \subsubsection{When to Change}
 There is a low voltage cut-off built into each cell, and the voltage from the battery packs is regulated and should give the robot consistent performance until this low voltage cut off is reached. When any cell reaches the cut off the robot will stop completely. At this time all the cells should be changed. 
 
@@ -27,10 +19,22 @@ The charger shows a progress bar next to each cell.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{DSC_0147.jpg}
-\caption{Specialised Charger With Correctly Oriented Cell}
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width=.95\textwidth]{DSC_0147.jpg}
+\caption{Charger With Correctly Oriented Cell}
 \label{fig:charger}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+\centering
+\includegraphics[width=.95\textwidth]{DSC_0148.jpg}
+\caption{Side View of Robot}
+\label{fig:robot_side}
+\end{subfigure}
+\caption{Hardware Pictures}
+\label{fig:pics}
 \end{figure}
+
 
 
 \subsection{Turning the robot on}
@@ -42,6 +46,10 @@ In normal operation the commands should be sent through the planner with the RFC
 
 For testing there is a main\_manual.py file which can be used to send individual commands to the robot by following the 
 prompts, first for which RF stick to use and then a choice of commands. To see the entire command set  with descriptions hit `h' then enter at the prompt. 
+
+
+\subsection{Command Response}
+In response to a command the robot will first send an acknowledgment packet. It will then complete grab, release or kick commands, in order to leave the robot in a predictable state for the planner, then complete the given command. Move and turn commands are immediately dropped in order to use the new command. 
 
 \subsection{Command Set}
 \begin{table}[H]
@@ -60,22 +68,19 @@ ping & N/A &  will respond with positions of motors according to rotary encoders
 \caption{Available Commands}
 \end{table}
 
-\subsection{Command Response}
-In response to a command the robot will first send an acknowledgment packet. It will then complete grab, release or kick commands, in order to leave the robot in a predictable state for the planner, then complete the given command. Move and turn commands are immediately dropped in order to use the new command. 
-
-\subsection{Kicking}
+\subsubsection{Kick}
 The robot grabs the grabbers in hard in order to place the ball and push the piston back. It then releases the grabbers until they are open as far as possible without obstructing the wheels, it then kicks a time dependent on the distance required (ranging from 50-200ms in typical operation). Finally, it closes the grabbers fully for continued movement.
 
-\subsection{Grabbing}
+\subsubsection{Grab}
 The robot closes the grabbers until they are fully closed or for 800ms whichever comes sooner. If the grabbers do not close fully it is determined there is a ball in the grabbers and ``BC" is sent to the planner, otherwise ``NC" is sent.  
 
-\subsection{Release}
+\subsubsection{Release}
 The grabbers are released until they are open as far as possible without touching the wheels. ``grabbers open" is then sent to the planner. 
 
-\subsection{Turn}
+\subsubsection{Turn}
 The robot turns a distance specified in degrees, this is non-blocking. 
 
-\subsection{Move}
+\subsubsection{Move}
 The robot accelerates up to the calibrated speed and then maintains that speed until it has just enough time to decelerate to the desired distance. It will correct for drift in order to keep the robot moving in a straight line. If it finds something in its way with the ultrasound sensor while moving forward (positive distance) it will stop and respond ``something in the way"
 
 \subsection{Troubleshooting}
