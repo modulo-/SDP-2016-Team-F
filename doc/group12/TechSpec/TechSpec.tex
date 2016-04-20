@@ -1,0 +1,155 @@
+\documentclass[12pt,a4paper,titlepage]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{tabularx}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+\usepackage{titlesec}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{subcaption}
+
+\usepackage{tikz}
+
+\usetikzlibrary{arrows}
+\usetikzlibrary{angles, quotes}
+\usetikzlibrary{calc}
+\usetikzlibrary{decorations.pathreplacing}
+
+\newcommand{\footlabel}[2]{%
+    \addtocounter{footnote}{1}%
+    \footnotetext[\thefootnote]{%
+        \addtocounter{footnote}{-1}%
+        \refstepcounter{footnote}\label{#1}%
+        #2%
+    }%
+    % $^{\ref{#1}}$%
+}
+
+\newcommand{\footref}[1]{%
+    $^{\ref{#1}}$%
+}
+
+\newcounter{normalfootc}
+\renewcommand{\footnote}[1]{%
+    \footlabel{footsaferefiwontuse\thenormalfootc}{#1}%
+    \addtocounter{normalfootc}{1}%
+}
+
+\graphicspath{{images/}}
+
+\usepackage[hypcap]{caption}
+\usepackage[
+	pdfusetitle, 
+	hidelinks
+]{hyperref}
+\hypersetup{ 
+    bookmarksnumbered=true,     
+    bookmarksopen=true,         
+    bookmarksopenlevel=2,         
+    pdfstartview=Fit,           
+    pdfpagemode=UseOutlines,    % this is the option you were lookin for
+    pdfpagelayout=SinglePage
+    }
+    
+\setcounter{tocdepth}{2}
+\renewcommand{\arraystretch}{1.3} 
+\renewcommand{\heavyrulewidth}{0.1em} 
+
+\author{SDP Group 12}
+\title{Technical Specification}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\clearpage
+
+
+%Group final report No more than 12 pages, worth 16 (out of 50) marks
+
+%Reports have three purposes: to provide sufficient information to assess your work; to document for the group and yourself your design and what you have done; and to provide useful information for anyone who wants to build on what you have done in future. Reports may contain detailed appendices beyond the page limit, particularly in aid of the last two goals; but markers are not required to read these appendices. A common mistake is to overuse the appendices— figures, tables, or other material that explains your work belongs in the main report, not an appendix. Large illustrations will not count towards the page limits.
+
+
+\section{Introduction}
+
+%The aim of this project was to create a robot that would play a simplified version of 2-a-side football. We were recommended to use the provided Arduino Uno (Xino RF) board and LEGO pieces, a vision feed of the testing area (pitch), and computers to connect the two and implement any further logic.
+The aim of this project was to create a robot that would play a simplified version of 2-a-side football. The robot should work in collaboration with a robot from another group to form a team. To build our system, we used the provided Arduino Uno (Xino RF) board and LEGO pieces, a vision feed of the match area, and computers to connect the two and implement further logic.
+
+%This report will examine the decisions made in the design of each part and their impacts. Furthermore it will explain the principles our work relies on.
+This report will examine the decisions made in the design of each component of the system and the impact that these decisions made. Furthermore, it will explain the principles our work relies on.
+
+\subsection{Work Distribution and Management}
+
+%Overall the group was efficiently split into subgroups working on specific tasks. All team members have made contributions to the outcome of the project, though the weights vary.
+To efficiently manage the workload of the project, the group was split into subgroups, working on specific components of the system, and the tasks for each component were then split between the members of each subgroup. 
+
+%Furthermore, many tasks were shared with Group 11, and large contributions introduced by teamwork between the two halves of the team.
+Additionally, to further implement effective time management, many tasks were shared with Group 11 and large contributions were made by both groups to the communications and planning components of our system.
+
+%\subsection{Planning}
+%Mostly worked on planning.
+%
+%\subsection{Joel Hutton}
+%Responsible for hardware.
+%
+%\subsection{Hugh McGrade}
+%Leader of planning development.
+%
+%\subsection{Margus Lind}
+%All around
+%
+%\subsection{Sanchit Gupta}
+%Mostly worked on vision.
+%
+%\subsection{Simeon "King of Calibration" Ivanov}
+%Leader of vision development.
+
+\input{Vision}
+
+\input{Planning}
+
+\input{Communications}
+
+\input{Hardware}
+
+\input{Arduino}
+
+\section{Parts and Costs}
+
+\begin{table}[H]
+\begin{tabularx}{\textwidth}{ X *3l }
+\toprule
+\textbf{Item} & \textbf{Count} & \textbf{Price Each} & \textbf{Price} \\
+\midrule
+Duplicate keys & 2 & £2.50 & £5 \\
+Holonomic wheel & 1 & £6 & £6 \\
+NXT motor       & 2 & £5 & £10 \\
+43362 Electric Technic Mini-Motor 9v & 2 & £0.50 & £1 \\
+PED	121-420-610-540, solenoid, tubular, pull, 6V \footref{fnt:solenoid} & 1 & £10.91 & £10.90 \\
+Canwelum 18650 protected cells \footref{fnt:cells}& 8 & £5 & £40 \\
+Ultrasound Module \footref{fnt:ultrasound} & 1 & £2.60 & £2.60 \\
+769-JQ1A-5V-F Relay \footref{fnt:relay} & 1 & £2.80 & £2.80 \\
+Nitecore charger & 0.5 \footref{fnt:charger} & £14.99 & £7.50 \\
+Battery holders \footref{fnt:holders}& 2 & £1.94 & £3.88 \\ \midrule
+TOTAL & & & £89.68 \\ \bottomrule
+\end{tabularx}
+\caption{Parts and costs}
+\end{table}
+
+\footlabel{fnt:solenoid}{part is out of production, equivalent part: \url{http://uk.farnell.com/multicomp/mcsmt-1325s12std/solenoid-tubular-push-12v/dp/2008785?CMP=ADV-CRUK-LF}}
+
+\footlabel{fnt:charger}{\url{https://www.amazon.co.uk/gp/product/B015IW0XC4/ref=oh_aui_detailpage_o02_s00?ie=UTF8&psc=1}}
+
+\footlabel{fnt:holders}{\url{https://www.amazon.co.uk/gp/product/B00CQKBECA/ref=oh_aui_detailpage_o02_s00?ie=UTF8&psc=1}}
+
+\footlabel{fnt:relay}{\url{http://www.mouser.co.uk/ProductDetail/Panasonic-Industrial-Devices/JQ1A-5V-F/?qs=sEN\%2fkO1EG6ZZ0oeJzHipHQ\%3d\%3d}}
+
+\footlabel{fnt:cells}{\url{https://www.amazon.co.uk/gp/product/B00IXHEG20/ref=oh_aui_detailpage_o01_s00?ie=UTF8&psc=1}}
+
+\footlabel{fnt:ultrasound}{\url{https://www.amazon.co.uk/gp/product/B012KBXQ2A/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1}}
+
+\end{document}

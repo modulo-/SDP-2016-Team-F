@@ -1,0 +1,19 @@
+\newcommand{\llcmdspec}[5]{
+\subsubsection{\texttt{#1}}
+\begin{table}[H]
+\begin{tabularx}{\textwidth}{lX}
+\textbf{Instruction byte:}               & \texttt{#2} \\
+\textbf{Argument bytes:}                 & #3 \\
+\textbf{Argument type(s):}               & \texttt{#4} \\
+\textbf{Action:}                         & #5 \\
+\end{tabularx}
+\end{table}
+}
+
+\subsection{List of Low-Level Commands} \label{llcmd}
+\llcmdspec{MOVE}{0x00}{2}{uint16\_t}{Moves the given distance in mm}
+\llcmdspec{TURN}{0x01}{2}{uint16\_t}{Turns the given angle in degrees +ve is clockwise}
+\llcmdspec{GRABBER\_OPEN}{0x02}{2}{unit16\_t}{Opens the grabbers to the open position, responds with `grabbersOpen'}
+\llcmdspec{GRABBER\_CLOSE}{0x03}{2}{uint16\_t}{Closes the grabbers, responds with `BC' if a ball was caught `NC' if no ball was caught}
+\llcmdspec{KICK}{0x04}{2}{uint16\_t}{Close the grabbers to align the ball, open the grabbers, kick for a time proportional to distance required (in cm), close grabbers}
+\llcmdspec{PING}{0x05}{2}{uint16\_t}{Respond with positions of motors as a formatted string, for debugging purposes}

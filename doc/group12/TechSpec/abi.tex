@@ -1,0 +1,48 @@
+\newcommand{\abispec}[6]{
+\subsubsection{\texttt{#1}}
+\begin{table}[H]
+\begin{tabularx}{\textwidth}{lX}
+\textbf{Instruction byte:}               & \texttt{#2} \\
+\textbf{Argument bytes:}                 & #3 \\
+\textbf{Argument type(s):}               & \texttt{#4} \\
+\textbf{Action:}                         & #5 \\
+\textbf{Low-Level Commands:} & #6 \\
+\end{tabularx}
+\end{table}
+}
+
+\subsection{Instruction ABI}
+
+For communications, the Arduino and the controlling computer share an application binary interface (ABI). The computer sends binary packets of instructions to the Arduino, and the Arduino executes them.
+Packets sent by the computer consist of one or more instructions for the Arduino, supplied in sequence. The first byte of the transmitted instruction data marks the start of the first instruction. 
+Instructions are variable in length, but always begin with one byte identifying the type of the instruction. This is then followed by zero or more bytes of arguments.
+The next instruction starts immediately after the previous.
+
+For example, the binary data \texttt{0x06 02 ff 00} consists of two instructions: \texttt{0x06} and \texttt{0x02 ff 00}.
+\texttt{0x06} is the instruction to open the grabbers, and takes no further arguments. \texttt{0x02} is the instruction to move left or right, and takes two more bytes as its arguments.
+\texttt{0x02 ff 00 06} contains the same instructions, but in a different order. 
+\texttt{0x06 ff 02 00} however has undefined behaviour, as there is no instruction \texttt{0xff}. 
+The instructions of this ABI are documented in the following section.
+
+
+\subsection{List of ABI Commands}
+
+This section outlines the available instructions for the communications ABI, the arguments they take, and the effects they have on the robot.
+A note on the notation for arguments: The arguments are standard C types, and are read from the ABI buffer as such type directly. 
+Since the Arduino is little-endian, \texttt{0x03 29} is 10499 if read as a \texttt{uint16\_t}.
+
+\abispec{MOVE}{0x00}{2}{int16\_t}{Moves the given distance in mm}
+    {Maps one-to-one to the low-level \texttt{MOVE} command}
+\abispec{TURN}{0x01}{2}{int16\_t}
+    {Turns the given angle in degrees, +ve is clockwise}
+    {Maps one-to-one to the low-level \texttt{TURN} command}
+\abispec{GRABBER\_OPEN}{0x02}{0}{\textnormal{\textit{none}}}
+    {Opens the grabbers to the open position, responds with "grabbersOpen"}
+    {Maps one-to-one to the low level \texttt{GRABBER\_OPEN} command}
+\abispec{GRABBER\_CLOSE}{0x03}{2}{\textnormal{\textit{none}}}
+    {Closes the grabbers, responds with "BC" if a ball was caught "NC" if no ball was caught}
+    {Maps directly to low level \texttt{GRABBER\_CLOSE} command}
+\abispec{KICK}{0x04}{2}{uint16\_t}
+    {Close the grabbers to align the ball, open the grabbers, kick for a time proportional to distance required (in cm), close grabbers}
+    {Maps directly to low level \texttt{GRABBER\_CLOSE} command}
+\abispec{PING}{0x06}{0}{\textnormal{\textit{none}}}{Respond with positions of motors as a formatted string, for debugging purposes}{}

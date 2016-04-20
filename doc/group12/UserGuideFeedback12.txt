@@ -1,0 +1,59 @@
+1. Introduction:
+
+Some grammar needs polishing, for example:
+
+"Once ready to use, place a charged batteries in the back holder, "
+
+
+The following paragraph is tricky to read: 
+"
+Plug the RF stick in the computer, ensure top plates of all types, as well as the ball, are on
+the pitch, and execute ‘./main -p <PLAN> -1 <PATH> -c <COLOR>’, there <PLAN> is the plan
+to run (see section below), <PATH> is the device path of the RF stick (e.g. ‘/dev/ttyACM0’),
+and <COLOR> is the team color, which must be one of ‘blue’, ‘b’, ‘yellow’, or ‘y’ respectively.
+Further options notably include the ‘-l’ option, which sets the logging level. E.g. ‘-l info’
+enables info messages in the logger.
+"
+
+Due to its algorithmic nature I sugggest you either bullet point it or detail it as an algorithm.
+
+
+
+1.1 Plans
+
+A tiny bit more detail could help with this section.
+
+
+2. Vision
+
+2.1 Requirements. 
+This seems fine.
+
+
+2.2 Usage
+
+Some of these paragraphs could be made more clear and cut down by bullet pointing commands.
+
+A picture would be helpful here. Labeled screenshot of the vision running. Planning vision linkage should be specified with an FSM like diagram just a paragraph is hard to parse.
+
+
+3 Planning
+
+bullet pointing would help here again and if its not an overkill a labelled picture would help too.
+
+
+
+4 Hardware
+
+
+For this section pictures would definitely assit with the changing battery procedure.
+
+
+
+
+5 Arduino Software
+
+
+"determined by the radius of the wheels * pi * rotation."
+
+Use math mode for this and helpful notation.  For some parts in section 5 (turn for example) you are taking a bit of a tangenton almost the physics of what the turn implies. If I am a user I am mostly interested in output input information . I click "this" then the robot does "this". Examples would help in some parts fof this section.
