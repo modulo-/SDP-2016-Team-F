@@ -47,7 +47,6 @@ There will be a window labelled \texttt{Filter output}, where presenting the vis
 There are two other windows containing several sliders for filters that that can be applied to the feed (see \autoref{fig:filters}) and more advanced options for specific filters (see \autoref{fig:params}). The set of filters available includes masks for specific colours, a manually configurable colour mask, and apply different effects to the frame.
 
 
-
 \begin{figure}[H]
 \centering
 \begin{subfigure}{.5\textwidth}
@@ -65,9 +64,6 @@ There are two other windows containing several sliders for filters that that can
 \caption{GUI Controls}
 \label{fig:sliders}
 \end{figure}
-
-
-
 
 
 When the vision is running, it outputs the coordinates of all found objects, their orientation and velocity relative to the previous taken frame. These objects are returned as a dictionary and passed to the planner. This is achieved by passing a callback method for updating the planner world model when initialising the vision module. This method is called on every vision frame parsed, and it ensures the planner has the latest data.
