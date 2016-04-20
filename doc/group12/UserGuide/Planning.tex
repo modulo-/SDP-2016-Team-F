@@ -15,3 +15,30 @@ and OPTIONS can be --debug Set logging level to 'debug'
 		   --warn  Set logging level to 'warn'
 		   --error Set logging level to 'error'
 and GOAL-END refers to the controlled team's goal end, either 'left' or 'right'
+
+\subsection{Calibrating the planner}
+
+The calculations for pitch geometry in the planner depend on calibrating certain constants in the planner code.
+
+\begin{table}[H]
+  \centering
+  \begin{tabularx}{\textwidth}{l l l}
+    \toprule
+    \textbf{Name} & \textbf{file} & \textbf{Description \\
+    \midrule
+    ROBOT\_WIDTH, ROBOT\_LENGTH & world.py & Dimensions of a standard robot
+    \midrule
+    BALL\_WIDTH, BALL\_LENGTH & world.py & Dimensions of the ball
+    \midrule
+    GOAL\_WIDTH, GOAL\_LENGTH & world.py & Dimensions of the goals
+    \midrule
+    GOAL\_LOWER, GOAL\_HIGHER & world.py & Y value for topmost and bottommost points of goals
+    \midrule
+    [ROBOT].\_receiving\_area & main.py & Dimensions of area in which robot can grab ball
+    \midrule
+    ROTATION\_THRESHOLD, FACING\_ROTATION\_THRESHOLD & models\_attacker.py & Difference for angles in which robot can be considered to be facing a point
+    \midrule
+    GRAB\_DISTANCE & models\_attacker.py & Distance from robot's centre at which the robot should grab the ball
+    \bottomrule
+  \end{tabular}
+\end{table}
