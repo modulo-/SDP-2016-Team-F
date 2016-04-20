@@ -10,10 +10,10 @@ python main.py [-2PATH] OPTIONS TEAM-COLOUR -g GOAL-END
 \end{lstlisting}
 
 where TEAM-COLOUR refers to the colour of the controlled team's top plate and can be either -y or -b (yellow or blue)
-and OPTIONS can be --debug Set logging level to 'debug'
-	   	   --info  Set logging level to 'info'
-		   --warn  Set logging level to 'warn'
-		   --error Set logging level to 'error'
+and OPTIONS can be --debug, Set logging level to 'debug' \\
+	   	   --info,  Set logging level to 'info' \\
+		   --warn,  Set logging level to 'warn' \\
+		   --error, Set logging level to 'error' \\
 and GOAL-END refers to the controlled team's goal end, either 'left' or 'right'
 
 \subsection{Calibrating the planner}
@@ -26,13 +26,13 @@ The calculations for pitch geometry in the planner depend on calibrating certain
 \toprule
 \textbf{Name} & \textbf{File} & \textbf{Description} \\
 \midrule
-\verb|ROBOT_WIDTH|, \verb|ROBOT_LENGTH| & \texttt{world.py} & Dimensions of a standard robot \\
-\verb|BALL_WIDTH|, \verb|BALL_LENGTH| & \texttt{world.py} & Dimensions of the ball \\
-\verb|GOAL_WIDTH|, \verb|GOAL_LENGTH| & \texttt{world.py} & Dimensions of the goals \\
-\verb|GOAL_LOWER|, \verb|GOAL_HIGHER| & \texttt{world.py} & Y value for topmost and bottommost points of goals \\
-\verb|[ROBOT]._receiving_area| & \texttt{main.py} & Dimensions of area in which robot can grab ball \\
-\verb|ROTATION_THRESHOLD|, \verb|FACING_ROTATION_THRESHOLD| &\texttt{models\_attacker.py} & Difference for angles in which robot can be considered to be facing a point \\
-\verb|GRAB_DISTANCE| & \texttt{models\_attacker.py} & Distance from robot's centre at which the robot should grab the ball \\
+\verb|ROBOT_WIDTH|, \verb|ROBOT_LENGTH| & \texttt{world.py} & Dimensions of a standard robot. \\
+\verb|BALL_WIDTH|, \verb|BALL_LENGTH| & \texttt{world.py} & Dimensions of the ball. \\
+\verb|GOAL_WIDTH|, \verb|GOAL_LENGTH| & \texttt{world.py} & Dimensions of the goals. \\
+\verb|GOAL_LOWER|, \verb|GOAL_HIGHER| & \texttt{world.py} & Y value for topmost and bottommost points of goals. \\
+\verb|[ROBOT]._receiving_area| & \texttt{main.py} & Dimensions of area in which robot can grab ball. \\
+\verb|ROTATION_THRESHOLD|, \verb|FACING_ROTATION_THRESHOLD| &\texttt{models\_attacker.py} & Difference for angles in which robot can be considered to be facing a point. \\
+\verb|GRAB_DISTANCE| & \texttt{models\_attacker.py} & Distance from robot's centre at which the robot should grab the ball. \\
 \bottomrule
 \end{tabularx}
 \caption{Planner Configurable Variables}
