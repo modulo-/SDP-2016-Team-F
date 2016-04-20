@@ -1,4 +1,4 @@
-﻿\documentclass[12pt,a4paper]{article}
+\documentclass[12pt,a4paper]{article}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -29,7 +29,7 @@
 \usepackage{booktabs}
 \renewcommand{\arraystretch}{1.3} 
 \renewcommand{\heavyrulewidth}{0.1em} 
-
+\usepackage{enumitem}
 \graphicspath{{images/}}
 
 \author{SDP Group 12}
@@ -43,46 +43,36 @@
 
 %Reports have three purposes: to provide sufficient information to assess your work; to document for the group and yourself your design and what you have done; and to provide useful information for anyone who wants to build on what you have done in future. Reports may contain detailed appendices beyond the page limit, particularly in aid of the last two goals; but markers are not required to read these appendices. A common mistake is to overuse the appendices— figures, tables, or other material that explains your work belongs in the main report, not an appendix. Large illustrations will not count towards the page limits.
 
-\section{Introduction}
+\section{Starting the System}
 
 In order to start the robot: 
 
 \begin{itemize}
     \item place a charged set of batteries in the back holder, and connect it to the Arduino power cable
     \item plug the RF stick in the computer, ensuring all top plates and the ball are on the pitch
-    \item execute `\texttt{./main -p <PLAN> -1 <PATH> -c <COLOR>}', where,
-    \begin{itemize}
-        \item \texttt{<PLAN>} is the plan to run (see section 1.1 below)
-        \item \texttt{<PATH>} is the device path of the RF stick (e.g. `\verb$/dev/ttyACM0$')
-        \item \texttt{<COLOR>} is the team color, which must be either `\texttt{blue}', `\texttt{b}', `\texttt{yellow}', or `\texttt{y}'
+    \item execute `\texttt{python main.py -p <PLAN> -1 <PATH> -c <COLOR> -g <GOAL>}', where,
+    \begin{itemize}[label=$\circ$]
+        \item \texttt{<PLAN>} is the plan to run (see section 1.1 below),
+        \item \texttt{<PATH>} is the device path of the RF stick (e.g. `\verb$/dev/ttyACM0$'),
+        \item \texttt{<COLOR>} is the team color, which must be either `\texttt{blue}', `\texttt{b}', `\texttt{yellow}', or `\texttt{y}',
+        \item \texttt{<GOAL>} is controlled team's goal end, either `\texttt{left}' or \texttt{right}'.
     \end{itemize}
-    \item The optional `\texttt{-l}' option sets the logging level, which can be one of: `\texttt{info}', `\texttt{debug}', `\texttt{warn}' or `\texttt{error}'.
-\end{itemize}
-
-While the control program is running, the overall strategy and logging can be modified. 
-Entering a logging setting and pressing enter, sets the logging level appropriately.
-
-Likewise, entering a plan name and pressing enter switches the running plan to the new plan that has been entered. 
-
-Entering `\texttt{stop}' unsets the active plan and leaves the robot idle.
-
-\subsection{Plans}
-
-A small number of plans are available to run:
-
-\begin{itemize}
-    \item `\texttt{move-grab}', to move to the ball and grab it.
-    \item `\texttt{m1}', to do milestone 3, task 1 (receiving a pass).
-    \item `\texttt{m2}', to do milestone 3, task 2 (receiving, turning and passing).
-    \item `\texttt{m31}', to do milestone 3, task 3.1 (intercepting a pass).
-    \item `\texttt{m32}', to do milestone 3, task 3.2 (defending the goal).
-\end{itemize}
+    \item logging level and verbosity can be set with the following additional options:
+    \begin{itemize}[label=$\circ$]
+        \item `\texttt{--debug}' or `\texttt{-l debug}',
+        \item `\texttt{--info}' or `\texttt{-l info}',
+        \item `\texttt{--warn}' or `\texttt{-l warn}',
+        \item `\texttt{--error}' or `\texttt{-l error}'.
+    \end{itemize}
+    \end{itemize}
 
 
+While the control program is running, the overall strategy and logging can be modified. Entering a plan name and pressing enter switches the running plan to the new plan that has been entered. Entering `\texttt{stop}' unsets the active plan and leaves the robot idle.
 
-\input{Vision}
 
 \input{Planning}
+
+\input{Vision}
 
 \input{Hardware}
 

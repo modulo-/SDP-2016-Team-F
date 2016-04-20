@@ -1,20 +1,17 @@
 \section{Planning}
-\lstset{language=Bash, showstringspaces=false}
 
-\subsection{Running the planner}
+\subsection{Plans}
 
-The planner can be run as part of the system from the command line. This is done using:
+A small number of plans are available to run:
 
-\begin{lstlisting}
-python main.py [-2PATH] OPTIONS TEAM-COLOUR -g GOAL-END
-\end{lstlisting}
+\begin{itemize}
+    \item `\texttt{move-grab}', to move to the ball and grab it.
+    \item `\texttt{m1}', to do milestone 3, task 1 (receiving a pass).
+    \item `\texttt{m2}', to do milestone 3, task 2 (receiving, turning and passing).
+    \item `\texttt{m31}', to do milestone 3, task 3.1 (intercepting a pass).
+    \item `\texttt{m32}', to do milestone 3, task 3.2 (defending the goal).
+\end{itemize}
 
-where TEAM-COLOUR refers to the colour of the controlled team's top plate and can be either -y or -b (yellow or blue)
-and OPTIONS can be --debug, Set logging level to 'debug' \\
-	   	   --info,  Set logging level to 'info' \\
-		   --warn,  Set logging level to 'warn' \\
-		   --error, Set logging level to 'error' \\
-and GOAL-END refers to the controlled team's goal end, either 'left' or 'right'
 
 \subsection{Calibrating the planner}
 
