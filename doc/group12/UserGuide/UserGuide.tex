@@ -45,7 +45,7 @@
 
 \section{Introduction}
 
-Once ready to use, 
+In order to start the robot: 
 
 \begin{itemize}
     \item place a charged set of batteries in the back holder, and connect it to the arduino power cable.
@@ -56,12 +56,8 @@ Once ready to use,
 	\item \texttt{<PATH>} is the device path of the RF stick (e.g. `\verb$/dev/ttyACM0$')
 	\item \texttt{<COLOR>} is the team color, which must be either `\texttt{blue}', `\texttt{b}', `\texttt{yellow}', or `\texttt{y}'
     \end{itemize}
-    \item The `\texttt{-l}' option sets the logging level, which can be one of `\texttt{info}', `\texttt{debug}', `\texttt{warn}' or `\texttt{error}'.
+    \item The optional `\texttt{-l}' parameter sets the logging level, which can be one of `\texttt{info}', `\texttt{debug}', `\texttt{warn}' or `\texttt{error}'.
 \end{itemize}
-
-Further options notably include the 
-option, which sets the logging level. E.g. `\texttt{-l info}' enables info
-messages in the logger.
 
 While the control program is running, the overall strategy and logging can be modified. 
 Entering a logging setting and pressing enter, sets the logging level appropriately.
