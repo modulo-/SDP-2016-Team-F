@@ -12,7 +12,7 @@ There is a low voltage cut-off built into each cell, and the voltage from the ba
 \subsection{Charging}
 The specialised charger (\autoref{fig:charger}) provided can be used to recharge the batteries. If using a different charger, for safety and performance use a charger made for charging 18650 cells and ensure correct polarity.
 
-The batteries should be placed into the charger with the flat side against the spring arm of the charger as shown
+The batteries should be placed into the charger with the flat side against the spring arm of the charger as shown.
 
 The charger shows a progress bar next to each cell. 
 
@@ -40,7 +40,7 @@ The charger shows a progress bar next to each cell.
 
 
 \subsection{Turning the robot on}
-Flip the switch towards the front of the robot the robot will calibrate the grabbers by opening and closing them, then begin listening to commands.
+Flip the switch towards the front of the robot, the robot will calibrate the grabbers by opening and closing them, and will then begin listening to commands.
 
 \section{Arduino Software}
 \subsection{Sending commands}
@@ -99,20 +99,14 @@ Robot not moving-no acknowledgment     &Robot only listening over USB. & Turn ro
 \midrule
 Robot not moving-with acknowledgement  & No power to motor board  & Check connection from power regulator board in middle to motor board on left (black and red wire), check I2C cable from power regulator board to motor board (4 wire cable)
 \\
-\hline
-Robot attacking humans & Robot is self aware  & Attempt to turn off using switch. You must stop it before it finds a long term power source.
-\\
 \midrule
 Robot moving but not kicking  & Kicker signal cable disconnected & Check white 2 wire cable is going into power regulator board into  Left side of furthest back slot on power regulator board. 
 \\
 \midrule
-Robot moving, but not straight, or not stopping & Cannot communicate with rotary encoders& Check for message which says ``cannot communicate with encoder board". This implies the 4 wire I2C connection from power regulator board in middle to encoder board on right is disconnected, check that movement of each wheel and the grabbers can be detected by checking their position with the ping command, check that when commanded each motor is moving, if not the power cable to that motor is damaged 
+Robot moving, but not straight, or not stopping & Cannot communicate with rotary encoders& Check for message which says ``cannot communicate with encoder board". This implies the 4 wire I2C connection from power regulator board in middle to encoder board on right is disconnected, check that movement of each wheel and the grabbers can be detected by checking their position with the ping command, check that when commanded each motor is moving, if not the power cable to that motor is damaged.
 \\
 \midrule
-Robot will not move forward & Something in the way of ultrasound sensor & Check for ``something in the way" message to confirm cause, to solve first check if ultrasound sensor has been displaced or if something has got in way, as a last resort the sensor can be disabled altogether by unplugging it  
-\\
-\midrule 
-Robot occasionally responds to commands, sometimes does whatever it wants & You don't have enough badges to control this robot & You can earn badges by beating gym leaders. 
+Robot will not move forward & Something in the way of ultrasound sensor & Check for ``something in the way" message to confirm cause, to solve first check if ultrasound sensor has been displaced or if something has got in way, as a last resort the sensor can be disabled altogether by unplugging it.
 \\ 
 \bottomrule
 \end{tabularx}
