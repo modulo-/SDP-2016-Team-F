@@ -8,7 +8,7 @@ Start by switching the yellow switch (visible in \autoref{fig:robot_side}) away 
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=\textwidth]{DSC_0148.jpg}
+\includegraphics[width=0.95\textwidth]{DSC_0148.jpg}
 \caption{Side View of Robot}
 \label{fig:robot_side}
 \end{figure}
@@ -26,9 +26,9 @@ The charger shows a progress bar next to each cell.
 
 
 \begin{figure}[H]
-\caption{Specialised Charger With Correctly Oriented Cell}
 \centering
 \includegraphics[width=\textwidth]{DSC_0147.jpg}
+\caption{Specialised Charger With Correctly Oriented Cell}
 \label{fig:charger}
 \end{figure}
 
@@ -80,31 +80,31 @@ The robot accelerates up to the calibrated speed and then maintains that speed u
 
 \subsection{Troubleshooting}
 \begin{table}[H]
-\begin{tabularx}{\textwidth}{ >{\hsize=.25\hsize}X >{\hsize=.25\hsize}X >{\hsize=.5\hsize}X }
+\begin{tabularx}{\textwidth}{ >{\hsize=.5\hsize}X >{\hsize=.5\hsize}X X }
 \toprule
 \textbf{Symptom} &\textbf{Possible Cause} &\textbf{Possible Solution} \\
 \midrule
 Robot not moving, no acknowledgment & No power from battery packs & Ensure cells are:inserted correctly, charged, all present. Check wire from battery packs to power regulator board is connected. Check wire from power regulator board to motor board is connected.
 \\
-\hline
+\midrule
 Robot not moving-no acknowledgment     &Robot only listening over USB. & Turn robot off and on using switch 
 \\
-\hline
+\midrule
 Robot not moving-with acknowledgement  & No power to motor board  & Check connection from power regulator board in middle to motor board on left (black and red wire), check I2C cable from power regulator board to motor board (4 wire cable)
 \\
 \hline
 Robot attacking humans & Robot is self aware  & Attempt to turn off using switch. You must stop it before it finds a long term power source.
 \\
-\hline
+\midrule
 Robot moving but not kicking  & Kicker signal cable disconnected & Check white 2 wire cable is going into power regulator board into  Left side of furthest back slot on power regulator board. 
 \\
-\hline
+\midrule
 Robot moving, but not straight, or not stopping & Cannot communicate with rotary encoders& Check for message which says ``cannot communicate with encoder board". This implies the 4 wire I2C connection from power regulator board in middle to encoder board on right is disconnected, check that movement of each wheel and the grabbers can be detected by checking their position with the ping command, check that when commanded each motor is moving, if not the power cable to that motor is damaged 
 \\
-\hline
+\midrule
 Robot will not move forward & Something in the way of ultrasound sensor & Check for ``something in the way" message to confirm cause, to solve first check if ultrasound sensor has been displaced or if something has got in way, as a last resort the sensor can be disabled altogether by unplugging it  
 \\
-\hline 
+\midrule 
 Robot occasionally responds to commands, sometimes does whatever it wants & You don't have enough badges to control this robot & You can earn badges by beating gym leaders. 
 \\ 
 \bottomrule
