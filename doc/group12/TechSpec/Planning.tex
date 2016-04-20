@@ -141,13 +141,15 @@ By finding the distance of each object from the path and using a constant thresh
 \end{center}
 \end{figure}
 
+The planner also incorporates logic outwith this high level design for obeying specific rules, closing the robot's grabbers after a fixed time open and releasing the ball after a fixed time holding it. These work through communication with the robot and timers running alongside the main planner thread.
+
 \subsection{Implementation}
 
 The attacker robot's goals and their respective actions are explained in \autoref{tbl:goals-actions}.
 The planner chooses a goal based on ball position, as explained in \autoref{tbl:goals}.
 
 \begin{table}[H]
-\centering
+  \centering
 \begin{tabularx}{\textwidth}{l l X}
 \toprule
 \textbf{Goal} & \textbf{Action} & \textbf{Preconditions} \\ 
