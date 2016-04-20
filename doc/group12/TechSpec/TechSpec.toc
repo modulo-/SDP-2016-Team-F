@@ -43,7 +43,7 @@
 \contentsline {section}{\numberline {6}Arduino Software}{12}{section.6}
 \contentsline {subsection}{\numberline {6.1}Main Loop}{12}{subsection.6.1}
 \contentsline {subsection}{\numberline {6.2}Command Set}{12}{subsection.6.2}
-\contentsline {subsection}{\numberline {6.3}Command Response}{12}{subsection.6.3}
+\contentsline {subsection}{\numberline {6.3}Command Response}{13}{subsection.6.3}
 \contentsline {subsection}{\numberline {6.4}Kicking}{13}{subsection.6.4}
 \contentsline {subsection}{\numberline {6.5}Grabbing}{13}{subsection.6.5}
 \contentsline {subsection}{\numberline {6.6}Release}{13}{subsection.6.6}
