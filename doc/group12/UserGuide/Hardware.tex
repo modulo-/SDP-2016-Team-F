@@ -17,22 +17,24 @@ The batteries should be placed into the charger with the flat side against the s
 The charger shows a progress bar next to each cell. 
 
 
-\begin{figure}[H]
+\begin{figure}[hp]
 \centering
-\begin{subfigure}{.5\textwidth}
-\centering
+%\begin{subfigure}{.5\textwidth}
+%\centering
 \includegraphics[width=.95\textwidth]{DSC_0147.jpg}
 \caption{Charger With Correctly Oriented Cell}
 \label{fig:charger}
-\end{subfigure}%
-\begin{subfigure}{.5\textwidth}
+%\end{subfigure}%
+\end{figure}
+\begin{figure}[hp]
+%\begin{subfigure}{.5\textwidth}
 \centering
 \includegraphics[width=.95\textwidth]{DSC_0148.jpg}
 \caption{Side View of Robot}
 \label{fig:robot_side}
-\end{subfigure}
-\caption{Hardware Pictures}
-\label{fig:pics}
+%\end{subfigure}
+%\caption{Hardware Pictures}
+%\label{fig:pics}
 \end{figure}
 
 
@@ -42,9 +44,9 @@ Flip the switch towards the front of the robot the robot will calibrate the grab
 
 \section{Arduino Software}
 \subsection{Sending commands}
-In normal operation the commands should be sent through the planner with the RFComms.py module. 
+In normal operation the commands should be sent through the planner with the \texttt{RFComms.py} module. 
 
-For testing there is a main\_manual.py file which can be used to send individual commands to the robot by following the 
+For testing there is a \texttt{main\_manual.py} file which can be used to send individual commands to the robot by following the 
 prompts, first for which RF stick to use and then a choice of commands. To see the entire command set  with descriptions hit `h' then enter at the prompt. 
 
 
