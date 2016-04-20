@@ -32,17 +32,17 @@ A note on the notation for arguments: The arguments are standard C types, and ar
 Since the Arduino is little-endian, \texttt{0x03 29} is 10499 if read as a \texttt{uint16\_t}.
 
 \abispec{MOVE}{0x00}{2}{int16\_t}{Moves the given distance in mm}
-    {Maps one-to-one to the low-level \textttt{MOVE} command}
+    {Maps one-to-one to the low-level \texttt{MOVE} command}
 \abispec{TURN}{0x01}{2}{int16\_t}
     {Turns the given angle in degrees, +ve is clockwise}
-    {Maps one-to-one to the low-level \textttt{TURN} command}
+    {Maps one-to-one to the low-level \texttt{TURN} command}
 \abispec{GRABBER\_OPEN}{0x02}{0}{\textnormal{\textit{none}}}
     {Opens the grabbers to the open position, responds with "grabbersOpen"}
-    {Maps one-to-one to the low level \textttt{GRABBER\_OPEN} command}
+    {Maps one-to-one to the low level \texttt{GRABBER\_OPEN} command}
 \abispec{GRABBER\_CLOSE}{0x03}{2}{\textnormal{\textit{none}}}
     {Closes the grabbers, responds with "BC" if a ball was caught "NC" if no ball was caught}
-    {Maps directly to low level \texttt{GRABBER_CLOSE} command}
+    {Maps directly to low level \texttt{GRABBER\_CLOSE} command}
 \abispec{KICK}{0x04}{2}{uint16\_t}
     {Close the grabbers to align the ball, open the grabbers, kick for a time proportional to distance required (in cm), close grabbers}
-    {Maps directly to low level \texttt{GRABBER_CLOSE} command}
-\abispec{PING}{0x06}{0}{\textnormal{\textit{none}}}{Respond with positions of motors as a formatted string, for debugging purposes}
+    {Maps directly to low level \texttt{GRABBER\_CLOSE} command}
+\abispec{PING}{0x06}{0}{\textnormal{\textit{none}}}{Respond with positions of motors as a formatted string, for debugging purposes}{}

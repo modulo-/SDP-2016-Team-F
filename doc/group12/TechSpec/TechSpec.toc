@@ -1,52 +1,52 @@
-\contentsline {section}{\numberline {1}Introduction}{2}{section.1}
-\contentsline {subsection}{\numberline {1.1}Work Distribution and Management}{2}{subsection.1.1}
-\contentsline {section}{\numberline {2}Vision}{2}{section.2}
-\contentsline {subsection}{\numberline {2.1}Approach}{2}{subsection.2.1}
-\contentsline {subsection}{\numberline {2.2}Semi-Automatic Calibration}{3}{subsection.2.2}
-\contentsline {subsection}{\numberline {2.3}Manual Calibration}{4}{subsection.2.3}
-\contentsline {section}{\numberline {3}Planning}{4}{section.3}
-\contentsline {subsection}{\numberline {3.1}Design}{4}{subsection.3.1}
-\contentsline {subsection}{\numberline {3.2}Implementation}{5}{subsection.3.2}
-\contentsline {subsection}{\numberline {3.3}Extensibility}{6}{subsection.3.3}
-\contentsline {subsection}{\numberline {3.4}Integration}{7}{subsection.3.4}
-\contentsline {section}{\numberline {4}Communications}{7}{section.4}
-\contentsline {subsection}{\numberline {4.1}Communication Protocol}{7}{subsection.4.1}
-\contentsline {subsection}{\numberline {4.2}List of Low-Level Commands}{8}{subsection.4.2}
-\contentsline {subsubsection}{\numberline {4.2.1}\texttt {MOVE}}{8}{subsubsection.4.2.1}
-\contentsline {subsubsection}{\numberline {4.2.2}\texttt {TURN}}{8}{subsubsection.4.2.2}
-\contentsline {subsubsection}{\numberline {4.2.3}\texttt {GRABBER\_OPEN}}{8}{subsubsection.4.2.3}
-\contentsline {subsubsection}{\numberline {4.2.4}\texttt {GRABBER\_CLOSE}}{8}{subsubsection.4.2.4}
-\contentsline {subsubsection}{\numberline {4.2.5}\texttt {KICK}}{8}{subsubsection.4.2.5}
-\contentsline {subsubsection}{\numberline {4.2.6}\texttt {PING}}{9}{subsubsection.4.2.6}
-\contentsline {section}{\numberline {5}Hardware}{9}{section.5}
-\contentsline {subsection}{\numberline {5.1}Wheelbase}{9}{subsection.5.1}
-\contentsline {subsubsection}{\numberline {5.1.1}Dimensions}{9}{subsubsection.5.1.1}
-\contentsline {subsubsection}{\numberline {5.1.2}Origin}{9}{subsubsection.5.1.2}
-\contentsline {subsubsection}{\numberline {5.1.3}Arrangement}{10}{subsubsection.5.1.3}
-\contentsline {subsubsection}{\numberline {5.1.4}Motors}{10}{subsubsection.5.1.4}
-\contentsline {subsubsection}{\numberline {5.1.5}Wheels}{10}{subsubsection.5.1.5}
-\contentsline {subsubsection}{\numberline {5.1.6}Performance}{10}{subsubsection.5.1.6}
-\contentsline {subsubsection}{\numberline {5.1.7}Design Decisions}{10}{subsubsection.5.1.7}
-\contentsline {subsection}{\numberline {5.2}Front Assembly}{10}{subsection.5.2}
-\contentsline {subsubsection}{\numberline {5.2.1}Description}{10}{subsubsection.5.2.1}
-\contentsline {subsubsection}{\numberline {5.2.2}Design Decisions}{11}{subsubsection.5.2.2}
-\contentsline {subsection}{\numberline {5.3}Kicker}{11}{subsection.5.3}
-\contentsline {subsubsection}{\numberline {5.3.1}Position}{11}{subsubsection.5.3.1}
-\contentsline {subsubsection}{\numberline {5.3.2}Performance}{11}{subsubsection.5.3.2}
-\contentsline {subsubsection}{\numberline {5.3.3}Design Decisions}{11}{subsubsection.5.3.3}
-\contentsline {subsection}{\numberline {5.4}Board and Battery Assembly}{11}{subsection.5.4}
-\contentsline {subsubsection}{\numberline {5.4.1}Structure}{11}{subsubsection.5.4.1}
-\contentsline {subsubsection}{\numberline {5.4.2}Batteries}{11}{subsubsection.5.4.2}
-\contentsline {subsubsection}{\numberline {5.4.3}Connections}{12}{subsubsection.5.4.3}
-\contentsline {subsubsection}{\numberline {5.4.4}Switch}{12}{subsubsection.5.4.4}
-\contentsline {subsection}{\numberline {5.5}Design Decisions}{12}{subsection.5.5}
-\contentsline {section}{\numberline {6}Arduino Software}{12}{section.6}
-\contentsline {subsection}{\numberline {6.1}Main Loop}{12}{subsection.6.1}
-\contentsline {subsection}{\numberline {6.2}Command Set}{12}{subsection.6.2}
-\contentsline {subsection}{\numberline {6.3}Command Response}{12}{subsection.6.3}
-\contentsline {subsection}{\numberline {6.4}Kicking}{13}{subsection.6.4}
-\contentsline {subsection}{\numberline {6.5}Grabbing}{13}{subsection.6.5}
-\contentsline {subsection}{\numberline {6.6}Release}{13}{subsection.6.6}
-\contentsline {subsection}{\numberline {6.7}Turn}{13}{subsection.6.7}
-\contentsline {subsection}{\numberline {6.8}Move}{13}{subsection.6.8}
-\contentsline {section}{\numberline {7}Parts and Costs}{14}{section.7}
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}
+\contentsline {subsection}{\numberline {1.1}Work Distribution and Management}{3}{subsection.1.1}
+\contentsline {section}{\numberline {2}Vision}{3}{section.2}
+\contentsline {subsection}{\numberline {2.1}Approach}{3}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Semi-Automatic Calibration}{4}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Manual Calibration}{5}{subsection.2.3}
+\contentsline {section}{\numberline {3}Planning}{5}{section.3}
+\contentsline {subsection}{\numberline {3.1}Design}{5}{subsection.3.1}
+\contentsline {subsection}{\numberline {3.2}Implementation}{6}{subsection.3.2}
+\contentsline {subsection}{\numberline {3.3}Extensibility}{7}{subsection.3.3}
+\contentsline {subsection}{\numberline {3.4}Integration}{8}{subsection.3.4}
+\contentsline {section}{\numberline {4}Communications}{8}{section.4}
+\contentsline {subsection}{\numberline {4.1}Communication Protocol}{8}{subsection.4.1}
+\contentsline {subsection}{\numberline {4.2}List of Low-Level Commands}{9}{subsection.4.2}
+\contentsline {subsubsection}{\numberline {4.2.1}\texttt {MOVE}}{9}{subsubsection.4.2.1}
+\contentsline {subsubsection}{\numberline {4.2.2}\texttt {TURN}}{9}{subsubsection.4.2.2}
+\contentsline {subsubsection}{\numberline {4.2.3}\texttt {GRABBER\_OPEN}}{9}{subsubsection.4.2.3}
+\contentsline {subsubsection}{\numberline {4.2.4}\texttt {GRABBER\_CLOSE}}{9}{subsubsection.4.2.4}
+\contentsline {subsubsection}{\numberline {4.2.5}\texttt {KICK}}{9}{subsubsection.4.2.5}
+\contentsline {subsubsection}{\numberline {4.2.6}\texttt {PING}}{10}{subsubsection.4.2.6}
+\contentsline {section}{\numberline {5}Hardware}{10}{section.5}
+\contentsline {subsection}{\numberline {5.1}Wheelbase}{10}{subsection.5.1}
+\contentsline {subsubsection}{\numberline {5.1.1}Dimensions}{10}{subsubsection.5.1.1}
+\contentsline {subsubsection}{\numberline {5.1.2}Origin}{10}{subsubsection.5.1.2}
+\contentsline {subsubsection}{\numberline {5.1.3}Arrangement}{11}{subsubsection.5.1.3}
+\contentsline {subsubsection}{\numberline {5.1.4}Motors}{11}{subsubsection.5.1.4}
+\contentsline {subsubsection}{\numberline {5.1.5}Wheels}{11}{subsubsection.5.1.5}
+\contentsline {subsubsection}{\numberline {5.1.6}Performance}{11}{subsubsection.5.1.6}
+\contentsline {subsubsection}{\numberline {5.1.7}Design Decisions}{11}{subsubsection.5.1.7}
+\contentsline {subsection}{\numberline {5.2}Front Assembly}{11}{subsection.5.2}
+\contentsline {subsubsection}{\numberline {5.2.1}Description}{11}{subsubsection.5.2.1}
+\contentsline {subsubsection}{\numberline {5.2.2}Design Decisions}{12}{subsubsection.5.2.2}
+\contentsline {subsection}{\numberline {5.3}Kicker}{12}{subsection.5.3}
+\contentsline {subsubsection}{\numberline {5.3.1}Position}{12}{subsubsection.5.3.1}
+\contentsline {subsubsection}{\numberline {5.3.2}Performance}{12}{subsubsection.5.3.2}
+\contentsline {subsubsection}{\numberline {5.3.3}Design Decisions}{12}{subsubsection.5.3.3}
+\contentsline {subsection}{\numberline {5.4}Board and Battery Assembly}{12}{subsection.5.4}
+\contentsline {subsubsection}{\numberline {5.4.1}Structure}{12}{subsubsection.5.4.1}
+\contentsline {subsubsection}{\numberline {5.4.2}Batteries}{12}{subsubsection.5.4.2}
+\contentsline {subsubsection}{\numberline {5.4.3}Connections}{13}{subsubsection.5.4.3}
+\contentsline {subsubsection}{\numberline {5.4.4}Switch}{13}{subsubsection.5.4.4}
+\contentsline {subsection}{\numberline {5.5}Design Decisions}{13}{subsection.5.5}
+\contentsline {section}{\numberline {6}Arduino Software}{13}{section.6}
+\contentsline {subsection}{\numberline {6.1}Main Loop}{13}{subsection.6.1}
+\contentsline {subsection}{\numberline {6.2}Command Set}{13}{subsection.6.2}
+\contentsline {subsection}{\numberline {6.3}Command Response}{13}{subsection.6.3}
+\contentsline {subsection}{\numberline {6.4}Kicking}{14}{subsection.6.4}
+\contentsline {subsection}{\numberline {6.5}Grabbing}{14}{subsection.6.5}
+\contentsline {subsection}{\numberline {6.6}Release}{14}{subsection.6.6}
+\contentsline {subsection}{\numberline {6.7}Turn}{14}{subsection.6.7}
+\contentsline {subsection}{\numberline {6.8}Move}{14}{subsection.6.8}
+\contentsline {section}{\numberline {7}Parts and Costs}{15}{section.7}
